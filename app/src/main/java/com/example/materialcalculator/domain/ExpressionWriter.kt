@@ -1,5 +1,7 @@
 package com.example.materialcalculator.domain
 
+import java.util.Locale
+
 class ExpressionWriter {
 
     var expression = ""
@@ -9,7 +11,7 @@ class ExpressionWriter {
             CalculatorAction.Calculate -> {
                 val parser = ExpressionParser(prepareForCalculation())
                 val evaluator = ExpressionEvaluator(parser.parse())
-                expression = evaluator.evaluate().toString()
+                expression = formatResult(evaluator.evaluate())
             }
             CalculatorAction.Clear -> {
                 expression = ""
@@ -72,5 +74,10 @@ class ExpressionWriter {
             return expression.isEmpty() || expression.last() in "$operationSymbols()0123456789"
         }
         return expression.isNotEmpty() && expression.last() in "0123456789)"
+    }
+
+    private fun formatResult(value: Double): String {
+        if (value == value.toLong().toDouble()) return value.toLong().toString()
+        return String.format(Locale.ROOT, "%.10f", value).trimEnd('0').trimEnd('.')
     }
 }

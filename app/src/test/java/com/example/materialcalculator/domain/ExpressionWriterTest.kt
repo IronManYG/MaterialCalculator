@@ -47,4 +47,14 @@ class ExpressionWriterTest {
 
         assertThat(writer.expression).isEqualTo("")
     }
+
+    @Test
+    fun `Integer result drops decimal`() {
+        writer.processAction(CalculatorAction.Number(4))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("5")
+    }
 }
