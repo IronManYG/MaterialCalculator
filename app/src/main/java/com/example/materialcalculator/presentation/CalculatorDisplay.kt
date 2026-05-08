@@ -17,6 +17,11 @@ fun CalculatorDisplay(
     expression: String,
     modifier: Modifier = Modifier
 ) {
+    val isError = expression == "Error"
+    val textColor =
+        if (isError) MaterialTheme.colorScheme.error
+        else MaterialTheme.colorScheme.onSecondaryContainer
+
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -26,7 +31,7 @@ fun CalculatorDisplay(
             onValueChange = {},
             textStyle = TextStyle(
                 fontSize = 80.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = textColor,
                 textAlign = TextAlign.End
             ),
             maxLines = 1,
