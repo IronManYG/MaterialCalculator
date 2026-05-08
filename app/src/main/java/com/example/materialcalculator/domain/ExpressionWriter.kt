@@ -9,9 +9,13 @@ class ExpressionWriter {
     fun processAction(action: CalculatorAction) {
         when (action) {
             CalculatorAction.Calculate -> {
-                val parser = ExpressionParser(prepareForCalculation())
-                val evaluator = ExpressionEvaluator(parser.parse())
-                expression = formatResult(evaluator.evaluate())
+                expression = try {
+                    val parser = ExpressionParser(prepareForCalculation())
+                    val result = ExpressionEvaluator(parser.parse()).evaluate()
+                    if (result.isFinite()) formatResult(result) else "Error"
+                } catch (_: Exception) {
+                    "Error"
+                }
             }
             CalculatorAction.Clear -> {
                 expression = ""

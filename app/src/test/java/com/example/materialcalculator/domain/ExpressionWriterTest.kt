@@ -57,4 +57,14 @@ class ExpressionWriterTest {
 
         assertThat(writer.expression).isEqualTo("5")
     }
+
+    @Test
+    fun `Divide by zero yields Error`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("Error")
+    }
 }
