@@ -144,6 +144,7 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
 
 - **Single module, layered packages.** Use the same package structure as the `android-module-structure` skill (core, feature, etc.) but as packages within `:app`, not separate modules.
 - **Git hygiene.** `git add` every new file immediately after creating it. Create meaningful, modular commits at logical checkpoints — don't batch everything into one giant commit.
+- **Branching flow:** `feature/<name>` → `development` → `staging` → `master`. Work happens on `feature/*` branches off `development`; `development` is a destination, not a workspace. `staging` carries release candidates (uses the `staging` build variant with `.staging` applicationIdSuffix); `master` is production-only and ships to Play. **Phase 1 exception:** while clearing the 2026-06-02 dormancy deadline, `development → master` direct is allowed; full 4-branch flow kicks in once GitHub Actions CI is wired in Phase 2.
 
 ## Conventions
 
