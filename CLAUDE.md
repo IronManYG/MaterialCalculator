@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Android calculator app (`com.gaddal.materialcalculator`, namespace `com.example.materialcalculator`). Single-module Gradle project (Groovy DSL), Kotlin 2.0.20, AGP 8.5.1, Jetpack Compose with Material 3, JVM target 17, minSdk 24 / targetSdk 34.
+Android calculator app (`com.gaddal.materialcalculator`, namespace `com.example.materialcalculator`). Single-module Gradle project (Groovy DSL), Kotlin 2.3.10, AGP 8.13.2, Jetpack Compose (BOM 2026.05.00) with Material 3, JVM target 17, minSdk 24 / targetSdk 36.
 
 ## Common commands
 
