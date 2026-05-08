@@ -67,4 +67,20 @@ class ExpressionWriterTest {
 
         assertThat(writer.expression).isEqualTo("Error")
     }
+
+    @Test
+    fun `Error clears on next input`() {
+        // Trigger error
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Calculate)
+        // Sanity: we are in error state
+        assertThat(writer.expression).isEqualTo("Error")
+
+        // Pressing a digit should start a fresh expression
+        writer.processAction(CalculatorAction.Number(7))
+
+        assertThat(writer.expression).isEqualTo("7")
+    }
 }

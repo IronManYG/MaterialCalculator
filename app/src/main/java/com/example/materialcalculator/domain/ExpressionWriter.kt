@@ -7,6 +7,9 @@ class ExpressionWriter {
     var expression = ""
 
     fun processAction(action: CalculatorAction) {
+        if (expression == "Error" && action !is CalculatorAction.Calculate) {
+            expression = ""
+        }
         when (action) {
             CalculatorAction.Calculate -> {
                 expression = try {
