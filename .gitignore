@@ -15,3 +15,7 @@
 local.properties
 
 .superpowers/
+
+# JVM crash dumps (pid-named — not tied to a specific run)
+hs_err_pid*.log
+replay_pid*.log
