@@ -71,6 +71,6 @@ class ExpressionWriter {
         if (operation in listOf(Operation.ADD, Operation.SUBTRACT)) {
             return expression.isEmpty() || expression.last() in "$operationSymbols()0123456789"
         }
-        return expression.isNotEmpty() || expression.last() in "0123456789)"
+        return expression.isNotEmpty() && expression.last() in "0123456789)"
     }
 }

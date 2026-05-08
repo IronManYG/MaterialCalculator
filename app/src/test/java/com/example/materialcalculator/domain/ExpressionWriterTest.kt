@@ -40,4 +40,11 @@ class ExpressionWriterTest {
 
         assertThat(writer.expression).isEqualTo("(6)")
     }
+
+    @Test
+    fun `Cannot start with multiply`() {
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+
+        assertThat(writer.expression).isEqualTo("")
+    }
 }
