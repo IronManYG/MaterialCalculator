@@ -126,9 +126,11 @@ All three pieces live in `domain/ExpressionWriter.kt`. No Compose-layer logic ch
 ```kotlin
 private fun formatResult(value: Double): String {
     if (value == value.toLong().toDouble()) return value.toLong().toString()  // 5.0 → "5"
-    return "%.10f".format(value).trimEnd('0').trimEnd('.')                    // 1.5000... → "1.5"
+    return String.format(Locale.ROOT, "%.10f", value).trimEnd('0').trimEnd('.')  // 1.5000... → "1.5"
 }
 ```
+
+Note: `Locale.ROOT` is required so non-en locales don't produce comma-decimal results (e.g. `"1,5"`) that would break the parser when the result feeds back as the next input.
 
 - 10-decimal cap matches stock Android calculator's display budget.
 - No thousands separators — they would break the parser when the result becomes the next input.
