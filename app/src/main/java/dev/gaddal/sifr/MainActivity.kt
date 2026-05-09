@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
-import dev.gaddal.sifr.feature.calculator.ui.CalculatorRoot
+import dev.gaddal.sifr.navigation.NavRoot
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SifrTheme {
-                CalculatorRoot()
+                NavRoot()
             }
         }
     }
