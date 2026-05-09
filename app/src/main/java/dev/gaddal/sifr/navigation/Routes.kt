@@ -8,3 +8,6 @@ data object CalculatorRoute : NavKey
 
 @Serializable
 data object SettingsRoute : NavKey
+
+@Serializable
+data object HistoryRoute : NavKey
