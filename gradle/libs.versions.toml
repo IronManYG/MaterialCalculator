@@ -15,6 +15,9 @@ lifecycleRuntimeCompose = "2.10.0"
 lifecycleViewmodelCompose = "2.10.0"
 materialViews = "1.13.0"
 
+# DI
+koin = "4.2.1"
+
 # Test
 junit = "4.13.2"
 kotlinxCoroutines = "1.11.0"
@@ -43,6 +46,11 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3WindowSizeClass" }
+
+# Koin
+koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

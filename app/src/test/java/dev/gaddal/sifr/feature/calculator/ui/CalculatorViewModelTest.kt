@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import dev.gaddal.sifr.core.ui.util.MainDispatcherRule
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
+import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
 import dev.gaddal.sifr.feature.calculator.domain.Operation
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -16,7 +17,7 @@ class CalculatorViewModelTest {
 
     @Test
     fun `Initial state has empty expression`() = runTest {
-        val viewModel = CalculatorViewModel()
+        val viewModel = CalculatorViewModel(ExpressionWriter())
 
         viewModel.state.test {
             assertThat(awaitItem().expression).isEqualTo("")
@@ -25,7 +26,7 @@ class CalculatorViewModelTest {
 
     @Test
     fun `Number action appends digit to expression`() = runTest {
-        val viewModel = CalculatorViewModel()
+        val viewModel = CalculatorViewModel(ExpressionWriter())
 
         viewModel.onAction(CalculatorAction.Number(5))
 
@@ -34,7 +35,7 @@ class CalculatorViewModelTest {
 
     @Test
     fun `Calculate produces result`() = runTest {
-        val viewModel = CalculatorViewModel()
+        val viewModel = CalculatorViewModel(ExpressionWriter())
 
         viewModel.onAction(CalculatorAction.Number(2))
         viewModel.onAction(CalculatorAction.Op(Operation.ADD))
@@ -46,7 +47,7 @@ class CalculatorViewModelTest {
 
     @Test
     fun `Calculate while in Error state stays Error`() = runTest {
-        val viewModel = CalculatorViewModel()
+        val viewModel = CalculatorViewModel(ExpressionWriter())
 
         // Trigger Error state via division by zero
         viewModel.onAction(CalculatorAction.Number(5))
