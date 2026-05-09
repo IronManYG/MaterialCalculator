@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 2.1 — Brand Shortlist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #fafaf9;
+      --surface:   #ffffff;
+      --ink:       #1a1a1a;
+      --ink-soft:  #5a5a5a;
+      --line:      #e5e5e5;
+      --accent:    #2563eb;
+
+      --raqam:  #6366f1;  /* indigo  */
+      --hasib:  #0d9488;  /* teal    */
+      --sifr:   #db2777;  /* magenta */
+      --jabr:   #ea580c;  /* orange  */
+
+      --pro:    #16a34a;
+      --con:    #dc2626;
+
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --ar:   'Noto Sans Arabic', "Geeza Pro", "Tahoma", sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #0f0f10;
+        --surface:  #1a1a1c;
+        --ink:      #f5f5f4;
+        --ink-soft: #a1a1aa;
+        --line:     #2a2a2e;
+        --accent:   #60a5fa;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+    h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; }
+    h2 { font-size: 18px; font-weight: 600; margin: 32px 0 12px; letter-spacing: -0.01em; }
+    h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+    p  { margin: 0 0 12px; color: var(--ink-soft); }
+    .lede { font-size: 15px; color: var(--ink-soft); max-width: 820px; }
+    .meta { font-size: 12px; color: var(--ink-soft); font-family: var(--mono); margin-top: 8px; }
+
+    /* Scope banner */
+    .scope {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 24px 0 32px;
+      padding: 16px 20px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+    .scope h3 { margin-bottom: 8px; }
+    .scope ul { margin: 0; padding-left: 18px; }
+    .scope li { color: var(--ink-soft); font-size: 14px; padding: 1px 0; }
+    .scope .col.out h3 { color: var(--con); }
+    .scope .col.in  h3 { color: var(--pro); }
+
+    /* Decision criteria */
+    .criteria {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      margin: 0 0 32px;
+    }
+    .crit {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 13px;
+    }
+    .crit b { display: block; margin-bottom: 2px; }
+
+    /* Brand grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px)  { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card.raqam { border-top-color: var(--raqam); }
+    .card.hasib { border-top-color: var(--hasib); }
+    .card.sifr  { border-top-color: var(--sifr);  }
+    .card.jabr  { border-top-color: var(--jabr);  }
+
+    .name {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .name .latin {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .name .arabic {
+      font-family: var(--ar);
+      font-size: 30px;
+      font-weight: 600;
+      direction: rtl;
+      unicode-bidi: isolate;
+    }
+    .pron {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: -8px;
+    }
+
+    .row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: start; font-size: 13px; }
+    .row b { color: var(--ink-soft); font-weight: 500; font-size: 12px; padding-top: 1px; }
+    .row code { font-family: var(--mono); font-size: 12.5px; color: var(--ink); background: var(--bg); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+
+    .label {
+      padding: 10px 12px;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .label .en { font-weight: 600; }
+    .label .ar { font-family: var(--ar); font-size: 18px; direction: rtl; unicode-bidi: isolate; display: block; margin-top: 4px; }
+    .label .note { font-size: 11px; color: var(--ink-soft); margin-top: 4px; font-family: var(--mono); }
+
+    .vibe {
+      font-style: italic;
+      color: var(--ink);
+      font-size: 13.5px;
+      padding: 10px 12px;
+      border-left: 3px solid var(--ink-soft);
+      background: var(--bg);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .lists { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .lists ul { margin: 0; padding-left: 16px; font-size: 12.5px; line-height: 1.5; }
+    .lists li { padding: 2px 0; }
+    .lists .pros li { color: var(--pro); }
+    .lists .cons li { color: var(--con); }
+    .lists .pros li span,
+    .lists .cons li span { color: var(--ink); }
+    .lists h3 { font-size: 11px; }
+
+    .tagline {
+      padding: 10px 12px;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Score bars */
+    .scores { display: grid; gap: 4px; padding: 10px 12px; background: var(--bg); border-radius: 6px; }
+    .score-row { display: grid; grid-template-columns: 90px 1fr 28px; gap: 6px; align-items: center; font-size: 11px; }
+    .score-row .lbl { color: var(--ink-soft); }
+    .score-row .bar { background: var(--line); height: 6px; border-radius: 3px; overflow: hidden; }
+    .score-row .bar > span { display: block; height: 100%; border-radius: 3px; }
+    .score-row .num { font-family: var(--mono); text-align: right; color: var(--ink); }
+    .raqam .bar > span { background: var(--raqam); }
+    .hasib .bar > span { background: var(--hasib); }
+    .sifr  .bar > span { background: var(--sifr);  }
+    .jabr  .bar > span { background: var(--jabr);  }
+
+    /* Notes block */
+    .notes {
+      margin-top: 32px;
+      padding: 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .notes h2 { margin-top: 0; }
+    .notes ul { padding-left: 20px; color: var(--ink-soft); font-size: 14px; }
+    .notes li { padding: 3px 0; }
+    .notes code { font-family: var(--mono); font-size: 12.5px; background: var(--bg); padding: 2px 6px; border-radius: 4px; color: var(--ink); }
+
+    .next {
+      margin-top: 32px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(219,39,119,0.08));
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .next h2 { margin-top: 0; }
+    .next ol { padding-left: 22px; font-size: 14px; }
+    .next li { padding: 4px 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Phase 2.1 — Brand Shortlist</h1>
+  <p class="lede">Four Arabic-rooted candidates for the namespace rename. The decision is creative-then-technical: pick a name, then everything else (namespace, app label EN/AR, marketing copy) follows mechanically.</p>
+  <p class="meta">docs/explore/phase2.1-brand-shortlist.html · 2026-05-09 · throwaway artifact, distil winning choice into spec</p>
+
+  <div class="scope">
+    <div class="col in">
+      <h3>In scope (Phase 2.1)</h3>
+      <ul>
+        <li>Kotlin <code>namespace</code> (com.example.materialcalculator → dev.gaddal.&lt;brand&gt;)</li>
+        <li>User-visible app label (English + Arabic via <code>values-ar/</code>)</li>
+        <li>Package directory tree under <code>app/src/*/java/</code></li>
+        <li>All <code>import com.example.materialcalculator...</code> rewrites</li>
+        <li>Constants.kt source-set duplicates (debug/staging/release)</li>
+      </ul>
+    </div>
+    <div class="col out">
+      <h3>Out of scope</h3>
+      <ul>
+        <li><code>applicationId</code> — STAYS <code>com.gaddal.materialcalculator</code> (preserves Play listing)</li>
+        <li>Logo redesign (separate effort)</li>
+        <li>Play Store screenshots (regenerated in Phase 2.6)</li>
+        <li>Play Store listing copy (separate marketing pass)</li>
+        <li>Domain registration / website</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Decision criteria</h2>
+  <div class="criteria">
+    <div class="crit"><b>Memorability</b>Easy to recall, easy to spell.</div>
+    <div class="crit"><b>Cross-script</b>Reads cleanly in Latin AND Arabic script.</div>
+    <div class="crit"><b>Brand-ability</b>Distinctive vs descriptive — search-friendly.</div>
+    <div class="crit"><b>Cultural depth</b>Resonates in MENA market, not generic.</div>
+    <div class="crit"><b>Namespace fit</b>Short, lowercase-clean, no awkward chars.</div>
+  </div>
+
+  <h2>Candidates</h2>
+  <div class="grid">
+
+    <!-- ============ RAQAM ============ -->
+    <div class="card raqam">
+      <div class="name">
+        <span class="latin">Raqam</span>
+        <span class="arabic">رقم</span>
+      </div>
+      <div class="pron">/ˈra.qam/ · "RAH-qam"</div>
+
+      <div class="row"><b>Meaning</b><span>"Number / digit / numeral" — the written symbol.</span></div>
+      <div class="row"><b>Namespace</b><code>dev.gaddal.raqam</code></div>
+
+      <div class="label">
+        <div class="en">App label: Raqam</div>
+        <span class="ar">رقم</span>
+        <div class="note">EN label = Latin transliteration · AR label = native Arabic word</div>
+      </div>
+
+      <div class="vibe">Clean, abstract, distinctive. Maps directly to what the app is — "the thing you make numbers with."</div>
+
+      <div class="lists">
+        <div class="pros">
+          <h3>Pros</h3>
+          <ul>
+            <li><span>Short, single concept</span></li>
+            <li><span>Reads native in both scripts</span></li>
+            <li><span>Modern, brand-able feel</span></li>
+            <li><span>Direct to function</span></li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h3>Cons / Risks</h3>
+          <ul>
+            <li><span>'q' can feel awkward in Latin</span></li>
+            <li><span>Generic in MENA app stores (search test needed)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scores">
+        <div class="score-row"><span class="lbl">Memorability</span><span class="bar"><span style="width: 90%"></span></span><span class="num">9</span></div>
+        <div class="score-row"><span class="lbl">Cross-script</span><span class="bar"><span style="width: 95%"></span></span><span class="num">10</span></div>
+        <div class="score-row"><span class="lbl">Brand-ability</span><span class="bar"><span style="width: 85%"></span></span><span class="num">8.5</span></div>
+        <div class="score-row"><span class="lbl">Cultural depth</span><span class="bar"><span style="width: 70%"></span></span><span class="num">7</span></div>
+        <div class="score-row"><span class="lbl">Namespace fit</span><span class="bar"><span style="width: 90%"></span></span><span class="num">9</span></div>
+      </div>
+
+      <div class="tagline">"Just numbers. Done well."</div>
+    </div>
+
+    <!-- ============ HASIB ============ -->
+    <div class="card hasib">
+      <div class="name">
+        <span class="latin">Hasib</span>
+        <span class="arabic">حاسب</span>
+      </div>
+      <div class="pron">/ˈħaː.sib/ · "HAA-sib"</div>
+
+      <div class="row"><b>Meaning</b><span>"One who calculates / reckoner / accountant" — the agent.</span></div>
+      <div class="row"><b>Namespace</b><code>dev.gaddal.hasib</code></div>
+
+      <div class="label">
+        <div class="en">App label: Hasib</div>
+        <span class="ar">حاسب</span>
+        <div class="note">⚠ Hasiba (حاسبة) is the modern Arabic for "calculator device" — Hasib is the agent form. Native speakers may find Hasiba more natural for an app, but it's harder to brand in Latin.</div>
+      </div>
+
+      <div class="vibe">Descriptive, professional, on-the-nose. Names the app exactly for what it is.</div>
+
+      <div class="lists">
+        <div class="pros">
+          <h3>Pros</h3>
+          <ul>
+            <li><span>Self-describing in Arabic</span></li>
+            <li><span>Professional, trustworthy tone</span></li>
+            <li><span>Easy MENA market recognition</span></li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h3>Cons / Risks</h3>
+          <ul>
+            <li><span>"Hasiba" is the more natural device noun</span></li>
+            <li><span>Feels descriptive over distinctive</span></li>
+            <li><span>Common Arabic word — SEO crowded</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scores">
+        <div class="score-row"><span class="lbl">Memorability</span><span class="bar"><span style="width: 75%"></span></span><span class="num">7.5</span></div>
+        <div class="score-row"><span class="lbl">Cross-script</span><span class="bar"><span style="width: 80%"></span></span><span class="num">8</span></div>
+        <div class="score-row"><span class="lbl">Brand-ability</span><span class="bar"><span style="width: 55%"></span></span><span class="num">5.5</span></div>
+        <div class="score-row"><span class="lbl">Cultural depth</span><span class="bar"><span style="width: 70%"></span></span><span class="num">7</span></div>
+        <div class="score-row"><span class="lbl">Namespace fit</span><span class="bar"><span style="width: 88%"></span></span><span class="num">8.8</span></div>
+      </div>
+
+      <div class="tagline">"The reckoner in your pocket."</div>
+    </div>
+
+    <!-- ============ SIFR ============ -->
+    <div class="card sifr">
+      <div class="name">
+        <span class="latin">Sifr</span>
+        <span class="arabic">صفر</span>
+      </div>
+      <div class="pron">/sˤifr/ · "SIH-fr"</div>
+
+      <div class="row"><b>Meaning</b><span>"Zero" — the foundational mathematical concept.</span></div>
+      <div class="row"><b>Namespace</b><code>dev.gaddal.sifr</code></div>
+
+      <div class="label">
+        <div class="en">App label: Sifr</div>
+        <span class="ar">صفر</span>
+        <div class="note">"Sifr" is the root of the English word "cipher" — Arabic mathematics → European algebra → modern computing</div>
+      </div>
+
+      <div class="vibe">Mathematically iconic. Carries a thousand years of cultural-historical weight in four letters.</div>
+
+      <div class="lists">
+        <div class="pros">
+          <h3>Pros</h3>
+          <ul>
+            <li><span>Iconic — "zero" is THE math concept</span></li>
+            <li><span>Strong story to tell (cipher etymology)</span></li>
+            <li><span>Short, distinctive, sticky</span></li>
+            <li><span>Punchy in both scripts</span></li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h3>Cons / Risks</h3>
+          <ul>
+            <li><span>Consonant cluster "sfr" — hard for non-Arabic speakers</span></li>
+            <li><span>"Zero" might confuse first-time users</span></li>
+            <li><span>Risk of irony ("Sifr crashed") in copy</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scores">
+        <div class="score-row"><span class="lbl">Memorability</span><span class="bar"><span style="width: 85%"></span></span><span class="num">8.5</span></div>
+        <div class="score-row"><span class="lbl">Cross-script</span><span class="bar"><span style="width: 80%"></span></span><span class="num">8</span></div>
+        <div class="score-row"><span class="lbl">Brand-ability</span><span class="bar"><span style="width: 90%"></span></span><span class="num">9</span></div>
+        <div class="score-row"><span class="lbl">Cultural depth</span><span class="bar"><span style="width: 100%"></span></span><span class="num">10</span></div>
+        <div class="score-row"><span class="lbl">Namespace fit</span><span class="bar"><span style="width: 92%"></span></span><span class="num">9.2</span></div>
+      </div>
+
+      <div class="tagline">"Begin from Sifr. Build to anything."</div>
+    </div>
+
+    <!-- ============ JABR ============ -->
+    <div class="card jabr">
+      <div class="name">
+        <span class="latin">Jabr</span>
+        <span class="arabic">جبر</span>
+      </div>
+      <div class="pron">/d͡ʒabr/ · "JAH-br"</div>
+
+      <div class="row"><b>Meaning</b><span>"Restoration / completion" — the literal root of "algebra".</span></div>
+      <div class="row"><b>Namespace</b><code>dev.gaddal.jabr</code></div>
+
+      <div class="label">
+        <div class="en">App label: Jabr</div>
+        <span class="ar">جبر</span>
+        <div class="note">From al-Khwarizmi's <i>Kitab al-Jabr</i> (820 CE) — the book that invented algebra and gave it its name</div>
+      </div>
+
+      <div class="vibe">Historically resonant. A nod to the foundational text of computational mathematics, in four letters.</div>
+
+      <div class="lists">
+        <div class="pros">
+          <h3>Pros</h3>
+          <ul>
+            <li><span>Direct line to math heritage</span></li>
+            <li><span>Recognizable in tech / academic circles</span></li>
+            <li><span>Short, punchy, single syllable</span></li>
+            <li><span>Story-rich for marketing</span></li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h3>Cons / Risks</h3>
+          <ul>
+            <li><span>"Algebra" framing oversells a basic calculator</span></li>
+            <li><span>Modern Arabic "jabr" also means "force/coercion"</span></li>
+            <li><span>Niche — needs marketing to land the meaning</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scores">
+        <div class="score-row"><span class="lbl">Memorability</span><span class="bar"><span style="width: 80%"></span></span><span class="num">8</span></div>
+        <div class="score-row"><span class="lbl">Cross-script</span><span class="bar"><span style="width: 88%"></span></span><span class="num">8.8</span></div>
+        <div class="score-row"><span class="lbl">Brand-ability</span><span class="bar"><span style="width: 85%"></span></span><span class="num">8.5</span></div>
+        <div class="score-row"><span class="lbl">Cultural depth</span><span class="bar"><span style="width: 95%"></span></span><span class="num">9.5</span></div>
+        <div class="score-row"><span class="lbl">Namespace fit</span><span class="bar"><span style="width: 90%"></span></span><span class="num">9</span></div>
+      </div>
+
+      <div class="tagline">"From al-Khwarizmi to your pocket."</div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <h2>Cross-cutting notes</h2>
+    <ul>
+      <li><b>Namespace pattern:</b> All four use the simple form <code>dev.gaddal.&lt;brand&gt;</code>. A nested form like <code>dev.gaddal.calculator.&lt;brand&gt;</code> would be over-engineered for a single-app project — added depth costs grep-ability without benefit.</li>
+      <li><b>App-label localization:</b> Default <code>app_name</code> in <code>res/values/strings.xml</code> uses the Latin transliteration. <code>res/values-ar/strings.xml</code> uses the Arabic script. Android automatically picks based on device locale.</li>
+      <li><b>What does NOT change:</b> <code>applicationId</code> stays <code>com.gaddal.materialcalculator</code> — Play Store URL, install base, ratings all preserved. Anyone who already has the app installed will see the new label after the next update; the package on disk stays the same.</li>
+      <li><b>Logo:</b> Each brand suggests a different visual language. Raqam → numerals; Sifr → circular/zero motifs; Jabr → manuscript/historical aesthetic; Hasib → professional/abacus. Logo design is a separate effort once the name lands.</li>
+      <li><b>Trademark / search check:</b> Before locking, the chosen name should be searched on Play Store, App Store, and Google for collisions. Quick test, must happen before the spec is final.</li>
+      <li><b>Domain availability:</b> If a marketing site is in the long-term plan, check <code>&lt;brand&gt;.app</code>, <code>get&lt;brand&gt;.app</code>, <code>&lt;brand&gt;calc.com</code> at decision time. Out of Phase 2.1 scope but worth knowing if the chosen name has an obvious blocker.</li>
+    </ul>
+  </div>
+
+  <div class="next">
+    <h2>Next steps</h2>
+    <ol>
+      <li>You pick a brand from the four (or refine — write-ins still welcome).</li>
+      <li>Quick Play Store search for collisions on the chosen name.</li>
+      <li>I distil the winning choice into <code>docs/superpowers/specs/2026-05-09-phase2.1-namespace-rename.md</code> with locked scope, file-rename matrix, verification matrix, rollback strategy.</li>
+      <li>Then the matching atomic-task plan in <code>docs/superpowers/plans/2026-05-09-phase2.1-namespace-rename.md</code>.</li>
+      <li>Spec + plan land via PR (or commit-to-current-branch) — execution is a separate session.</li>
+    </ol>
+  </div>
+
+</div>
+</body>
+</html>
