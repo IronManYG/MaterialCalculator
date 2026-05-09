@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.ui.theme
+package dev.gaddal.sifr.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dev.gaddal.sifr.presentation.CalculatorScreen
-import dev.gaddal.sifr.ui.theme.SifrTheme
+import dev.gaddal.sifr.core.ui.theme.SifrTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
