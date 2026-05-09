@@ -2,10 +2,12 @@ package dev.gaddal.sifr.feature.calculator.ui
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
 import dev.gaddal.sifr.core.data.history.HistoryRepository
 import dev.gaddal.sifr.core.domain.history.HistoryEntry
 import dev.gaddal.sifr.core.ui.util.MainDispatcherRule
+import dev.gaddal.sifr.core.ui.util.UiText
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
 import dev.gaddal.sifr.feature.calculator.domain.Operation
@@ -31,11 +33,13 @@ class CalculatorViewModelTest {
     )
 
     @Test
-    fun `Initial state has empty expression`() = runTest {
+    fun `Initial state has empty expression and no error`() = runTest {
         val viewModel = newViewModel()
 
         viewModel.state.test {
-            assertThat(awaitItem().expression).isEqualTo("")
+            val initial = awaitItem()
+            assertThat(initial.expression).isEqualTo("")
+            assertThat(initial.error).isNull()
         }
     }
 
@@ -58,23 +62,55 @@ class CalculatorViewModelTest {
         viewModel.onAction(CalculatorAction.Calculate)
 
         assertThat(viewModel.state.value.expression).isEqualTo("5")
+        assertThat(viewModel.state.value.error).isNull()
     }
 
     @Test
-    fun `Calculate while in Error state stays Error`() = runTest {
+    fun `Divide by zero surfaces localized error in state`() = runTest {
         val viewModel = newViewModel()
 
-        // Trigger Error state via division by zero
         viewModel.onAction(CalculatorAction.Number(5))
         viewModel.onAction(CalculatorAction.Op(Operation.DIVIDE))
         viewModel.onAction(CalculatorAction.Number(0))
         viewModel.onAction(CalculatorAction.Calculate)
-        assertThat(viewModel.state.value.expression).isEqualTo("Error")
 
-        // Pressing = again should not crash and should remain in Error state
+        val s = viewModel.state.value
+        assertThat(s.error).isEqualTo(
+            UiText.StringResource(R.string.calc_error_division_by_zero)
+        )
+    }
+
+    @Test
+    fun `Calculate while in error state keeps error and does not crash`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(5))
+        viewModel.onAction(CalculatorAction.Op(Operation.DIVIDE))
+        viewModel.onAction(CalculatorAction.Number(0))
+        viewModel.onAction(CalculatorAction.Calculate)
+        // Sanity
+        assertThat(viewModel.state.value.error).isNotNull()
+
         viewModel.onAction(CalculatorAction.Calculate)
 
-        assertThat(viewModel.state.value.expression).isEqualTo("Error")
+        assertThat(viewModel.state.value.error).isNotNull()
+    }
+
+    @Test
+    fun `Next digit after error clears error`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(5))
+        viewModel.onAction(CalculatorAction.Op(Operation.DIVIDE))
+        viewModel.onAction(CalculatorAction.Number(0))
+        viewModel.onAction(CalculatorAction.Calculate)
+        assertThat(viewModel.state.value.error).isNotNull()
+
+        viewModel.onAction(CalculatorAction.Number(7))
+
+        val s = viewModel.state.value
+        assertThat(s.error).isNull()
+        assertThat(s.expression).isEqualTo("7")
     }
 
     @Test
@@ -91,7 +127,7 @@ class CalculatorViewModelTest {
     }
 
     @Test
-    fun `Calculate on Error does not write history`() = runTest {
+    fun `Calculate on error does not write history`() = runTest {
         val history = FakeHistoryRepository()
         val viewModel = newViewModel(history = history)
 
