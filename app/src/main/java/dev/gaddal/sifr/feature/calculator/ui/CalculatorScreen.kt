@@ -84,6 +84,7 @@ fun CalculatorScreen(
             ) {
                 CalculatorDisplay(
                     expression = state.expression,
+                    error = state.error,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(

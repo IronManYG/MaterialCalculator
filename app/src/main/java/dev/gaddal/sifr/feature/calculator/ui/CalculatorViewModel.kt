@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
 import dev.gaddal.sifr.core.data.history.HistoryRepository
+import dev.gaddal.sifr.core.domain.util.onFailure
+import dev.gaddal.sifr.core.domain.util.onSuccess
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
 import kotlinx.coroutines.channels.Channel
@@ -45,15 +47,19 @@ class CalculatorViewModel(
     private fun applyToWriter(action: CalculatorAction) {
         val pre = writer.expression
         writer.processAction(action)
-        val post = writer.expression
-        _state.update { it.copy(expression = post) }
-        if (action == CalculatorAction.Calculate &&
-            post != "Error" &&
-            pre.isNotBlank() &&
-            pre != post
-        ) {
-            viewModelScope.launch { historyRepository.add(pre, post) }
-        }
+            .onSuccess {
+                val post = writer.expression
+                _state.update { it.copy(expression = post, error = null) }
+                if (action == CalculatorAction.Calculate &&
+                    pre.isNotBlank() &&
+                    pre != post
+                ) {
+                    viewModelScope.launch { historyRepository.add(pre, post) }
+                }
+            }
+            .onFailure { error ->
+                _state.update { it.copy(error = error.toUiText()) }
+            }
     }
 
     private fun emit(event: CalculatorEvent) {

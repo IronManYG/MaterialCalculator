@@ -1,52 +1,73 @@
 package dev.gaddal.sifr.feature.calculator.domain
 
+import dev.gaddal.sifr.core.domain.util.EmptyResult
+import dev.gaddal.sifr.core.domain.util.Result
 import java.util.Locale
 
 class ExpressionWriter {
 
     var expression = ""
+        private set
 
-    fun processAction(action: CalculatorAction) {
-        if (expression == "Error" && action !is CalculatorAction.Calculate) {
+    private var lastWasError = false
+
+    fun processAction(action: CalculatorAction): EmptyResult<CalcError> {
+        if (lastWasError && action !is CalculatorAction.Calculate) {
             expression = ""
+            lastWasError = false
         }
-        when (action) {
-            CalculatorAction.Calculate -> {
-                expression = try {
-                    val parser = ExpressionParser(prepareForCalculation())
-                    val result = ExpressionEvaluator(parser.parse()).evaluate()
-                    if (result.isFinite()) formatResult(result) else "Error"
-                } catch (_: Exception) {
-                    "Error"
-                }
-            }
+        return when (action) {
+            CalculatorAction.Calculate -> calculate()
             CalculatorAction.Clear -> {
                 expression = ""
+                Result.Success(Unit)
             }
             CalculatorAction.Decimal -> {
-                if (canEnterDecimal()) {
-                    expression += "."
-                }
+                if (canEnterDecimal()) expression += "."
+                Result.Success(Unit)
             }
             CalculatorAction.Delete -> {
                 expression = expression.dropLast(1)
+                Result.Success(Unit)
             }
             is CalculatorAction.Number -> {
                 expression += action.number
+                Result.Success(Unit)
             }
             is CalculatorAction.Op -> {
-                if (canEnterOperation(action.operation)) {
-                    expression += action.operation.symbol
-                }
+                if (canEnterOperation(action.operation)) expression += action.operation.symbol
+                Result.Success(Unit)
             }
             CalculatorAction.Parentheses -> {
                 processParentheses()
+                Result.Success(Unit)
             }
-            CalculatorAction.SettingsClicked -> Unit // navigation action; handled by the ViewModel
-            CalculatorAction.HistoryClicked -> Unit // navigation action; handled by the ViewModel
+            CalculatorAction.SettingsClicked -> Result.Success(Unit)
+            CalculatorAction.HistoryClicked -> Result.Success(Unit)
             is CalculatorAction.RestoreExpression -> {
                 expression = action.value
+                Result.Success(Unit)
             }
+        }
+    }
+
+    private fun calculate(): EmptyResult<CalcError> {
+        if (lastWasError) {
+            return Result.Error(CalcError.INVALID_EXPRESSION)
+        }
+        return try {
+            val parser = ExpressionParser(prepareForCalculation())
+            val result = ExpressionEvaluator(parser.parse()).evaluate()
+            if (result.isFinite()) {
+                expression = formatResult(result)
+                Result.Success(Unit)
+            } else {
+                lastWasError = true
+                Result.Error(CalcError.DIVISION_BY_ZERO)
+            }
+        } catch (_: Exception) {
+            lastWasError = true
+            Result.Error(CalcError.INVALID_EXPRESSION)
         }
     }
 
