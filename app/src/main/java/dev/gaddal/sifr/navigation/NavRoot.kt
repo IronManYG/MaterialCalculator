@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import dev.gaddal.sifr.feature.calculator.ui.CalculatorRoot
+import dev.gaddal.sifr.feature.history.ui.HistoryRoot
 import dev.gaddal.sifr.feature.settings.ui.SettingsRoot
 
 @Composable
@@ -15,10 +16,16 @@ fun NavRoot() {
         onBack = { backStack.removeLastOrNull() },
         entryProvider = entryProvider {
             entry<CalculatorRoute> {
-                CalculatorRoot(onNavigateToSettings = { backStack.add(SettingsRoute) })
+                CalculatorRoot(
+                    onNavigateToSettings = { backStack.add(SettingsRoute) },
+                    onNavigateToHistory = { backStack.add(HistoryRoute) },
+                )
             }
             entry<SettingsRoute> {
                 SettingsRoot(onNavigateBack = { backStack.removeLastOrNull() })
+            }
+            entry<HistoryRoute> {
+                HistoryRoot(onNavigateBack = { backStack.removeLastOrNull() })
             }
         },
     )

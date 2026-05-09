@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,12 +39,14 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun CalculatorRoot(
     onNavigateToSettings: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     viewModel: CalculatorViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             CalculatorEvent.NavigateToSettings -> onNavigateToSettings()
+            CalculatorEvent.NavigateToHistory -> onNavigateToHistory()
         }
     }
     CalculatorScreen(
@@ -87,16 +91,27 @@ fun CalculatorScreen(
                             horizontal = 16.dp
                         )
                 )
-                IconButton(
-                    onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
+                Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.calc_open_settings),
-                    )
+                    IconButton(
+                        onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.History,
+                            contentDescription = stringResource(R.string.calc_open_history),
+                        )
+                    }
+                    IconButton(
+                        onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.calc_open_settings),
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

@@ -13,4 +13,17 @@
 
     <!-- Calculator screen -->
     <string name="calc_open_settings">Open settings</string>
+    <string name="calc_open_history">Open history</string>
+
+    <!-- History screen -->
+    <string name="history_title">History</string>
+    <string name="history_back">Back</string>
+    <string name="history_clear_all">Clear all</string>
+    <string name="history_clear_confirm_title">Clear history?</string>
+    <string name="history_clear_confirm_message">This will permanently remove all entries.</string>
+    <string name="history_clear_confirm_yes">Clear</string>
+    <string name="history_clear_confirm_cancel">Cancel</string>
+    <string name="history_delete_entry">Delete entry</string>
+    <string name="history_empty_title">No history yet</string>
+    <string name="history_empty_body">Calculations you finish with = will appear here.</string>
 </resources>

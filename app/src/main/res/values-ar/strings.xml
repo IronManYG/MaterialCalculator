@@ -14,4 +14,17 @@
 
     <!-- Calculator screen -->
     <string name="calc_open_settings">فتح الإعدادات</string>
+    <string name="calc_open_history">فتح السجل</string>
+
+    <!-- History screen -->
+    <string name="history_title">السجل</string>
+    <string name="history_back">رجوع</string>
+    <string name="history_clear_all">مسح الكل</string>
+    <string name="history_clear_confirm_title">مسح السجل؟</string>
+    <string name="history_clear_confirm_message">سيؤدي ذلك إلى إزالة جميع الإدخالات نهائيًا.</string>
+    <string name="history_clear_confirm_yes">مسح</string>
+    <string name="history_clear_confirm_cancel">إلغاء</string>
+    <string name="history_delete_entry">حذف الإدخال</string>
+    <string name="history_empty_title">لا يوجد سجل بعد</string>
+    <string name="history_empty_body">ستظهر هنا الحسابات التي تنهيها بـ =.</string>
 </resources>
