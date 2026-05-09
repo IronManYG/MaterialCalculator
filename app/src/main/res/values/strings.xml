@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Sifr</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_theme_section">Theme</string>
+    <string name="settings_theme_system">Follow system</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_haptics">Haptics</string>
+    <string name="settings_sound">Sound</string>
+
+    <!-- Calculator screen -->
+    <string name="calc_open_settings">Open settings</string>
 </resources>

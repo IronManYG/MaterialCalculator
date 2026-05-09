@@ -8,4 +8,5 @@ sealed interface CalculatorAction {
     object Parentheses: CalculatorAction
     object Calculate: CalculatorAction
     object Decimal: CalculatorAction
+    data object SettingsClicked: CalculatorAction
 }
