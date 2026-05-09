@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Android calculator app (`com.gaddal.materialcalculator`, namespace `com.example.materialcalculator`). Single-module Gradle project (Groovy DSL), Kotlin 2.3.10, AGP 8.13.2, Jetpack Compose (BOM 2026.05.00) with Material 3, JVM target 17, minSdk 24 / targetSdk 36.
+Android calculator app (`com.gaddal.materialcalculator`, namespace `com.example.materialcalculator`). Single-module Gradle project (Kotlin DSL with version catalog at `gradle/libs.versions.toml`), Kotlin 2.3.21, AGP 9.2.1, Gradle 9.5.0, JDK 21 toolchain (declarative via `gradle/gradle-daemon-jvm.properties`), Jetpack Compose (BOM 2026.05.00) with Material 3, JVM target 17, minSdk 24 / targetSdk 36.
 
 ## Common commands
 
@@ -40,7 +40,7 @@ Three build types: `debug`, `staging`, `release`. Staging and release both have 
 
 Per-variant `Constants.kt` lives under `app/src/{debug,staging,release}/java/com/example/materialcalculator/Constants.kt` and currently holds a `BASE_URL`. When adding variant-specific config, follow this source-set pattern rather than build-config fields.
 
-`local.properties` (gitignored) must define `keystore.file`, `keystore.password`, `keystore.alias`, `keystore.alias_password` — `app/build.gradle` reads these unconditionally at configuration time, so even debug-only builds will fail if the file is missing or malformed. If you only need a debug build on a fresh checkout, supply dummy values for those four keys.
+`local.properties` (gitignored) defines `keystore.file`, `keystore.password`, `keystore.alias`, `keystore.alias_password` for release signing. `app/build.gradle.kts` wraps the read in `runCatching`, so missing or malformed `local.properties` (or just missing the `keystore.*` keys) only blocks release/staging signed builds — debug builds work without the keystore lines as long as `sdk.dir` (or `ANDROID_HOME` env var) is present.
 
 ## Architecture
 
