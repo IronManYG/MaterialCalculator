@@ -144,7 +144,11 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
 
 - **Single module, layered packages.** Use the same package structure as the `android-module-structure` skill (core, feature, etc.) but as packages within `:app`, not separate modules.
 - **Git hygiene.** `git add` every new file immediately after creating it. Create meaningful, modular commits at logical checkpoints — don't batch everything into one giant commit.
-- **Branching flow:** `feature/<name>` → `development` → `staging` → `master`. Work happens on `feature/*` branches off `development`; `development` is a destination, not a workspace. `staging` carries release candidates (uses the `staging` build variant with `.staging` applicationIdSuffix); `master` is production-only and ships to Play. **Phase 1 exception:** while clearing the 2026-06-02 dormancy deadline, `development → master` direct is allowed; full 4-branch flow kicks in once GitHub Actions CI is wired in Phase 2.
+- **Branching flow:** `feature/<name>` → `development` → `staging` → `master`. Work happens on `feature/*` branches off `development`; `development` is a destination, not a workspace. `staging` carries release candidates (uses the `staging` build variant with `.staging` applicationIdSuffix); `master` is production-only and ships to Play. **Phase 1 exception (resolved 2026-05-09 with v1.2.0):** `development → master` direct was allowed during the dormancy crunch; full 4-branch flow kicks in once GitHub Actions CI is wired in Phase 2.
+- **Document format policy (hybrid HTML + Markdown):**
+  - **HTML** for brainstorm explorations (multi-option comparisons, mockup grids, interactive design tuners), code-review explainers attached to PRs, one-shot reports / summaries, and any artifact whose primary value is visual side-by-side comparison or two-way interaction. Output to `docs/explore/<topic>.html`. Throwaway by design — not all of these belong in version control.
+  - **Markdown** for `PLAN.md`, `SPEC.md`, `CLAUDE.md`, `README.md`, PR descriptions, commit messages, and anything else that is amended during execution, diffed in PRs, or read by Claude as authoritative project context. Markdown wins where edit-ability and reviewable diffs matter.
+  - **Pipeline:** brainstorm in HTML → distill the chosen direction into Markdown PLAN/SPEC → execute against the Markdown plan. The HTML brainstorm artifact can be referenced from the Markdown plan but is not the source of truth for execution.
 
 ## Conventions
 
