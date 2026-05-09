@@ -1,11 +1,11 @@
-package dev.gaddal.sifr.presentation
+package dev.gaddal.sifr.feature.calculator.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import dev.gaddal.sifr.domain.CalculatorAction
-import dev.gaddal.sifr.domain.Operation
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
+import dev.gaddal.sifr.feature.calculator.domain.Operation
 
 val calculatorActions = listOf(
     CalculatorUiAction(

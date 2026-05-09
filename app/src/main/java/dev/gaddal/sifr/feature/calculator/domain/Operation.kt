@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.domain
+package dev.gaddal.sifr.feature.calculator.domain
 
 enum class Operation(val symbol: Char) {
     ADD('+'),

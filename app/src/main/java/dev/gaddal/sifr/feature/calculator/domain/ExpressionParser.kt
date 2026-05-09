@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.domain
+package dev.gaddal.sifr.feature.calculator.domain
 
 class ExpressionParser(
     private val calculation: String

@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.domain
+package dev.gaddal.sifr.feature.calculator.domain
 
 sealed interface CalculatorAction {
     data class Number(val number: Int): CalculatorAction

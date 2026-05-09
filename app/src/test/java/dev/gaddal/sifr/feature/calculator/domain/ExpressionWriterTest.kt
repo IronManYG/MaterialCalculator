@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.domain
+package dev.gaddal.sifr.feature.calculator.domain
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before

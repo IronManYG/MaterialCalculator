@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.ui.theme
+package dev.gaddal.sifr.core.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
