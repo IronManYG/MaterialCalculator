@@ -111,6 +111,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // Material3 pinned outside the BOM — BOM may resolve to a 1.4.0-alpha
     implementation(libs.androidx.compose.material3)
