@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import dev.gaddal.sifr.MainActivity
+import dev.gaddal.sifr.feature.calculator.ui.CalculatorViewModel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

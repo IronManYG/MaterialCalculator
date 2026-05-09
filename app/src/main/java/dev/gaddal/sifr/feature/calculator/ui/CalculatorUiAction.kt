@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.presentation
+package dev.gaddal.sifr.feature.calculator.ui
 
 import androidx.compose.runtime.Composable
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction

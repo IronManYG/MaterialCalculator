@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.presentation
+package dev.gaddal.sifr.feature.calculator.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

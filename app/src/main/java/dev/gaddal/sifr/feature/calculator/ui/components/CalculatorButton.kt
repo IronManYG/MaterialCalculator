@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import dev.gaddal.sifr.presentation.CalculatorUiAction
-import dev.gaddal.sifr.presentation.HighlightLevel
+import dev.gaddal.sifr.feature.calculator.ui.CalculatorUiAction
+import dev.gaddal.sifr.feature.calculator.ui.HighlightLevel
 
 @Composable
 fun CalculatorButton(

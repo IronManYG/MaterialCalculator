@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
-import dev.gaddal.sifr.presentation.CalculatorUiAction
+import dev.gaddal.sifr.feature.calculator.ui.CalculatorUiAction
 
 @Composable
 fun CalculatorButtonGrid(

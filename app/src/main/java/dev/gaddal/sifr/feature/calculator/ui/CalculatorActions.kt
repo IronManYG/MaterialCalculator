@@ -1,4 +1,4 @@
-package dev.gaddal.sifr.presentation
+package dev.gaddal.sifr.feature.calculator.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
