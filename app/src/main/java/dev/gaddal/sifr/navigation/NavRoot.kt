@@ -14,8 +14,12 @@ fun NavRoot() {
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         entryProvider = entryProvider {
-            entry<CalculatorRoute> { CalculatorRoot() }
-            entry<SettingsRoute> { SettingsRoot(onNavigateBack = { backStack.removeLastOrNull() }) }
+            entry<CalculatorRoute> {
+                CalculatorRoot(onNavigateToSettings = { backStack.add(SettingsRoute) })
+            }
+            entry<SettingsRoute> {
+                SettingsRoot(onNavigateBack = { backStack.removeLastOrNull() })
+            }
         },
     )
 }
