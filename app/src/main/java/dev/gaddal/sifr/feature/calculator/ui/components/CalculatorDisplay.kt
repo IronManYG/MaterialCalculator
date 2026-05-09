@@ -11,15 +11,17 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import dev.gaddal.sifr.core.ui.util.UiText
 
 @Composable
 fun CalculatorDisplay(
     expression: String,
+    error: UiText?,
     modifier: Modifier = Modifier
 ) {
-    val isError = expression == "Error"
+    val text = error?.asString() ?: expression
     val textColor =
-        if (isError) MaterialTheme.colorScheme.error
+        if (error != null) MaterialTheme.colorScheme.error
         else MaterialTheme.colorScheme.onSecondaryContainer
 
     Box(
@@ -27,7 +29,7 @@ fun CalculatorDisplay(
         contentAlignment = Alignment.Center
     ) {
         BasicTextField(
-            value = expression,
+            value = text,
             onValueChange = {},
             textStyle = TextStyle(
                 fontSize = 80.sp,

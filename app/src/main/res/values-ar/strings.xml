@@ -15,6 +15,8 @@
     <!-- Calculator screen -->
     <string name="calc_open_settings">فتح الإعدادات</string>
     <string name="calc_open_history">فتح السجل</string>
+    <string name="calc_error_division_by_zero">لا يمكن القسمة على صفر</string>
+    <string name="calc_error_invalid_expression">صيغة غير صالحة</string>
 
     <!-- History screen -->
     <string name="history_title">السجل</string>

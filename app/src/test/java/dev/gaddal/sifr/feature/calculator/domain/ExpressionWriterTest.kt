@@ -1,6 +1,7 @@
 package dev.gaddal.sifr.feature.calculator.domain
 
 import com.google.common.truth.Truth.assertThat
+import dev.gaddal.sifr.core.domain.util.Result
 import org.junit.Before
 import org.junit.Test
 
@@ -59,28 +60,42 @@ class ExpressionWriterTest {
     }
 
     @Test
-    fun `Divide by zero yields Error`() {
+    fun `Divide by zero returns DIVISION_BY_ZERO error`() {
         writer.processAction(CalculatorAction.Number(5))
         writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
         writer.processAction(CalculatorAction.Number(0))
-        writer.processAction(CalculatorAction.Calculate)
+        val result = writer.processAction(CalculatorAction.Calculate)
 
-        assertThat(writer.expression).isEqualTo("Error")
+        assertThat(result).isEqualTo(Result.Error(CalcError.DIVISION_BY_ZERO))
     }
 
     @Test
-    fun `Error clears on next input`() {
+    fun `Error clears on next non-Calculate input`() {
+        // Trigger error
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(0))
+        val errorResult = writer.processAction(CalculatorAction.Calculate)
+        assertThat(errorResult).isInstanceOf(Result.Error::class.java)
+
+        // Pressing a digit should start a fresh expression
+        val nextResult = writer.processAction(CalculatorAction.Number(7))
+
+        assertThat(nextResult).isEqualTo(Result.Success(Unit))
+        assertThat(writer.expression).isEqualTo("7")
+    }
+
+    @Test
+    fun `Calculate after error stays in error state`() {
         // Trigger error
         writer.processAction(CalculatorAction.Number(5))
         writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
         writer.processAction(CalculatorAction.Number(0))
         writer.processAction(CalculatorAction.Calculate)
-        // Sanity: we are in error state
-        assertThat(writer.expression).isEqualTo("Error")
 
-        // Pressing a digit should start a fresh expression
-        writer.processAction(CalculatorAction.Number(7))
+        // Pressing = again should yield another error, not crash
+        val again = writer.processAction(CalculatorAction.Calculate)
 
-        assertThat(writer.expression).isEqualTo("7")
+        assertThat(again).isInstanceOf(Result.Error::class.java)
     }
 }
