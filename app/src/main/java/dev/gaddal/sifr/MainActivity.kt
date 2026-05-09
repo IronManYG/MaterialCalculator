@@ -7,10 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
-import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.navigation.NavRoot
-import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
@@ -19,10 +18,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val settingsRepo: SettingsRepository = koinInject()
-            val themeMode by settingsRepo.observe()
-                .map { it.themeMode }
-                .collectAsStateWithLifecycle(initialValue = ThemeMode.System)
-            SifrTheme(themeMode = themeMode) {
+            val settings by settingsRepo.observe()
+                .collectAsStateWithLifecycle(initialValue = AppSettings())
+            SifrTheme(themeMode = settings.themeMode) {
                 NavRoot()
             }
         }
