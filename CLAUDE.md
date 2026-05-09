@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Android calculator app (`com.gaddal.materialcalculator`, namespace `com.example.materialcalculator`). Single-module Gradle project (Kotlin DSL with version catalog at `gradle/libs.versions.toml`), Kotlin 2.3.21, AGP 9.2.1, Gradle 9.5.0, JDK 21 toolchain (declarative via `gradle/gradle-daemon-jvm.properties`), Jetpack Compose (BOM 2026.05.00) with Material 3, JVM target 17, minSdk 24 / targetSdk 36.
+Sifr (Arabic: صفر, "zero") — Android calculator app (`com.gaddal.materialcalculator`, namespace `dev.gaddal.sifr`). `applicationId` is intentionally distinct from `namespace` and stays at `com.gaddal.materialcalculator` to preserve the live Play Store listing from v1.2.0; only the Kotlin namespace was rebranded in Phase 2.1. Single-module Gradle project (Kotlin DSL with version catalog at `gradle/libs.versions.toml`), Kotlin 2.3.21, AGP 9.2.1, Gradle 9.5.0, JDK 21 toolchain (declarative via `gradle/gradle-daemon-jvm.properties`), Jetpack Compose (BOM 2026.05.00) with Material 3, JVM target 17, minSdk 24 / targetSdk 36.
 
 ## Common commands
 
@@ -15,7 +15,7 @@ Use the wrapper (`./gradlew` on bash, `.\gradlew.bat` on PowerShell). All comman
 - Install on connected device: `./gradlew :app:installDebug`
 - Unit tests (JVM, all variants): `./gradlew test`
 - Unit tests, single variant: `./gradlew :app:testDebugUnitTest`
-- Run a single unit test class: `./gradlew :app:testDebugUnitTest --tests "com.example.materialcalculator.domain.ExpressionEvaluatorTest"`
+- Run a single unit test class: `./gradlew :app:testDebugUnitTest --tests "dev.gaddal.sifr.domain.ExpressionEvaluatorTest"`
 - Run a single test method: `./gradlew :app:testDebugUnitTest --tests "*.ExpressionEvaluatorTest.Simple expression properly evaluated"`
 - Instrumented tests (needs emulator/device): `./gradlew :app:connectedDebugAndroidTest`
 - Lint: `./gradlew :app:lintDebug`
@@ -38,7 +38,7 @@ Pattern syntax is glob (`*`), not regex. Add `--beta` or `--canary` to include p
 
 Three build types: `debug`, `staging`, `release`. Staging and release both have `minifyEnabled true` with the same ProGuard rules; staging adds applicationIdSuffix `.staging` so it can be installed alongside release.
 
-Per-variant `Constants.kt` lives under `app/src/{debug,staging,release}/java/com/example/materialcalculator/Constants.kt` and currently holds a `BASE_URL`. When adding variant-specific config, follow this source-set pattern rather than build-config fields.
+Per-variant `Constants.kt` lives under `app/src/{debug,staging,release}/java/dev/gaddal/sifr/Constants.kt` and currently holds a `BASE_URL`. When adding variant-specific config, follow this source-set pattern rather than build-config fields.
 
 `local.properties` (gitignored) defines `keystore.file`, `keystore.password`, `keystore.alias`, `keystore.alias_password` for release signing. `app/build.gradle.kts` wraps the read in `runCatching`, so missing or malformed `local.properties` (or just missing the `keystore.*` keys) only blocks release/staging signed builds — debug builds work without the keystore lines as long as `sdk.dir` (or `ANDROID_HOME` env var) is present.
 
