@@ -1,18 +1,23 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
+
+def keystorePropertiesFile = rootProject.file("local.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
     namespace 'com.example.materialcalculator'
-    compileSdk 32
+    compileSdk 36
 
     defaultConfig {
-        applicationId "com.example.materialcalculator"
-        minSdk 21
-        targetSdk 32
-        versionCode 1
-        versionName "1.0"
+        applicationId "com.gaddal.materialcalculator"
+        minSdk 24
+        targetSdk 36
+        versionCode 5
+        versionName "1.2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -20,24 +25,36 @@ android {
         }
     }
 
-    buildTypes {
+    signingConfigs {
         release {
-            minifyEnabled false
+            storeFile file(keystoreProperties['keystore.file'])
+            storePassword keystoreProperties['keystore.password']
+            keyAlias keystoreProperties['keystore.alias']
+            keyPassword keystoreProperties['keystore.alias_password']
+        }
+    }
+
+    buildTypes {
+        staging {
+            applicationIdSuffix ".staging"
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     buildFeatures {
         compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.1.1'
     }
     packagingOptions {
         resources {
@@ -48,16 +65,35 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation 'androidx.activity:activity-compose:1.3.1'
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation 'androidx.compose.material3:material3:1.0.0-alpha02'
+    implementation 'androidx.core:core-ktx:1.18.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.10.0'
+    implementation 'androidx.activity:activity-compose:1.13.0'
+
+    // Compose BOM — pins all androidx.compose.* artifacts to a coherent set
+    implementation platform('androidx.compose:compose-bom:2026.05.00')
+    androidTestImplementation platform('androidx.compose:compose-bom:2026.05.00')
+
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    implementation 'androidx.compose.material:material-icons-core'
+
+    // Material3 pinned outside the BOM — BOM may resolve to a 1.4.0-alpha
+    implementation 'androidx.compose.material3:material3:1.4.0'
+    implementation 'androidx.compose.material3:material3-window-size-class:1.3.2'
+
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0'
+    implementation 'com.google.android.material:material:1.13.0'
+
+    // Unit tests
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+    testImplementation 'androidx.test:core:1.7.0'
+    testImplementation 'androidx.arch.core:core-testing:2.2.0'
+    testImplementation 'com.google.truth:truth:1.4.5'
+
+    // Instrumented tests
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 }

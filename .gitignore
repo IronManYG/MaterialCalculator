@@ -13,3 +13,15 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+.superpowers/
+
+# Claude Code local settings
+.claude/
+
+# Kotlin compiler caches and session metadata
+.kotlin/
+
+# JVM crash dumps (pid-named — not tied to a specific run)
+hs_err_pid*.log
+replay_pid*.log
