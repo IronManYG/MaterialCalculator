@@ -1,10 +1,6 @@
-package dev.gaddal.sifr.domain
+package dev.gaddal.sifr.feature.calculator.domain
 
 import com.google.common.truth.Truth.assertThat
-import dev.gaddal.sifr.feature.calculator.domain.ExpressionParser
-import dev.gaddal.sifr.feature.calculator.domain.ExpressionPart
-import dev.gaddal.sifr.feature.calculator.domain.Operation
-import dev.gaddal.sifr.feature.calculator.domain.ParenthesesType
 import org.junit.Test
 
 class ExpressionParserTest {
