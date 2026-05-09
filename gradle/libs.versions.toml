@@ -17,6 +17,8 @@ materialViews = "1.13.0"
 
 # Test
 junit = "4.13.2"
+kotlinxCoroutines = "1.11.0"
+turbine = "1.2.1"
 truth = "1.4.5"
 testCore = "1.7.0"
 archCoreTesting = "2.2.0"
@@ -44,6 +46,8 @@ androidx-compose-material3-windowSizeClass = { group = "androidx.compose.materia
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 google-truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "testCore" }
 androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
