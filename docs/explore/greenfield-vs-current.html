@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MaterialCalculator — Greenfield vs Current</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #161a22;
+    --surface-2: #1d2230;
+    --border: #2a3142;
+    --text: #e6e9ef;
+    --text-dim: #97a0b3;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --indigo: #818cf8;
+    --pink: #f472b6;
+    --code: #c5cad6;
+    --primary: #6366f1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 15px;
+  }
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px 96px; }
+  header { margin-bottom: 48px; }
+  h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--text-dim); font-size: 16px; margin: 0; }
+  .meta { display: flex; gap: 20px; margin-top: 16px; color: var(--text-dim); font-size: 13px; flex-wrap: wrap; }
+  .meta span { padding: 4px 10px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
+
+  h2 {
+    font-size: 22px;
+    margin: 56px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 { font-size: 16px; margin: 24px 0 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    overflow: hidden;
+  }
+  .card.current { border-left: 3px solid var(--amber); }
+  .card.greenfield { border-left: 3px solid var(--green); }
+  .card h4 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+  }
+  .card.current h4::before { content: "● "; color: var(--amber); }
+  .card.greenfield h4::before { content: "● "; color: var(--green); }
+
+  pre {
+    margin: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--code);
+  }
+  .tree-pkg { color: var(--indigo); }
+  .tree-file { color: var(--text); }
+  .tree-comment { color: var(--text-dim); }
+  .tree-new { color: var(--green); }
+  .tree-old { color: var(--amber); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  thead th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.current { color: var(--amber); }
+  td.greenfield { color: var(--green); }
+  td code, p code { background: var(--surface-2); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--code); }
+  .effort-S { color: var(--green); }
+  .effort-M { color: var(--amber); }
+  .effort-L { color: var(--red); }
+
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+    text-align: center;
+  }
+  .flow svg { max-width: 100%; height: auto; }
+
+  .phase-list { list-style: none; padding: 0; margin: 0; counter-reset: phase; }
+  .phase-list li {
+    counter-increment: phase;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: 8px;
+    padding: 16px 20px 16px 56px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .phase-list li::before {
+    content: "2." counter(phase, decimal-leading-zero);
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    color: var(--primary);
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .phase-list li::before { content: "2." counter(phase) ""; }
+  .phase-list li[data-phase]::before { content: attr(data-phase); }
+  .phase-list strong { display: block; margin-bottom: 4px; }
+  .phase-list small { color: var(--text-dim); }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; font-size: 13px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .legend i.amber { background: var(--amber); }
+  .legend i.green { background: var(--green); }
+  .legend i.indigo { background: var(--indigo); }
+
+  .stays-same {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--indigo);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 16px;
+  }
+  .stays-same h4 { margin: 0 0 8px; color: var(--indigo); font-size: 14px; }
+  .stays-same ul { margin: 0; padding-left: 20px; color: var(--text-dim); font-size: 14px; }
+  .stays-same li { margin-bottom: 4px; }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  footer a { color: var(--indigo); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>MaterialCalculator — Greenfield vs Current</h1>
+  <p class="subtitle">Side-by-side visual diff of the Phase 2 greenfield design against the live (Phase 1) implementation.</p>
+  <div class="meta">
+    <span>Date: 2026-05-09</span>
+    <span>Spec: <code>docs/superpowers/specs/2026-05-09-greenfield-design.md</code></span>
+    <span>Phase: 2 (post-dormancy)</span>
+  </div>
+</header>
+
+<h2>1 · Package layout</h2>
+
+<div class="legend">
+  <span><i class="amber"></i>Current (Phase 1, on Play Store)</span>
+  <span><i class="green"></i>Greenfield (Phase 2 target)</span>
+  <span><i class="indigo"></i>Cross-feature contract in <code>core/</code></span>
+</div>
+
+<div class="grid-2">
+  <div class="card current">
+    <h4>Current — flat domain/presentation split</h4>
+<pre><span class="tree-pkg">com.example.materialcalculator/</span>
+├── <span class="tree-pkg">domain/</span>
+│   ├── <span class="tree-file">CalculatorAction.kt</span>
+│   ├── <span class="tree-file">ExpressionEvaluator.kt</span>
+│   ├── <span class="tree-file">ExpressionParser.kt</span>
+│   ├── <span class="tree-file">ExpressionPart.kt</span>
+│   ├── <span class="tree-file">ExpressionWriter.kt</span>
+│   └── <span class="tree-file">Operation.kt</span>
+├── <span class="tree-pkg">presentation/</span>
+│   ├── <span class="tree-file">CalculatorActions.kt</span>
+│   ├── <span class="tree-file">CalculatorButton.kt</span>
+│   ├── <span class="tree-file">CalculatorButtonGrid.kt</span>
+│   ├── <span class="tree-file">CalculatorDisplay.kt</span>
+│   ├── <span class="tree-file">CalculatorScreen.kt</span>
+│   └── <span class="tree-file">CalculatorViewModel.kt</span>
+├── <span class="tree-pkg">ui/theme/</span>
+│   ├── <span class="tree-file">Color.kt</span>
+│   ├── <span class="tree-file">Theme.kt</span>
+│   └── <span class="tree-file">Type.kt</span>
+└── <span class="tree-file">MainActivity.kt</span>
+<span class="tree-comment">
+# State: single `expression: String`
+# No DI, no nav, no settings, no history
+# Build: Groovy DSL, no version catalog</span></pre>
+  </div>
+
+  <div class="card greenfield">
+    <h4>Greenfield — feature-folder + core</h4>
+<pre><span class="tree-pkg">dev.gaddal.&lt;brand&gt;/</span>
+├── <span class="tree-pkg">core/</span>
+│   ├── <span class="tree-pkg">data/</span>{database,datastore,history,settings,di}
+│   ├── <span class="tree-pkg">domain/</span>{history,settings,util}
+│   └── <span class="tree-pkg">ui/</span>{theme,component,util}
+├── <span class="tree-pkg">feature/</span>
+│   ├── <span class="tree-pkg">calculator/</span>
+│   │   ├── <span class="tree-pkg">domain/</span>          <span class="tree-comment">(existing engine)</span>
+│   │   ├── <span class="tree-pkg">ui/</span> <span class="tree-comment">(MVI: State/Action/Event/VM/Root/Screen)</span>
+│   │   └── <span class="tree-pkg">di/</span>
+│   ├── <span class="tree-new">settings/</span>           <span class="tree-comment">(NEW)</span>
+│   │   ├── data/, ui/, di/
+│   └── <span class="tree-new">history/</span>            <span class="tree-comment">(NEW)</span>
+│       ├── data/, ui/, di/
+├── <span class="tree-new">navigation/</span>           <span class="tree-comment">(NEW — Nav3)</span>
+├── <span class="tree-new">di/appModule.kt</span>       <span class="tree-comment">(NEW)</span>
+├── <span class="tree-new">App.kt</span>                <span class="tree-comment">(NEW — Koin start)</span>
+└── <span class="tree-file">MainActivity.kt</span>
+<span class="tree-comment">
+# State: per-feature `State` data class with errorMessage: UiText?
+# Koin DI, Navigation 3, DataStore + Room
+# Build: Kotlin DSL + libs.versions.toml + AGP 9</span></pre>
+  </div>
+</div>
+
+<h2>2 · MVI flow inside a feature</h2>
+
+<div class="flow">
+<svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#818cf8"/>
+    </marker>
+  </defs>
+  <!-- Screen -->
+  <rect x="20" y="80" width="140" height="80" rx="8" fill="#1d2230" stroke="#2a3142" stroke-width="1.5"/>
+  <text x="90" y="115" text-anchor="middle" fill="#e6e9ef" font-family="ui-sans-serif" font-size="14" font-weight="600">Screen</text>
+  <text x="90" y="135" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">(state) → UI</text>
+  <!-- ViewModel -->
+  <rect x="280" y="80" width="180" height="80" rx="8" fill="#1d2230" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="370" y="110" text-anchor="middle" fill="#e6e9ef" font-family="ui-sans-serif" font-size="14" font-weight="600">ViewModel</text>
+  <text x="370" y="130" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">reducer + repos</text>
+  <text x="370" y="148" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">StateFlow + Channel</text>
+  <!-- Root -->
+  <rect x="580" y="80" width="160" height="80" rx="8" fill="#1d2230" stroke="#2a3142" stroke-width="1.5"/>
+  <text x="660" y="115" text-anchor="middle" fill="#e6e9ef" font-family="ui-sans-serif" font-size="14" font-weight="600">Root</text>
+  <text x="660" y="135" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">collect + observe</text>
+  <!-- arrows -->
+  <line x1="160" y1="110" x2="280" y2="110" stroke="#818cf8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="100" text-anchor="middle" fill="#818cf8" font-family="ui-monospace" font-size="11">onAction</text>
+  <line x1="460" y1="110" x2="580" y2="110" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="520" y="100" text-anchor="middle" fill="#4ade80" font-family="ui-monospace" font-size="11">state</text>
+  <line x1="460" y1="140" x2="580" y2="140" stroke="#f472b6" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="520" y="160" text-anchor="middle" fill="#f472b6" font-family="ui-monospace" font-size="11">events (one-shot)</text>
+  <line x1="660" y1="160" x2="660" y2="200" stroke="#818cf8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="660" y="220" text-anchor="middle" fill="#818cf8" font-family="ui-sans-serif" font-size="11">→ NavRoot (nav)</text>
+  <line x1="90" y1="160" x2="90" y2="200" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="90" y="220" text-anchor="middle" fill="#4ade80" font-family="ui-sans-serif" font-size="11">renders state</text>
+</svg>
+</div>
+
+<h2>3 · Cross-feature data flow</h2>
+
+<div class="flow">
+<svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#818cf8"/>
+    </marker>
+  </defs>
+  <!-- Calculator VM -->
+  <rect x="20" y="40" width="180" height="60" rx="8" fill="#1d2230" stroke="#2a3142" stroke-width="1.5"/>
+  <text x="110" y="65" text-anchor="middle" fill="#e6e9ef" font-family="ui-sans-serif" font-size="13" font-weight="600">CalculatorViewModel</text>
+  <text x="110" y="85" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="10">feature/calculator</text>
+  <!-- HistoryRepo iface -->
+  <rect x="300" y="20" width="200" height="100" rx="8" fill="#1d2230" stroke="#818cf8" stroke-width="2"/>
+  <text x="400" y="45" text-anchor="middle" fill="#818cf8" font-family="ui-sans-serif" font-size="11" font-weight="600">core/data/history/</text>
+  <text x="400" y="70" text-anchor="middle" fill="#e6e9ef" font-family="ui-monospace" font-size="13" font-weight="600">HistoryRepository</text>
+  <text x="400" y="92" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">interface</text>
+  <text x="400" y="108" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">observe() / add() / delete() / clear()</text>
+  <!-- HistoryRepoImpl -->
+  <rect x="600" y="20" width="180" height="100" rx="8" fill="#1d2230" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="690" y="45" text-anchor="middle" fill="#4ade80" font-family="ui-sans-serif" font-size="11" font-weight="600">feature/history/data/</text>
+  <text x="690" y="70" text-anchor="middle" fill="#e6e9ef" font-family="ui-monospace" font-size="13" font-weight="600">HistoryRepoImpl</text>
+  <text x="690" y="92" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">Room</text>
+  <text x="690" y="108" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="11">HistoryDao + Entity</text>
+  <!-- History VM -->
+  <rect x="20" y="180" width="180" height="60" rx="8" fill="#1d2230" stroke="#2a3142" stroke-width="1.5"/>
+  <text x="110" y="205" text-anchor="middle" fill="#e6e9ef" font-family="ui-sans-serif" font-size="13" font-weight="600">HistoryViewModel</text>
+  <text x="110" y="225" text-anchor="middle" fill="#97a0b3" font-family="ui-monospace" font-size="10">feature/history</text>
+
+  <!-- arrows -->
+  <line x1="200" y1="70" x2="300" y2="70" stroke="#818cf8" stroke-width="2" marker-end="url(#arrow2)"/>
+  <text x="250" y="60" text-anchor="middle" fill="#818cf8" font-family="ui-monospace" font-size="10">add(entry)</text>
+
+  <line x1="600" y1="70" x2="500" y2="70" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow2)"/>
+  <text x="550" y="60" text-anchor="middle" fill="#4ade80" font-family="ui-monospace" font-size="10">implements</text>
+
+  <line x1="300" y1="100" x2="200" y2="200" stroke="#f472b6" stroke-width="2" marker-end="url(#arrow2)"/>
+  <text x="190" y="160" text-anchor="middle" fill="#f472b6" font-family="ui-monospace" font-size="10">observe(): Flow</text>
+
+  <text x="400" y="265" text-anchor="middle" fill="#97a0b3" font-family="ui-sans-serif" font-size="12">Calculator writes → Room emits → History VM observes. No event bus, no manual refresh.</text>
+</svg>
+</div>
+
+<h2>4 · Diff table — what changes</h2>
+
+<h3>Build &amp; toolchain</h3>
+<table>
+  <thead><tr><th>Concern</th><th>Current</th><th>Greenfield</th><th>Effort</th></tr></thead>
+  <tbody>
+    <tr><td>Build DSL</td><td class="current">Groovy</td><td class="greenfield">Kotlin DSL</td><td class="effort-M">M</td></tr>
+    <tr><td>Version catalog</td><td class="current">None</td><td class="greenfield"><code>libs.versions.toml</code></td><td class="effort-M">M</td></tr>
+    <tr><td>Gradle</td><td class="current">8.13</td><td class="greenfield">9.4.1+</td><td class="effort-S">S</td></tr>
+    <tr><td>AGP</td><td class="current">8.13.2</td><td class="greenfield">9.x</td><td class="effort-M">M</td></tr>
+    <tr><td>JDK toolchain</td><td class="current">foojay only</td><td class="greenfield"><code>gradle-daemon-jvm.properties</code></td><td class="effort-S">S</td></tr>
+    <tr><td>compileSdk syntax</td><td class="current"><code>compileSdk 36</code></td><td class="greenfield"><code>compileSdk { version = release(36) { minorApiLevel = 1 } }</code></td><td class="effort-S">S</td></tr>
+    <tr><td><code>local.properties</code> read</td><td class="current">Throws on missing</td><td class="greenfield"><code>runCatching</code> + dummy fallback</td><td class="effort-S">S</td></tr>
+  </tbody>
+</table>
+
+<h3>Architecture</h3>
+<table>
+  <thead><tr><th>Concern</th><th>Current</th><th>Greenfield</th><th>Effort</th></tr></thead>
+  <tbody>
+    <tr><td>Package structure</td><td class="current"><code>domain/</code> + <code>presentation/</code> flat</td><td class="greenfield"><code>core/</code> + <code>feature/&lt;name&gt;/</code></td><td class="effort-L">L</td></tr>
+    <tr><td>Namespace</td><td class="current"><code>com.example.materialcalculator</code></td><td class="greenfield"><code>dev.gaddal.&lt;brand&gt;</code></td><td class="effort-M">M</td></tr>
+    <tr><td>State model</td><td class="current">Single <code>expression: String</code></td><td class="greenfield">Per-feature <code>State</code> data class with explicit <code>errorMessage: UiText?</code></td><td class="effort-M">M</td></tr>
+    <tr><td>Event surface</td><td class="current">None</td><td class="greenfield">Per-feature <code>Event</code> sealed interface</td><td class="effort-M">M</td></tr>
+    <tr><td>DI</td><td class="current">None</td><td class="greenfield">Koin modules per layer</td><td class="effort-M">M</td></tr>
+    <tr><td>Navigation</td><td class="current">None</td><td class="greenfield">Navigation 3 with NavKey routes</td><td class="effort-M">M</td></tr>
+  </tbody>
+</table>
+
+<h3>Data layer (new)</h3>
+<table>
+  <thead><tr><th>Concern</th><th>Current</th><th>Greenfield</th><th>Effort</th></tr></thead>
+  <tbody>
+    <tr><td>Settings persistence</td><td class="current">None</td><td class="greenfield">DataStore Preferences</td><td class="effort-M">M</td></tr>
+    <tr><td>History persistence</td><td class="current">None</td><td class="greenfield">Room</td><td class="effort-M">M</td></tr>
+    <tr><td>Settings UI</td><td class="current">None</td><td class="greenfield">Theme/haptics/sound toggles</td><td class="effort-M">M</td></tr>
+    <tr><td>History UI</td><td class="current">None</td><td class="greenfield">Swipe-to-delete + tap-to-restore</td><td class="effort-M">M</td></tr>
+  </tbody>
+</table>
+
+<h3>Errors</h3>
+<table>
+  <thead><tr><th>Concern</th><th>Current</th><th>Greenfield</th><th>Effort</th></tr></thead>
+  <tbody>
+    <tr><td>Calculator error type</td><td class="current"><code>"Error"</code> string sentinel</td><td class="greenfield"><code>Result&lt;Double, CalcError&gt;</code> with three typed errors</td><td class="effort-M">M</td></tr>
+    <tr><td>Error UI</td><td class="current">Hard-coded <code>"Error"</code></td><td class="greenfield">Localized <code>UiText</code> with <code>values-ar/</code></td><td class="effort-S">S</td></tr>
+    <tr><td>Sentinel scattering</td><td class="current">Three files</td><td class="greenfield">One <code>CalcErrorMapper</code></td><td class="effort-S">S</td></tr>
+  </tbody>
+</table>
+
+<h3>Testing</h3>
+<table>
+  <thead><tr><th>Concern</th><th>Current</th><th>Greenfield</th><th>Effort</th></tr></thead>
+  <tbody>
+    <tr><td>Assertion lib</td><td class="current">Truth</td><td class="greenfield">AssertK (KMP-multiplatform)</td><td class="effort-S">S</td></tr>
+    <tr><td>ViewModel tests</td><td class="current">None</td><td class="greenfield">Turbine + Fakes per VM</td><td class="effort-M">M</td></tr>
+    <tr><td>Compose UI tests</td><td class="current">None</td><td class="greenfield">Spot tests via <code>createComposeRule()</code></td><td class="effort-M">M</td></tr>
+    <tr><td>Test framework</td><td class="current">JUnit4</td><td class="greenfield">JUnit5 (+ Vintage for instrumented)</td><td class="effort-S">S</td></tr>
+  </tbody>
+</table>
+
+<div class="stays-same">
+  <h4>★ What stays the same</h4>
+  <ul>
+    <li>Material 3 with dynamic color</li>
+    <li>Edge-to-edge with <code>Scaffold</code> insets &amp; <code>enableEdgeToEdge()</code></li>
+    <li>Three build types (debug / staging / release), signing config + Play App Signing</li>
+    <li><code>minSdk 24</code>, <code>compileSdk/targetSdk 36</code></li>
+    <li>The calculator domain logic — recursive-descent grammar, operator precedence, <code>formatResult</code> with <code>Locale.ROOT</code></li>
+    <li><code>applicationId com.gaddal.materialcalculator</code> (preserves Play Store listing)</li>
+  </ul>
+</div>
+
+<h2>5 · Implementation phasing</h2>
+
+<ol class="phase-list">
+  <li data-phase="2.0"><strong>Build modernization</strong><small>Groovy → KTS, version catalog, Gradle 9 + AGP 9, declarative JDK toolchain, <code>local.properties</code> footgun fix. Mechanical, no behavior change.</small></li>
+  <li data-phase="2.1"><strong>Namespace rename</strong><small><code>com.example.materialcalculator</code> → <code>dev.gaddal.&lt;brand&gt;</code>. Brand decision lands here. Single mechanical pass.</small></li>
+  <li data-phase="2.2"><strong>Architecture migration</strong><small>Reorganize into <code>core/</code> + <code>feature/calculator/</code>. Introduce MVI, Koin, Navigation 3. ViewModelTests added.</small></li>
+  <li data-phase="2.3"><strong>Settings feature</strong><small>DataStore + Settings screen + theme/haptics/sound toggles. <code>MainActivity</code> reads <code>themeMode</code> for <code>AppTheme</code>.</small></li>
+  <li data-phase="2.4"><strong>History feature</strong><small>Room + History screen + cross-feature seam (Calculator writes, History reads). Tap-to-restore via Nav3 saved-state.</small></li>
+  <li data-phase="2.5"><strong>Error typing + i18n</strong><small>Replace <code>"Error"</code> sentinel with <code>Result&lt;Double, CalcError&gt;</code> + <code>UiText</code> + <code>values-ar/</code>.</small></li>
+  <li data-phase="2.6"><strong>GitHub Actions CI + logo + screenshots</strong><small>Deferred to a separate spec.</small></li>
+</ol>
+
+<footer>
+  <p>Generated 2026-05-09 as the brainstorm companion for the greenfield design exercise. Markdown spec is the source of truth: <code>docs/superpowers/specs/2026-05-09-greenfield-design.md</code>. This HTML is throwaway exploration — open in a browser, mark up mentally, no need to keep in sync if the spec evolves.</p>
+</footer>
+
+</div>
+</body>
+</html>
