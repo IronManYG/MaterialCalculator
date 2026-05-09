@@ -4,8 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import dev.gaddal.sifr.domain.CalculatorAction
-import dev.gaddal.sifr.domain.ExpressionWriter
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
+import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
 
 class CalculatorViewModel(
     private val writer: ExpressionWriter = ExpressionWriter()

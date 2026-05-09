@@ -1,6 +1,9 @@
 package dev.gaddal.sifr.domain
 
 import com.google.common.truth.Truth.assertThat
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
+import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
+import dev.gaddal.sifr.feature.calculator.domain.Operation
 import org.junit.Before
 import org.junit.Test
 
