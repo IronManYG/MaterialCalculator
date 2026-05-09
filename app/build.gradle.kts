@@ -15,7 +15,7 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.materialcalculator"
+    namespace = "dev.gaddal.sifr"
     compileSdk = 36
 
     defaultConfig {
