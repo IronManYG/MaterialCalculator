@@ -21,6 +21,12 @@ koin = "4.2.1"
 # Navigation
 navigation3 = "1.1.1"
 
+# Storage
+datastore = "1.2.1"
+
+# Serialization
+kotlinxSerialization = "1.11.0"
+
 # Test
 junit = "4.13.2"
 kotlinxCoroutines = "1.11.0"
@@ -59,6 +65,12 @@ koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compos
 androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
 androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
 
+# DataStore
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
+# Serialization
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
@@ -72,3 +84,4 @@ androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espres
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
