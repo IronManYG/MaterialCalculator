@@ -1,4 +1,4 @@
-package com.example.materialcalculator.presentation
+package dev.gaddal.sifr.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

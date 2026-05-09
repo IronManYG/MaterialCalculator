@@ -1,4 +1,4 @@
-package com.example.materialcalculator.domain
+package dev.gaddal.sifr.domain
 
 sealed interface ExpressionPart {
     data class Number(val number: Double) : ExpressionPart

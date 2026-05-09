@@ -1,11 +1,11 @@
-package com.example.materialcalculator
+package dev.gaddal.sifr
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.materialcalculator.presentation.CalculatorScreen
-import com.example.materialcalculator.ui.theme.MaterialCalculatorTheme
+import dev.gaddal.sifr.presentation.CalculatorScreen
+import dev.gaddal.sifr.ui.theme.MaterialCalculatorTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

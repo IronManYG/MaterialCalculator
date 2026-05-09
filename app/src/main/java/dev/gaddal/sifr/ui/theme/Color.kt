@@ -1,4 +1,4 @@
-package com.example.materialcalculator.ui.theme
+package dev.gaddal.sifr.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

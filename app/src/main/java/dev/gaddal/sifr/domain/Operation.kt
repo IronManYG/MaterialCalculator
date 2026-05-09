@@ -1,4 +1,4 @@
-package com.example.materialcalculator.domain
+package dev.gaddal.sifr.domain
 
 enum class Operation(val symbol: Char) {
     ADD('+'),

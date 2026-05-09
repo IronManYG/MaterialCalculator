@@ -1,4 +1,4 @@
-package com.example.materialcalculator.presentation
+package dev.gaddal.sifr.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.materialcalculator.domain.CalculatorAction
+import dev.gaddal.sifr.domain.CalculatorAction
 
 @Composable
 fun CalculatorButtonGrid(

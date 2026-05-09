@@ -1,4 +1,4 @@
-package com.example.materialcalculator.domain
+package dev.gaddal.sifr.domain
 
 /**
  * Uses the following grammar

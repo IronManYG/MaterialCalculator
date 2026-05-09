@@ -1,7 +1,7 @@
-package com.example.materialcalculator.presentation
+package dev.gaddal.sifr.presentation
 
 import androidx.compose.runtime.Composable
-import com.example.materialcalculator.domain.CalculatorAction
+import dev.gaddal.sifr.domain.CalculatorAction
 
 data class CalculatorUiAction(
     val text: String?,

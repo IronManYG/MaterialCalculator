@@ -1,11 +1,11 @@
-package com.example.materialcalculator.presentation
+package dev.gaddal.sifr.presentation
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.materialcalculator.domain.CalculatorAction
-import com.example.materialcalculator.domain.ExpressionWriter
+import dev.gaddal.sifr.domain.CalculatorAction
+import dev.gaddal.sifr.domain.ExpressionWriter
 
 class CalculatorViewModel(
     private val writer: ExpressionWriter = ExpressionWriter()

@@ -1,4 +1,4 @@
-package com.example.materialcalculator.domain
+package dev.gaddal.sifr.domain
 
 sealed interface CalculatorAction {
     data class Number(val number: Int): CalculatorAction
