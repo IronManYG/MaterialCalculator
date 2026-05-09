@@ -18,6 +18,9 @@ materialViews = "1.13.0"
 # DI
 koin = "4.2.1"
 
+# Navigation
+navigation3 = "1.1.1"
+
 # Test
 junit = "4.13.2"
 kotlinxCoroutines = "1.11.0"
@@ -51,6 +54,10 @@ androidx-compose-material3-windowSizeClass = { group = "androidx.compose.materia
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
 koin-android = { group = "io.insert-koin", name = "koin-android" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
+
+# Navigation 3
+androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
+androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
