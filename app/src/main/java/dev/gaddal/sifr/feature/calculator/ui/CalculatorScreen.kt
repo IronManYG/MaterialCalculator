@@ -37,12 +37,14 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun CalculatorRoot(
     onNavigateToSettings: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     viewModel: CalculatorViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             CalculatorEvent.NavigateToSettings -> onNavigateToSettings()
+            CalculatorEvent.NavigateToHistory -> onNavigateToHistory()
         }
     }
     CalculatorScreen(

@@ -9,4 +9,6 @@ sealed interface CalculatorAction {
     object Calculate: CalculatorAction
     object Decimal: CalculatorAction
     data object SettingsClicked: CalculatorAction
+    data object HistoryClicked: CalculatorAction
+    data class RestoreExpression(val value: String): CalculatorAction
 }

@@ -43,6 +43,10 @@ class ExpressionWriter {
                 processParentheses()
             }
             CalculatorAction.SettingsClicked -> Unit // navigation action; handled by the ViewModel
+            CalculatorAction.HistoryClicked -> Unit // navigation action; handled by the ViewModel
+            is CalculatorAction.RestoreExpression -> {
+                expression = action.value
+            }
         }
     }
 
