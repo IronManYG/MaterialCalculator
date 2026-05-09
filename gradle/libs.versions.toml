@@ -1,7 +1,7 @@
 [versions]
-# Toolchain — kept at current Phase 1 values; bumped in later tasks
-agp = "8.13.2"
-kotlin = "2.3.10"
+# Toolchain
+agp = "9.2.1"
+kotlin = "2.3.21"
 
 # Compose
 composeBom = "2026.05.00"
@@ -52,5 +52,4 @@ androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espres
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
