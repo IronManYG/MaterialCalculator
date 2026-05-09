@@ -18,15 +18,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorButtonGrid
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplay
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun CalculatorRoot(
-    viewModel: CalculatorViewModel = viewModel(),
+    viewModel: CalculatorViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     CalculatorScreen(

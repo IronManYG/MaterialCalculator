@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class CalculatorViewModel(
-    private val writer: ExpressionWriter = ExpressionWriter(),
+    private val writer: ExpressionWriter,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CalculatorState())
