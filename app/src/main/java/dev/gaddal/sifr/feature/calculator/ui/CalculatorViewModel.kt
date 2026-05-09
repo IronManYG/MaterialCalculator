@@ -15,9 +15,6 @@ class CalculatorViewModel(
     private val _state = MutableStateFlow(CalculatorState())
     val state: StateFlow<CalculatorState> = _state.asStateFlow()
 
-    // Removed in Task 5 once CalculatorScreen reads from `state` instead.
-    val expression: String get() = _state.value.expression
-
     fun onAction(action: CalculatorAction) {
         writer.processAction(action)
         _state.update { it.copy(expression = writer.expression) }
