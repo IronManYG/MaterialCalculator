@@ -9,7 +9,9 @@ plugins {
 
 val keystorePropertiesFile = rootProject.file("local.properties")
 val keystoreProperties = Properties().apply {
-    load(FileInputStream(keystorePropertiesFile))
+    runCatching {
+        FileInputStream(keystorePropertiesFile).use { load(it) }
+    }
 }
 
 android {
@@ -31,10 +33,16 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(keystoreProperties["keystore.file"] as String)
-            storePassword = keystoreProperties["keystore.password"] as String
-            keyAlias = keystoreProperties["keystore.alias"] as String
-            keyPassword = keystoreProperties["keystore.alias_password"] as String
+            val storeFilePath = keystoreProperties["keystore.file"] as? String
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = keystoreProperties["keystore.password"] as? String
+                keyAlias = keystoreProperties["keystore.alias"] as? String
+                keyPassword = keystoreProperties["keystore.alias_password"] as? String
+            }
+            // If null, this signing config remains unconfigured.
+            // Release builds will fail (correct: cannot sign without a key).
+            // Debug builds use the default debug signing config.
         }
     }
 
