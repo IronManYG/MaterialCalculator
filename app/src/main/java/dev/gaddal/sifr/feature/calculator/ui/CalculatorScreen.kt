@@ -12,16 +12,33 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.gaddal.sifr.core.ui.theme.SifrTheme
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorButtonGrid
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplay
 
 @Composable
+fun CalculatorRoot(
+    viewModel: CalculatorViewModel = viewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    CalculatorScreen(
+        state = state,
+        onAction = viewModel::onAction,
+    )
+}
+
+@Composable
 fun CalculatorScreen(
-    viewModel: CalculatorViewModel = viewModel()
+    state: CalculatorState,
+    onAction: (CalculatorAction) -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -34,7 +51,7 @@ fun CalculatorScreen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             CalculatorDisplay(
-                expression = viewModel.expression,
+                expression = state.expression,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -53,9 +70,20 @@ fun CalculatorScreen(
             Spacer(modifier = Modifier.height(8.dp))
             CalculatorButtonGrid(
                 actions = calculatorActions,
-                onAction = viewModel::onAction,
+                onAction = onAction,
                 modifier = Modifier.padding(8.dp)
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CalculatorScreenPreview() {
+    SifrTheme {
+        CalculatorScreen(
+            state = CalculatorState(expression = "12+5"),
+            onAction = {},
+        )
     }
 }

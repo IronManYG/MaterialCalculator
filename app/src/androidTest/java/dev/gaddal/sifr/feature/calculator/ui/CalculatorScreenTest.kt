@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import dev.gaddal.sifr.MainActivity
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -13,12 +12,6 @@ class CalculatorScreenTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule(MainActivity::class.java)
-    private lateinit var viewModel: CalculatorViewModel
-
-    @Before
-    fun setUp() {
-        viewModel = CalculatorViewModel()
-    }
 
     @Test
     fun enterExpression_correctResultDisplayed() {
