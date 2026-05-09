@@ -42,6 +42,7 @@ class ExpressionWriter {
             CalculatorAction.Parentheses -> {
                 processParentheses()
             }
+            CalculatorAction.SettingsClicked -> Unit // navigation action; handled by the ViewModel
         }
     }
 
