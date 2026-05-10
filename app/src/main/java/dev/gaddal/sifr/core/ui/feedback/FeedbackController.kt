@@ -37,22 +37,16 @@ class FeedbackController internal constructor(
     private fun vibrate() {
         val v = vibrator ?: return
         if (!v.hasVibrator()) return
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                v.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
-            }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
-                v.vibrate(VibrationEffect.createOneShot(VIBRATE_MS, VibrationEffect.DEFAULT_AMPLITUDE))
-            }
-            else -> {
-                @Suppress("DEPRECATION")
-                v.vibrate(VIBRATE_MS)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            v.vibrate(VibrationEffect.createOneShot(VIBRATE_MS, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            v.vibrate(VIBRATE_MS)
         }
     }
 
     private companion object {
-        const val VIBRATE_MS = 20L
+        const val VIBRATE_MS = 35L
         const val TONE_VOLUME = 50
         const val TONE_DURATION_MS = 40
     }
