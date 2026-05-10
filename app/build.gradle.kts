@@ -140,6 +140,9 @@ dependencies {
     // Serialization (for @Serializable on Nav3 routes)
     implementation(libs.kotlinx.serialization.core)
 
+    // Haptics — Pulsar (Software Mansion)
+    implementation(libs.pulsar)
+
     // Unit tests
     testImplementation(libs.junit)
     testImplementation(libs.androidx.test.core)
