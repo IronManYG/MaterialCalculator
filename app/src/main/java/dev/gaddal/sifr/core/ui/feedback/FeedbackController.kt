@@ -14,7 +14,9 @@ import com.swmansion.pulsar.Pulsar
  * user's [hapticsEnabled] / [soundEnabled] preferences.
  *
  * Preset choice favors short, punchy continuous-pattern built-ins:
- * `bloom`, `flick`, `burst`, `thud`. Pulsar's `system*` view-based and
+ * `bloom`, `flick`, `thud` — `flick` is shared between CalculateSuccess
+ * and Destructive (the user finds the same lightweight haptic apt for
+ * both "result lands" and "content cleared"). Pulsar's `system*` view-based and
  * composition-primitive presets are silent on some vendor ROMs (MagicOS /
  * EMUI / HarmonyOS-derived) — see `docs/pulsar-bug-report-2026-05-11.md`.
  * The four presets used here all carry a `rawContinuousPattern` channel,
@@ -54,7 +56,7 @@ class FeedbackController internal constructor(
     fun playHaptic(intent: FeedbackIntent) {
         when (intent) {
             FeedbackIntent.Error -> presets.thud()
-            FeedbackIntent.CalculateSuccess -> presets.burst()
+            FeedbackIntent.CalculateSuccess -> presets.flick()
             FeedbackIntent.Destructive -> presets.flick()
             FeedbackIntent.Selection -> presets.bloom()
         }

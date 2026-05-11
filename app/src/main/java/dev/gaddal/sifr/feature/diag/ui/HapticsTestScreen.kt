@@ -165,19 +165,15 @@ data class PresetEntry(
     val invoke: (PresetsWrapper) -> Unit,
 )
 
-/** Presets confirmed felt on Honor 400 Pro (Android 16 / MagicOS 10) plus
- * likely-felt continuous-pattern built-ins. Each has a `rawContinuousPattern`
- * channel; Pulsar's engine falls back to amplitude-scaled `createWaveform`,
- * which the device's LRA renders correctly.
- *
- * The first four (bloom / flick / burst / thud) are the in-app feedback
- * intents — wired into `FeedbackController.playHaptic`. They're listed
- * first so they're easy to A/B against the rest. */
+/** Presets confirmed felt on Honor 400 Pro (Android 16 / MagicOS 10). The
+ * three "In-app" entries are wired into `FeedbackController.playHaptic` —
+ * `flick` is shared between CalculateSuccess and Destructive. They're
+ * pinned to the top so they're easy to A/B against the rest. */
 internal val expectedFelt: List<PresetEntry> = listOf(
     PresetEntry("bloom", "In-app: Selection (confirmed felt)") { it.bloom() },
-    PresetEntry("flick", "In-app: Destructive (verify here)") { it.flick() },
-    PresetEntry("burst", "In-app: CalculateSuccess (verify here)") { it.burst() },
-    PresetEntry("thud", "In-app: Error (verify here)") { it.thud() },
+    PresetEntry("flick", "In-app: CalculateSuccess + Destructive (confirmed felt)") { it.flick() },
+    PresetEntry("thud", "In-app: Error (confirmed felt)") { it.thud() },
+    PresetEntry("burst", "Continuous (confirmed felt; not in-app)") { it.burst() },
     PresetEntry("alarm", "Continuous + discrete (confirmed felt)") { it.alarm() },
     PresetEntry("anvil", "Continuous + discrete (confirmed felt)") { it.anvil() },
     PresetEntry("applause", "Continuous + discrete (confirmed felt)") { it.applause() },
@@ -187,16 +183,25 @@ internal val expectedFelt: List<PresetEntry> = listOf(
     PresetEntry("surge", "Smooth continuous (likely felt)") { it.surge() },
     PresetEntry("wave", "Continuous envelope (likely felt)") { it.wave() },
     PresetEntry("thunder", "Long continuous (likely felt)") { it.thunder() },
+    // MagicOS exceptions: most view-based presets are silent on this device,
+    // but these two are honored. Worth surfacing if Pulsar maintainers want
+    // a granular breakdown of which HapticFeedbackConstants survive the ROM.
+    PresetEntry("systemKeyboardTap", "View-based — felt on MagicOS (surprise)") {
+        it.systemKeyboardTap()
+    },
+    PresetEntry("systemContextClick", "View-based — felt on MagicOS (surprise)") {
+        it.systemContextClick()
+    },
 )
 
 /** Presets silent on Honor 400 Pro, covering all three failure paths from the
- * Pulsar bug report at `docs/pulsar-bug-report-2026-05-11.md`. */
+ * Pulsar bug report at `docs/pulsar-bug-report-2026-05-11.md`. Note: two
+ * view-based presets (`systemKeyboardTap`, `systemContextClick`) were expected
+ * here but turned out to fire on MagicOS — they've been moved to the felt
+ * list. The remaining `system*` view-based entries are still silent. */
 internal val expectedSilent: List<PresetEntry> = listOf(
     // View-based path: decorView.performHapticFeedback(...) — silent on MagicOS
     // even with HAPTIC_FEEDBACK_ENABLED=1 and all Sound & haptics toggles on.
-    PresetEntry("systemKeyboardTap", "View-based (decorView.performHapticFeedback)") {
-        it.systemKeyboardTap()
-    },
     PresetEntry("systemSelection", "View-based (decorView.performHapticFeedback)") {
         it.systemSelection()
     },
@@ -205,9 +210,6 @@ internal val expectedSilent: List<PresetEntry> = listOf(
     },
     PresetEntry("systemImpactMedium", "View-based (decorView.performHapticFeedback)") {
         it.systemImpactMedium()
-    },
-    PresetEntry("systemContextClick", "View-based (decorView.performHapticFeedback)") {
-        it.systemContextClick()
     },
     // Composition primitive path: Composition.addPrimitive(PRIMITIVE_*).
     // Honor 400 Pro returns false from arePrimitivesSupported for all primitives.
