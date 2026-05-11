@@ -96,8 +96,13 @@ fun CalculatorScreen(
             ) {
                 CalculatorDisplay(
                     expression = state.expression,
+                    cursor = state.cursor,
+                    selectionStart = state.selectionStart,
                     livePreview = state.livePreview,
                     error = state.error,
+                    onSelectionChange = { start, end ->
+                        onAction(CalculatorAction.SelectionChanged(start, end))
+                    },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
@@ -143,7 +148,11 @@ fun CalculatorScreen(
 private fun CalculatorScreenPreview() {
     SifrTheme {
         CalculatorScreen(
-            state = CalculatorState(expression = "12+5", livePreview = "17"),
+            state = CalculatorState(
+                expression = "12+5",
+                cursor = "12+5".length,
+                livePreview = "17",
+            ),
             onAction = {},
         )
     }

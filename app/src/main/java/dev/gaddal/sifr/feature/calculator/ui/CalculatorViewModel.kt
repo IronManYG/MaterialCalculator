@@ -1,5 +1,6 @@
 package dev.gaddal.sifr.feature.calculator.ui
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
@@ -23,15 +24,34 @@ class CalculatorViewModel(
     private val writer: ExpressionWriter,
     private val historyRepository: HistoryRepository,
     private val inputBus: CalculatorInputBus,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(CalculatorState())
-    val state: StateFlow<CalculatorState> = _state.asStateFlow()
+    private val _state: MutableStateFlow<CalculatorState>
+    val state: StateFlow<CalculatorState>
 
     private val _events = Channel<CalculatorEvent>()
     val events = _events.receiveAsFlow()
 
     init {
+        // Re-hydrate any state preserved across process death. Cursor is clamped
+        // to the expression's bounds defensively in case the saved pair is out
+        // of sync (e.g. a bundle from a different app version).
+        val restoredExpression: String = savedStateHandle[KEY_EXPRESSION] ?: ""
+        val restoredCursor: Int = savedStateHandle[KEY_CURSOR] ?: 0
+        if (restoredExpression.isNotEmpty()) {
+            writer.restoreState(restoredExpression, restoredCursor)
+        }
+        _state = MutableStateFlow(
+            CalculatorState(
+                expression = writer.expression,
+                cursor = writer.cursor,
+                selectionStart = writer.selectionStart,
+                livePreview = computePreview(),
+            )
+        )
+        state = _state.asStateFlow()
+
         viewModelScope.launch {
             inputBus.events.collect { expression ->
                 onAction(CalculatorAction.RestoreExpression(expression))
@@ -55,16 +75,29 @@ class CalculatorViewModel(
                 _state.update {
                     it.copy(
                         expression = post,
+                        cursor = writer.cursor,
+                        selectionStart = writer.selectionStart,
                         livePreview = computePreview(),
                         error = null,
                     )
                 }
+                persistForRestore(post, writer.cursor)
                 onSuccessSideEffects(action, pre, post)
             }
             .onFailure { error ->
                 _state.update { it.copy(livePreview = null, error = error.toUiText()) }
                 emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
             }
+    }
+
+    // Mirror the latest expression+cursor into SavedStateHandle so a process
+    // kill (e.g. backgrounded calculator evicted under memory pressure)
+    // doesn't lose the user's in-flight input. The error flag is intentionally
+    // not persisted — if the expression genuinely re-evaluates to an error,
+    // pressing `=` will surface it again on the next session.
+    private fun persistForRestore(expression: String, cursor: Int) {
+        savedStateHandle[KEY_EXPRESSION] = expression
+        savedStateHandle[KEY_CURSOR] = cursor
     }
 
     private fun computePreview(): String? {
@@ -101,5 +134,10 @@ class CalculatorViewModel(
 
     private fun emit(event: CalculatorEvent) {
         viewModelScope.launch { _events.send(event) }
+    }
+
+    companion object {
+        private const val KEY_EXPRESSION = "expression"
+        private const val KEY_CURSOR = "cursor"
     }
 }

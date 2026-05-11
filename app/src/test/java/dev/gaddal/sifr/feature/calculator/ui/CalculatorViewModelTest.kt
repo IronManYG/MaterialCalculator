@@ -1,5 +1,6 @@
 package dev.gaddal.sifr.feature.calculator.ui
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import dev.gaddal.sifr.R
@@ -27,10 +28,13 @@ class CalculatorViewModelTest {
     private fun newViewModel(
         history: HistoryRepository = FakeHistoryRepository(),
         bus: CalculatorInputBus = CalculatorInputBus(),
+        savedState: SavedStateHandle = SavedStateHandle(),
+        writer: ExpressionWriter = ExpressionWriter(),
     ) = CalculatorViewModel(
-        writer = ExpressionWriter(),
+        writer = writer,
         historyRepository = history,
         inputBus = bus,
+        savedStateHandle = savedState,
     )
 
     @Test
@@ -311,6 +315,129 @@ class CalculatorViewModelTest {
 
         // ( ) still counts as "something to evaluate" — the preview shows.
         assertThat(viewModel.state.value.livePreview).isEqualTo("5")
+    }
+
+    // -------- cursor in state (Phase 2.9) --------
+
+    @Test
+    fun `Initial state cursor is zero`() = runTest {
+        val viewModel = newViewModel()
+        assertThat(viewModel.state.value.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Cursor advances as digits are typed`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Number(3))
+
+        assertThat(viewModel.state.value.cursor).isEqualTo(3)
+    }
+
+    @Test
+    fun `CursorChanged action moves the cursor in state`() = runTest {
+        val viewModel = newViewModel()
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Number(3))
+
+        viewModel.onAction(CalculatorAction.CursorChanged(1))
+
+        assertThat(viewModel.state.value.cursor).isEqualTo(1)
+        // and a subsequent digit inserts at that cursor
+        viewModel.onAction(CalculatorAction.Number(9))
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("1923")
+        assertThat(s.cursor).isEqualTo(2)
+    }
+
+    // -------- process-death persistence (Phase 2.9) --------
+
+    @Test
+    fun `Initial state restores expression and cursor from SavedStateHandle`() = runTest {
+        val saved = SavedStateHandle(mapOf("expression" to "12+34", "cursor" to 3))
+
+        val viewModel = newViewModel(savedState = saved)
+
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("12+34")
+        assertThat(s.cursor).isEqualTo(3)
+        // Live preview is recomputed from the restored expression, not saved.
+        assertThat(s.livePreview).isEqualTo("46")
+    }
+
+    @Test
+    fun `Restored cursor is clamped to expression bounds`() = runTest {
+        // Defensive: a stale bundle from a different app version might
+        // contain a cursor that no longer fits.
+        val saved = SavedStateHandle(mapOf("expression" to "7", "cursor" to 99))
+
+        val viewModel = newViewModel(savedState = saved)
+
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("7")
+        assertThat(s.cursor).isEqualTo(1)
+    }
+
+    @Test
+    fun `Empty SavedStateHandle starts with empty state`() = runTest {
+        val viewModel = newViewModel(savedState = SavedStateHandle())
+
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("")
+        assertThat(s.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Every successful action persists expression and cursor`() = runTest {
+        val saved = SavedStateHandle()
+        val viewModel = newViewModel(savedState = saved)
+
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+
+        assertThat(saved.get<String>("expression")).isEqualTo("12+3")
+        assertThat(saved.get<Int>("cursor")).isEqualTo(4)
+    }
+
+    @Test
+    fun `A new ViewModel sharing the same SavedStateHandle replays the writer state`() = runTest {
+        // Simulates the process-death cycle: type something, kill the
+        // process, recreate the VM with the persisted SavedStateHandle.
+        val saved = SavedStateHandle()
+        val first = newViewModel(savedState = saved)
+        first.onAction(CalculatorAction.Number(9))
+        first.onAction(CalculatorAction.Number(9))
+        first.onAction(CalculatorAction.Op(Operation.MULTIPLY))
+        first.onAction(CalculatorAction.Number(2))
+
+        // Same SavedStateHandle, but a fresh writer (since DI gives factories)
+        val second = newViewModel(savedState = saved, writer = ExpressionWriter())
+
+        val s = second.state.value
+        assertThat(s.expression).isEqualTo("99x2")
+        assertThat(s.cursor).isEqualTo(4)
+        assertThat(s.livePreview).isEqualTo("198")
+    }
+
+    @Test
+    fun `Calculate moves cursor to end of result in state`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+        viewModel.onAction(CalculatorAction.CursorChanged(1))
+
+        viewModel.onAction(CalculatorAction.Calculate)
+
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("5")
+        assertThat(s.cursor).isEqualTo(1)
     }
 }
 
