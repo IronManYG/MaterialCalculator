@@ -72,6 +72,10 @@ class CalculatorViewModel(
         if (expr.isBlank()) return null
         // Suppress preview while mid-token: trailing operator, opening paren, or unfinished decimal
         if (expr.last() in "$operationSymbols(.") return null
+        // Nothing to evaluate when the expression is a single literal number.
+        // Without this gate, 16+ digit entries hit Double precision and the
+        // formatted result echoes back a rounded variant of the input.
+        if (expr.none { it in "$operationSymbols()" }) return null
         return when (val preview = writer.tryEvaluate()) {
             is Result.Success -> preview.data.takeIf { it != expr }
             is Result.Error -> null

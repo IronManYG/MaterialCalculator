@@ -275,6 +275,43 @@ class CalculatorViewModelTest {
         assertThat(s.error).isNotNull()
         assertThat(s.livePreview).isNull()
     }
+
+    @Test
+    fun `Live preview is null for a single-number expression`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(5))
+
+        // Nothing to evaluate — no operator, no parens
+        assertThat(viewModel.state.value.livePreview).isNull()
+    }
+
+    @Test
+    fun `Live preview is null for very long single-number entry`() = runTest {
+        val viewModel = newViewModel()
+
+        // 17 digits — exceeds Double's reliable decimal precision (~15-16).
+        // Without the no-operator gate the preview would echo back a rounded
+        // variant of the same number, which looks like a bug to the user.
+        "12345678901234567".forEach { ch ->
+            viewModel.onAction(CalculatorAction.Number(ch.digitToInt()))
+        }
+
+        assertThat(viewModel.state.value.expression).isEqualTo("12345678901234567")
+        assertThat(viewModel.state.value.livePreview).isNull()
+    }
+
+    @Test
+    fun `Live preview shows result for parenthesized expression`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Parentheses) // (
+        viewModel.onAction(CalculatorAction.Number(5))
+        viewModel.onAction(CalculatorAction.Parentheses) // )
+
+        // ( ) still counts as "something to evaluate" — the preview shows.
+        assertThat(viewModel.state.value.livePreview).isEqualTo("5")
+    }
 }
 
 private class FakeHistoryRepository : HistoryRepository {

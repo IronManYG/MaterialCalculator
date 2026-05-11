@@ -65,7 +65,7 @@ fun CalculatorDisplay(
                 )
                 if (error == null && !livePreview.isNullOrBlank()) {
                     BasicText(
-                        text = "= $livePreview",
+                        text = livePreview,
                         style = TextStyle(
                             fontSize = 22.sp,
                             color = previewColor,
