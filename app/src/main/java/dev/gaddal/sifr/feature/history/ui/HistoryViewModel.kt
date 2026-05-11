@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
 import dev.gaddal.sifr.core.data.history.HistoryRepository
+import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,15 +36,20 @@ class HistoryViewModel(
         when (action) {
             is HistoryAction.EntryClicked -> viewModelScope.launch {
                 bus.emit(action.entry.result)
+                _events.send(HistoryEvent.PlayFeedback(FeedbackIntent.Selection))
                 _events.send(HistoryEvent.NavigateBack)
             }
             is HistoryAction.DeleteEntry -> viewModelScope.launch {
                 repository.delete(action.id)
+                _events.send(HistoryEvent.PlayFeedback(FeedbackIntent.Destructive))
             }
             HistoryAction.ClearAllClicked -> _state.update { it.copy(showClearConfirm = true) }
             HistoryAction.ConfirmClearAll -> {
                 _state.update { it.copy(showClearConfirm = false) }
-                viewModelScope.launch { repository.clear() }
+                viewModelScope.launch {
+                    repository.clear()
+                    _events.send(HistoryEvent.PlayFeedback(FeedbackIntent.Destructive))
+                }
             }
             HistoryAction.DismissClearConfirm -> _state.update { it.copy(showClearConfirm = false) }
             HistoryAction.BackClicked -> viewModelScope.launch {
