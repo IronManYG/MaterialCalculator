@@ -81,6 +81,12 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+            // Local Android Studio "install release" may show
+            // INSTALL_BASELINE_PROFILE_FAILED until a real baseline profile is
+            // generated via Macrobenchmark. Cosmetic — Play Store install path
+            // is unaffected. Toggle off "Install baseline profile" in the AS
+            // run config to suppress, or wait for the planned Macrobenchmark
+            // phase.
         }
     }
 
