@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
+import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
 import org.koin.androidx.compose.koinViewModel
@@ -43,9 +45,15 @@ fun SettingsRoot(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val feedback = rememberFeedbackController(
+        hapticsEnabled = state.settings.hapticsEnabled,
+        soundEnabled = state.settings.soundEnabled,
+    )
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             SettingsEvent.NavigateBack -> onNavigateBack()
+            SettingsEvent.DemoHaptic -> feedback.playHaptic(FeedbackIntent.Selection)
+            SettingsEvent.DemoSound -> feedback.playSound(FeedbackIntent.Error)
         }
     }
     SettingsScreen(state = state, onAction = viewModel::onAction)

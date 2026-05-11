@@ -9,8 +9,8 @@
     <string name="settings_theme_system">حسب النظام</string>
     <string name="settings_theme_light">فاتح</string>
     <string name="settings_theme_dark">داكن</string>
-    <string name="settings_haptics">اهتزاز</string>
-    <string name="settings_sound">الصوت</string>
+    <string name="settings_haptics">الاهتزاز</string>
+    <string name="settings_sound">أصوات الأخطاء</string>
 
     <!-- Calculator screen -->
     <string name="calc_open_settings">فتح الإعدادات</string>

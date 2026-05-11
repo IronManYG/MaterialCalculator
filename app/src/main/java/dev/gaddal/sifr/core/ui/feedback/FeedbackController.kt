@@ -41,7 +41,10 @@ class FeedbackController internal constructor(
         if (soundEnabled) playSound(intent)
     }
 
-    private fun playHaptic(intent: FeedbackIntent) {
+    /** Fires the haptic for [intent] regardless of [hapticsEnabled]. Used by
+     * Settings toggle demos — the user just turned the toggle on, so demoing
+     * the feature is exactly what they asked for. */
+    fun playHaptic(intent: FeedbackIntent) {
         when (intent) {
             FeedbackIntent.Error -> presets.alarm()
             FeedbackIntent.CalculateSuccess -> presets.applause()
@@ -50,7 +53,9 @@ class FeedbackController internal constructor(
         }
     }
 
-    private fun playSound(intent: FeedbackIntent) {
+    /** Fires the sound for [intent] regardless of [soundEnabled]. Same
+     * rationale as [playHaptic]. */
+    fun playSound(intent: FeedbackIntent) {
         // Sound is reserved for top-priority signals only. Per-action sound
         // is fatiguing in a calculator (every digit press would beep).
         if (intent == FeedbackIntent.Error) {

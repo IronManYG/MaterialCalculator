@@ -33,13 +33,25 @@ class SettingsViewModel(
     fun onAction(action: SettingsAction) {
         when (action) {
             is SettingsAction.SetThemeMode -> updateSettings { copy(themeMode = action.mode) }
-            SettingsAction.ToggleHaptics -> updateSettings { copy(hapticsEnabled = !hapticsEnabled) }
-            SettingsAction.ToggleSound -> updateSettings { copy(soundEnabled = !soundEnabled) }
-            SettingsAction.BackClicked -> viewModelScope.launch { _events.send(SettingsEvent.NavigateBack) }
+            SettingsAction.ToggleHaptics -> {
+                val wasEnabled = _state.value.settings.hapticsEnabled
+                updateSettings { copy(hapticsEnabled = !hapticsEnabled) }
+                if (!wasEnabled) emit(SettingsEvent.DemoHaptic)
+            }
+            SettingsAction.ToggleSound -> {
+                val wasEnabled = _state.value.settings.soundEnabled
+                updateSettings { copy(soundEnabled = !soundEnabled) }
+                if (!wasEnabled) emit(SettingsEvent.DemoSound)
+            }
+            SettingsAction.BackClicked -> emit(SettingsEvent.NavigateBack)
         }
     }
 
     private fun updateSettings(transform: AppSettings.() -> AppSettings) {
         viewModelScope.launch { repository.update(transform) }
+    }
+
+    private fun emit(event: SettingsEvent) {
+        viewModelScope.launch { _events.send(event) }
     }
 }
