@@ -266,6 +266,70 @@ class ExpressionWriterTest {
         assertThat(writer.cursor).isEqualTo(1)
     }
 
+    // -------- result formatting (Phase 2.9 polish) --------
+
+    @Test
+    fun `One divided by three keeps 16 significant digits`() {
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Calculate)
+
+        // 16 threes after the decimal point — IEEE 754 double's honest precision
+        assertThat(writer.expression).isEqualTo("0.3333333333333333")
+    }
+
+    @Test
+    fun `Result at or above 1e16 switches to scientific notation`() {
+        // 999999999 * 999999999 = 999999998000000001 ≈ 9.99999998e17 — well past
+        // the 1e16 fixed-point threshold, exercising the scientific-notation path.
+        repeat(9) { writer.processAction(CalculatorAction.Number(9)) }
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+        repeat(9) { writer.processAction(CalculatorAction.Number(9)) }
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).startsWith("9.99999998")
+        assertThat(writer.expression).contains("E17")
+    }
+
+    @Test
+    fun `Result below 1e-9 switches to scientific notation`() {
+        // 1 / 10000000000 = 1e-10 — just under the 1e-9 lower threshold
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(1))
+        repeat(10) { writer.processAction(CalculatorAction.Number(0)) }
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("1E-10")
+    }
+
+    @Test
+    fun `Large but sub-threshold result stays in fixed notation`() {
+        // 9999999999 (10 nines = 9.999999999e9) is well below 1e16, so it stays
+        // in fixed-point and round-trips exactly.
+        repeat(10) { writer.processAction(CalculatorAction.Number(9)) }
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("9999999999")
+    }
+
+    @Test
+    fun `Small floating-point noise is hidden by the sig-digit cap`() {
+        // 0.1 + 0.2 = 0.30000000000000004 in Double; the trailing 4 is rounding
+        // noise past the 16-digit budget and should be hidden.
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Decimal)
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Decimal)
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("0.3")
+    }
+
     @Test
     fun `Error-recovery typing resets expression and cursor`() {
         writer.processAction(CalculatorAction.Number(5))

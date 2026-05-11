@@ -3,6 +3,9 @@ package dev.gaddal.sifr.feature.calculator.domain
 import dev.gaddal.sifr.core.domain.util.EmptyResult
 import dev.gaddal.sifr.core.domain.util.Result
 import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.log10
 
 class ExpressionWriter {
 
@@ -153,7 +156,61 @@ class ExpressionWriter {
     }
 
     private fun formatResult(value: Double): String {
-        if (value == value.toLong().toDouble()) return value.toLong().toString()
-        return String.format(Locale.ROOT, "%.10f", value).trimEnd('0').trimEnd('.')
+        // Caller already gates on isFinite; defensive in case a future path skips it.
+        if (!value.isFinite()) return value.toString()
+        if (value == 0.0) return "0"
+
+        val absValue = abs(value)
+        return if (absValue >= SCI_UPPER_THRESHOLD || absValue < SCI_LOWER_THRESHOLD) {
+            formatScientific(value)
+        } else {
+            formatFixed(value)
+        }
+    }
+
+    // Caps total significant digits at the limit, distributing them between integer
+    // and fractional parts. For |x| in [SCI_LOWER_THRESHOLD, 1) the leading zeros
+    // after the decimal point are not significant digits, so the budget extends to
+    // capture every meaningful digit. Trailing zeros and a hanging dot are trimmed.
+    private fun formatFixed(value: Double): String {
+        val absValue = abs(value)
+        val fractionDigits = if (absValue >= 1.0) {
+            val integerDigits = floor(log10(absValue)).toInt() + 1
+            (MAX_SIG_DIGITS - integerDigits).coerceAtLeast(0)
+        } else {
+            val leadingZeros = -floor(log10(absValue)).toInt() - 1
+            leadingZeros + MAX_SIG_DIGITS
+        }
+        val raw = String.format(Locale.ROOT, "%.${fractionDigits}f", value)
+        return if (raw.contains('.')) raw.trimEnd('0').trimEnd('.') else raw
+    }
+
+    // Emits "<mantissa>E<exponent>" with up to MAX_SIG_DIGITS significant digits in
+    // the mantissa, sign on negative exponents only (Google Calculator style).
+    private fun formatScientific(value: Double): String {
+        val raw = String.format(Locale.ROOT, "%.${MAX_SIG_DIGITS - 1}e", value)
+        val eIndex = raw.indexOfAny(charArrayOf('e', 'E'))
+        val mantissaRaw = raw.substring(0, eIndex)
+        val exponent = raw.substring(eIndex + 1).toInt()
+        val mantissa = if (mantissaRaw.contains('.')) {
+            mantissaRaw.trimEnd('0').trimEnd('.')
+        } else {
+            mantissaRaw
+        }
+        return "${mantissa}E$exponent"
+    }
+
+    companion object {
+        // IEEE 754 double reliably represents ~15-17 significant decimal digits;
+        // 16 is the honest cap where every printed digit is computable.
+        private const val MAX_SIG_DIGITS = 16
+
+        // Beyond 10^16 integers stop being exactly representable in Double, so we
+        // switch to scientific to avoid silently emitting garbage low-order digits.
+        private const val SCI_UPPER_THRESHOLD = 1e16
+
+        // Below 10^-9 fixed-point gets visually unwieldy (many leading zeros) and
+        // ambiguous with rounding noise; scientific is more honest.
+        private const val SCI_LOWER_THRESHOLD = 1e-9
     }
 }
