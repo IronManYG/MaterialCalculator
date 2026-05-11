@@ -71,6 +71,7 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
 | Material 3 components, theming, lazy lists, animations, dynamic color | `android-compose-components` |
 | Generic Compose UI patterns (stability, recomposition, accessibility, design system) | `android-compose-ui` |
 | Reviewing / authoring Compose with the "what LLMs get wrong" checklist | `compose-agent` |
+| Compose `@Preview` coverage (every reachable state, modern stacked variants like `@PreviewLightDark` / `@PreviewFontScale`) | `compose-preview-coverage` |
 | Quantitative scored Compose audit → COMPOSE-AUDIT-REPORT.md | `compose-audit-tool` |
 | Compose performance (recomposition, stability, baseline profile, Macrobenchmark) | `compose-performance` |
 | Migrating XML View layouts → Compose | `compose-xml-migration` |
@@ -105,6 +106,7 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
 | AGP 9 + KMP migration (built-in Kotlin, kapt→KSP, source-set renames) | `android-agp-kmp-migration` |
 | R8 / ProGuard keep rule audit, release-size shrinking | `android-r8-analyzer` |
 | Lint + detekt + ktlint + Konsist quality bundle, CI gating | `android-code-quality` |
+| Atomic commits, Conventional Commits style, splitting unrelated changes | `git-commit` |
 
 ### Testing
 
@@ -149,6 +151,8 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
   - **HTML** for brainstorm explorations (multi-option comparisons, mockup grids, interactive design tuners), code-review explainers attached to PRs, one-shot reports / summaries, and any artifact whose primary value is visual side-by-side comparison or two-way interaction. Output to `docs/explore/<topic>.html`. Throwaway by design — not all of these belong in version control.
   - **Markdown** for `PLAN.md`, `SPEC.md`, `CLAUDE.md`, `README.md`, PR descriptions, commit messages, and anything else that is amended during execution, diffed in PRs, or read by Claude as authoritative project context. Markdown wins where edit-ability and reviewable diffs matter.
   - **Pipeline:** brainstorm in HTML → distill the chosen direction into Markdown PLAN/SPEC → execute against the Markdown plan. The HTML brainstorm artifact can be referenced from the Markdown plan but is not the source of truth for execution.
+- **Preview coverage.** Every Compose screen and component ships with `@Preview` coverage for every reachable state in its state machine. Use `compose-preview-coverage` to drive the audit — modern stacked annotations (`@PreviewLightDark` / `@PreviewFontScale`) sampled on the typical-success preview, `PreviewParameterProvider` for state machines with 4+ states, no Cartesian-product noise. Agents cannot see the running app; previews are the visual contract. Current baseline (2026-05-11): 5 `@Preview` across `CalculatorScreen` / `HistoryScreen` / `SettingsScreen`, zero stacked annotations — gap to close opportunistically as screens are touched.
+- **Feature polish.** Before declaring a phase done and merging to `development`, walk through every preview state and every interactive affordance once more. Fix the little things (a broken toggle, a hardcoded copy string, a missing dialog, a weird class name, an Arabic-locale glitch) while the context is still loaded — half-bugs cost 10x more to fix in the next session. Phase 2.7 was a worked example of this; treat the pattern as the default, not the exception.
 
 ## Conventions
 
