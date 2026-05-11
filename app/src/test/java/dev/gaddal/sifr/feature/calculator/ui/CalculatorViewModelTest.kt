@@ -204,6 +204,77 @@ class CalculatorViewModelTest {
             expectNoEvents()
         }
     }
+
+    @Test
+    fun `Initial state has no live preview`() = runTest {
+        val viewModel = newViewModel()
+
+        assertThat(viewModel.state.value.livePreview).isNull()
+    }
+
+    @Test
+    fun `Live preview appears for evaluable expression`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+
+        assertThat(viewModel.state.value.livePreview).isEqualTo("5")
+    }
+
+    @Test
+    fun `Live preview is null after trailing operator`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+
+        assertThat(viewModel.state.value.livePreview).isNull()
+    }
+
+    @Test
+    fun `Live preview is null for division by zero in progress`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Op(Operation.DIVIDE))
+        viewModel.onAction(CalculatorAction.Number(0))
+
+        // 1/0 evaluates to Infinity; preview must hide it rather than echo a fake answer
+        assertThat(viewModel.state.value.livePreview).isNull()
+    }
+
+    @Test
+    fun `Live preview clears after Calculate`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+        assertThat(viewModel.state.value.livePreview).isEqualTo("5")
+
+        viewModel.onAction(CalculatorAction.Calculate)
+
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("5")
+        // Preview must not echo the resolved expression back
+        assertThat(s.livePreview).isNull()
+    }
+
+    @Test
+    fun `Live preview clears when expression enters error state`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Op(Operation.DIVIDE))
+        viewModel.onAction(CalculatorAction.Number(0))
+        viewModel.onAction(CalculatorAction.Calculate)
+
+        val s = viewModel.state.value
+        assertThat(s.error).isNotNull()
+        assertThat(s.livePreview).isNull()
+    }
 }
 
 private class FakeHistoryRepository : HistoryRepository {
