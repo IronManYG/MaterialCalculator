@@ -58,14 +58,12 @@ fun CalculatorRoot(
         when (event) {
             CalculatorEvent.NavigateToSettings -> onNavigateToSettings()
             CalculatorEvent.NavigateToHistory -> onNavigateToHistory()
+            is CalculatorEvent.PlayFeedback -> feedback.play(event.intent)
         }
     }
     CalculatorScreen(
         state = state,
-        onAction = { action ->
-            if (action !is CalculatorAction.RestoreExpression) feedback.click()
-            viewModel.onAction(action)
-        },
+        onAction = viewModel::onAction,
     )
 }
 
