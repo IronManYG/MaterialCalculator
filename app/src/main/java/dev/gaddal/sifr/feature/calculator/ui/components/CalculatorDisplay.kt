@@ -66,6 +66,52 @@ private object EmptyTextToolbar : TextToolbar {
     }
 }
 
+// Wraps the system text toolbar to limit options to Copy when a range is
+// selected — Cut and Paste don't make sense in the calculator (Cut would
+// copy text but our defensive filter blocks the field's deletion; Paste
+// would try to insert arbitrary text the writer can't accept). With a
+// collapsed selection the callbacks pass through unchanged, so the user
+// sees the familiar Paste + Select All options.
+private class CalculatorTextToolbar(
+    private val delegate: TextToolbar,
+) : TextToolbar {
+
+    override val status: TextToolbarStatus get() = delegate.status
+
+    override fun hide() {
+        delegate.hide()
+    }
+
+    override fun showMenu(
+        rect: Rect,
+        onCopyRequested: (() -> Unit)?,
+        onPasteRequested: (() -> Unit)?,
+        onCutRequested: (() -> Unit)?,
+        onSelectAllRequested: (() -> Unit)?,
+    ) {
+        // Compose only passes onCopyRequested when the selection is non-empty,
+        // so it's a reliable signal for "user has a range highlighted".
+        val hasRange = onCopyRequested != null
+        if (hasRange) {
+            delegate.showMenu(
+                rect = rect,
+                onCopyRequested = onCopyRequested,
+                onPasteRequested = null,
+                onCutRequested = null,
+                onSelectAllRequested = null,
+            )
+        } else {
+            delegate.showMenu(
+                rect = rect,
+                onCopyRequested = onCopyRequested,
+                onPasteRequested = onPasteRequested,
+                onCutRequested = onCutRequested,
+                onSelectAllRequested = onSelectAllRequested,
+            )
+        }
+    }
+}
+
 @Composable
 fun CalculatorDisplay(
     expression: String,
@@ -183,12 +229,26 @@ fun CalculatorDisplay(
                             ),
                         )
                     }
-                    // Suppress the long-press Cut/Copy/Paste toolbar by overriding
-                    // LocalTextToolbar with a no-op implementation when the setting
-                    // is off. We keep this scoped to the field so the rest of the
-                    // app's text (history, settings) still gets the system toolbar.
+                    // Customize the long-press text toolbar:
+                    //   - showSelectionToolbar = false: route to an EmptyTextToolbar
+                    //     so no menu appears at all.
+                    //   - showSelectionToolbar = true + range selected: show only
+                    //     Copy (Cut/Paste are no-ops in the calculator, hiding them
+                    //     prevents user confusion).
+                    //   - showSelectionToolbar = true + collapsed selection: pass
+                    //     through to the system's default behavior (typically
+                    //     Paste + Select All).
+                    // Scoped to the field — history and settings text still use
+                    // the system toolbar.
+                    val systemToolbar = LocalTextToolbar.current
                     val fieldToolbar: TextToolbar =
-                        if (showSelectionToolbar) LocalTextToolbar.current else EmptyTextToolbar
+                        remember(showSelectionToolbar, systemToolbar) {
+                            if (showSelectionToolbar) {
+                                CalculatorTextToolbar(systemToolbar)
+                            } else {
+                                EmptyTextToolbar
+                            }
+                        }
                     CompositionLocalProvider(LocalTextToolbar provides fieldToolbar) {
                         AutoSizingExpressionField(
                             value = fieldValue,
