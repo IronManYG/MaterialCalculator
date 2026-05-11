@@ -64,38 +64,49 @@ internal object VibratorCapabilityProbe {
             return@buildString
         }
         appendLine("hasVibrator()=${vibrator.hasVibrator()}")
-        appendLine("hasAmplitudeControl()=${vibrator.hasAmplitudeControl()}")
+        val hasAmplitudeControl = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.hasAmplitudeControl()
+        } else {
+            false
+        }
+        appendLine("hasAmplitudeControl()=$hasAmplitudeControl")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val effects = intArrayOf(
+            val effectSupport = vibrator.areEffectsSupported(
                 VibrationEffect.EFFECT_CLICK,
                 VibrationEffect.EFFECT_DOUBLE_CLICK,
                 VibrationEffect.EFFECT_HEAVY_CLICK,
                 VibrationEffect.EFFECT_TICK,
             )
             val effectNames = listOf("CLICK", "DOUBLE_CLICK", "HEAVY_CLICK", "TICK")
-            val effectSupport = vibrator.areEffectsSupported(*effects)
             effectNames.zip(effectSupport.toList()).forEach { (name, v) ->
                 appendLine("effect $name -> ${effectSupportToString(v)}")
             }
 
-            val primitives = intArrayOf(
+            val primitiveSupportApi30 = vibrator.arePrimitivesSupported(
                 VibrationEffect.Composition.PRIMITIVE_CLICK,
                 VibrationEffect.Composition.PRIMITIVE_TICK,
-                VibrationEffect.Composition.PRIMITIVE_LOW_TICK,
                 VibrationEffect.Composition.PRIMITIVE_QUICK_RISE,
                 VibrationEffect.Composition.PRIMITIVE_SLOW_RISE,
                 VibrationEffect.Composition.PRIMITIVE_QUICK_FALL,
-                VibrationEffect.Composition.PRIMITIVE_SPIN,
-                VibrationEffect.Composition.PRIMITIVE_THUD,
             )
-            val primitiveNames = listOf(
-                "CLICK", "TICK", "LOW_TICK", "QUICK_RISE",
-                "SLOW_RISE", "QUICK_FALL", "SPIN", "THUD",
-            )
-            val primitiveSupport = vibrator.arePrimitivesSupported(*primitives)
-            primitiveNames.zip(primitiveSupport.toList()).forEach { (name, v) ->
+            val primitiveApi30Names = listOf("CLICK", "TICK", "QUICK_RISE", "SLOW_RISE", "QUICK_FALL")
+            primitiveApi30Names.zip(primitiveSupportApi30.toList()).forEach { (name, v) ->
                 appendLine("primitive $name -> $v")
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val primitiveSupportApi31 = vibrator.arePrimitivesSupported(
+                    VibrationEffect.Composition.PRIMITIVE_LOW_TICK,
+                    VibrationEffect.Composition.PRIMITIVE_SPIN,
+                    VibrationEffect.Composition.PRIMITIVE_THUD,
+                )
+                val primitiveApi31Names = listOf("LOW_TICK", "SPIN", "THUD")
+                primitiveApi31Names.zip(primitiveSupportApi31.toList()).forEach { (name, v) ->
+                    appendLine("primitive $name -> $v")
+                }
+            } else {
+                appendLine("primitive LOW_TICK / SPIN / THUD -> requires API 31")
             }
         } else {
             appendLine("areEffectsSupported / arePrimitivesSupported require API 30+")
