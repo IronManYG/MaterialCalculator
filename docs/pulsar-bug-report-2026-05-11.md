@@ -75,9 +75,73 @@ The pattern of what works vs. what is silent maps exactly to Android `Vibrator` 
 
 ## Link to a repository
 
-`https://github.com/IronManYG/MaterialCalculator/tree/feature/phase2.6-feedback-wiring`
+*(No standalone repro repo. Minimal usage shown below — drop into any empty Compose project.)*
 
-The relevant file is `app/src/main/java/dev/gaddal/sifr/core/ui/feedback/FeedbackController.kt`. Swap `presets.systemKeyboardTap()` ↔ `presets.bloom()` in `click()` and install with `./gradlew :app:installDebug` to reproduce both ends of the symptom on the same APK.
+**`app/build.gradle.kts`**
+```kotlin
+dependencies {
+    implementation("com.swmansion:pulsar:1.1.0")
+}
+```
+
+**`AndroidManifest.xml`**
+```xml
+<uses-permission android:name="android.permission.VIBRATE" />
+```
+
+**`MainActivity.kt`**
+```kotlin
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.swmansion.pulsar.Pulsar
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    val presets = remember { Pulsar(this@MainActivity).getPresets() }
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Button(onClick = { presets.systemKeyboardTap() }) {
+                            Text("systemKeyboardTap (SILENT on Honor 400 Pro)")
+                        }
+                        Button(onClick = { presets.bloom() }) {
+                            Text("bloom (felt)")
+                        }
+                        Button(onClick = { presets.systemImpactMedium() }) {
+                            Text("systemImpactMedium (SILENT)")
+                        }
+                        Button(onClick = { presets.afterglow() }) {
+                            Text("afterglow (SILENT)")
+                        }
+                        Button(onClick = { presets.alarm() }) {
+                            Text("alarm (felt)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+Tapping `bloom` and `alarm` produces a clear haptic on Honor 400 Pro. Tapping `systemKeyboardTap`, `systemImpactMedium`, `afterglow` (and the other `system*` / amplitude-scaled presets listed above) produces nothing — no exception, no warning in logcat, just silence.
 
 ---
 
@@ -103,7 +167,7 @@ The relevant file is `app/src/main/java/dev/gaddal/sifr/core/ui/feedback/Feedbac
 
 ## Device model
 
-`Honor 400 Pro, Android 16, MagicOS ` **TODO**: append the exact MagicOS version. Settings → About phone → look for the "MagicOS" line (commonly "MagicOS 9.0.0" or similar).
+`Honor 400 Pro, Android 16, MagicOS 10.0.0.151(C185E3R2P3)`
 
 ## Host machine
 
