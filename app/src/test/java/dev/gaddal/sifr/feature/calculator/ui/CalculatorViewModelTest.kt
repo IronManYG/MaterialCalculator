@@ -312,6 +312,58 @@ class CalculatorViewModelTest {
         // ( ) still counts as "something to evaluate" — the preview shows.
         assertThat(viewModel.state.value.livePreview).isEqualTo("5")
     }
+
+    // -------- cursor in state (Phase 2.9) --------
+
+    @Test
+    fun `Initial state cursor is zero`() = runTest {
+        val viewModel = newViewModel()
+        assertThat(viewModel.state.value.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Cursor advances as digits are typed`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Number(3))
+
+        assertThat(viewModel.state.value.cursor).isEqualTo(3)
+    }
+
+    @Test
+    fun `CursorChanged action moves the cursor in state`() = runTest {
+        val viewModel = newViewModel()
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Number(3))
+
+        viewModel.onAction(CalculatorAction.CursorChanged(1))
+
+        assertThat(viewModel.state.value.cursor).isEqualTo(1)
+        // and a subsequent digit inserts at that cursor
+        viewModel.onAction(CalculatorAction.Number(9))
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("1923")
+        assertThat(s.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Calculate moves cursor to end of result in state`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+        viewModel.onAction(CalculatorAction.CursorChanged(1))
+
+        viewModel.onAction(CalculatorAction.Calculate)
+
+        val s = viewModel.state.value
+        assertThat(s.expression).isEqualTo("5")
+        assertThat(s.cursor).isEqualTo(1)
+    }
 }
 
 private class FakeHistoryRepository : HistoryRepository {

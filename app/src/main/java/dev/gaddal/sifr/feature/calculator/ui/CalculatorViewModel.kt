@@ -55,6 +55,7 @@ class CalculatorViewModel(
                 _state.update {
                     it.copy(
                         expression = post,
+                        cursor = writer.cursor,
                         livePreview = computePreview(),
                         error = null,
                     )
