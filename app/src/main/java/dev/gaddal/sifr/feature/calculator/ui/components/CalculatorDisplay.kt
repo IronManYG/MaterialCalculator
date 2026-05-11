@@ -66,12 +66,15 @@ private object EmptyTextToolbar : TextToolbar {
     }
 }
 
-// Wraps the system text toolbar to limit options to Copy when a range is
-// selected — Cut and Paste don't make sense in the calculator (Cut would
-// copy text but our defensive filter blocks the field's deletion; Paste
-// would try to insert arbitrary text the writer can't accept). With a
-// collapsed selection the callbacks pass through unchanged, so the user
-// sees the familiar Paste + Select All options.
+// Wraps the system text toolbar so each selection state offers exactly one
+// useful action:
+//   * Range selected → Copy only (Cut and Paste are no-ops because the
+//     writer's defensive filter blocks the field's text mutations).
+//   * Collapsed selection → Select All only (Paste is broken for the same
+//     reason; Select All flows naturally into the range case where Copy
+//     then becomes available).
+// Compose's `onCopyRequested != null` is its "selection is non-empty"
+// signal and is the reliable way to discriminate the two cases.
 private class CalculatorTextToolbar(
     private val delegate: TextToolbar,
 ) : TextToolbar {
@@ -89,8 +92,6 @@ private class CalculatorTextToolbar(
         onCutRequested: (() -> Unit)?,
         onSelectAllRequested: (() -> Unit)?,
     ) {
-        // Compose only passes onCopyRequested when the selection is non-empty,
-        // so it's a reliable signal for "user has a range highlighted".
         val hasRange = onCopyRequested != null
         if (hasRange) {
             delegate.showMenu(
@@ -103,9 +104,9 @@ private class CalculatorTextToolbar(
         } else {
             delegate.showMenu(
                 rect = rect,
-                onCopyRequested = onCopyRequested,
-                onPasteRequested = onPasteRequested,
-                onCutRequested = onCutRequested,
+                onCopyRequested = null,
+                onPasteRequested = null,
+                onCutRequested = null,
                 onSelectAllRequested = onSelectAllRequested,
             )
         }
