@@ -11,6 +11,3 @@ data object SettingsRoute : NavKey
 
 @Serializable
 data object HistoryRoute : NavKey
-
-@Serializable
-data object HapticsTestRoute : NavKey

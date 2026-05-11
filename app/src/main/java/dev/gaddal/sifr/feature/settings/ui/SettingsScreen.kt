@@ -42,7 +42,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsRoot(
     onNavigateBack: () -> Unit,
-    onNavigateToHapticsTest: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -53,7 +52,6 @@ fun SettingsRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             SettingsEvent.NavigateBack -> onNavigateBack()
-            SettingsEvent.NavigateToHapticsTest -> onNavigateToHapticsTest()
             SettingsEvent.DemoHaptic -> feedback.playHaptic(FeedbackIntent.Selection)
             SettingsEvent.DemoSound -> feedback.playSound(FeedbackIntent.Error)
         }
@@ -103,28 +101,6 @@ fun SettingsScreen(
                 label = stringResource(R.string.settings_sound),
                 checked = state.settings.soundEnabled,
                 onCheckedChange = { onAction(SettingsAction.ToggleSound) },
-            )
-            HorizontalDivider()
-            HapticsTestRow(onClick = { onAction(SettingsAction.HapticsTestClicked) })
-        }
-    }
-}
-
-@Composable
-private fun HapticsTestRow(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = stringResource(R.string.haptics_test_title))
-            Text(
-                text = stringResource(R.string.haptics_test_subtitle),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
