@@ -46,13 +46,17 @@ The pattern of what works vs. what is silent maps exactly to Android `Vibrator` 
 **Expected behavior:** every preset should produce *some* haptic feedback. When the device lacks the requested primitive/effect/amplitude support, Pulsar should degrade to a basic on/off `createWaveform` derived from the pattern's timing rather than calling an API that the framework will silently discard.
 
 **Suggested fix sketch:**
-- At `Pulsar(context)` construction, probe once:
+
+A. **Capability probe at `Pulsar(context)` construction**, cache results:
   - `vibrator.hasAmplitudeControl()`
-  - `vibrator.areAllPrimitivesSupported(PRIMITIVE_CLICK, PRIMITIVE_TICK, PRIMITIVE_SPIN, …)`
+  - `vibrator.areAllPrimitivesSupported(PRIMITIVE_CLICK, PRIMITIVE_TICK, PRIMITIVE_LOW_TICK, PRIMITIVE_QUICK_RISE, PRIMITIVE_SLOW_RISE, PRIMITIVE_QUICK_FALL, PRIMITIVE_SPIN, PRIMITIVE_THUD)`
   - `vibrator.areAllEffectsSupported(EFFECT_CLICK, EFFECT_TICK, EFFECT_DOUBLE_CLICK, EFFECT_HEAVY_CLICK)`
-- Each preset picks the first supported path in this chain: predefined effect → composition primitive (with amplitude scale) → `createOneShot` with amplitude → `createOneShot` without amplitude → `vibrate(long)` (deprecated, API 24-25).
-- For `SystemViewBasedPresets`, either pass `HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING` (where applicable) or, when `Settings.System.HAPTIC_FEEDBACK_ENABLED == 0`, route through the `Vibrator` path with a hand-rolled equivalent waveform.
-- A `Log.w` on first occurrence per session when a requested effect/primitive isn't supported would have caught all of this at integration time — silent no-ops are the worst failure mode for a haptics SDK.
+
+B. **Fallback chain for primitive-based presets**: composition primitive (if supported) → amplitude-scaled `createWaveform` derived from the discrete pattern's timing + amplitude → unscaled `createWaveform` → `vibrate(long)` (deprecated, API 24-25). On Honor 400 Pro the chain would land on amplitude-scaled `createWaveform` (since `hasAmplitudeControl=true`), which is what `bloom()` / `alarm()` already do — those are felt.
+
+C. **Fallback chain for system-view-based presets** (`systemKeyboardTap` and friends): try `decorView.performHapticFeedback(constant, FLAG_IGNORE_VIEW_SETTING)`; if that returns `false`, fall through to an equivalent `VibrationEffect.createPredefined(EFFECT_TICK)` (or `EFFECT_CLICK` for `systemContextClick`, `EFFECT_HEAVY_CLICK` for `systemImpactHeavy`, etc.). On Honor 400 Pro this fallback would succeed — predefined effects all report `YES`.
+
+D. **Diagnostics**: `Log.w` on first occurrence per session when a requested effect/primitive isn't supported, and surface a `Pulsar.diagnostics()` API that returns the capability map. Silent no-ops are the worst failure mode for a haptics SDK — every consumer integrating Pulsar today has to write the capability probe I wrote above to figure out which presets will actually fire on their target devices.
 
 ---
 
@@ -182,17 +186,47 @@ Tapping `bloom` and `alarm` produces a clear haptic on Honor 400 Pro. Tapping `s
 
 **MagicOS haptic toggle** — **TODO**: open Settings → Sounds & vibration → Vibration & haptics (path may vary slightly by MagicOS version). Note the state of any "System haptics" / "Touch feedback" / "Keyboard haptics" toggles. If turning them on makes Pulsar's `system*` presets fire, that's the smoking gun — attach a screenshot. If they're already on and Pulsar is still silent, that's the stronger bug (vendor ROM isn't honoring its own setting for third-party apps).
 
-**Capability probe output** — **TODO**: paste the file dump produced by the app at startup.
+**Capability probe output** (from Honor 400 Pro / MagicOS 10.0.0.151):
 
-Note: MagicOS encrypts `adb logcat` output by default (lines look like `(HKS)…(HKE)` blobs), so the probe also writes a plaintext file to app-external storage. Pull it like this:
+```
+===== Vibrator capability probe =====
+Device: HONOR DNP-NX9 (DNP-NX9)
+Android: 16 (API 36)
+Build: DNP-N39 10.0.0.151(C185E3R2P3)
+hasVibrator()=true
+hasAmplitudeControl()=true
+effect CLICK -> YES
+effect DOUBLE_CLICK -> YES
+effect HEAVY_CLICK -> YES
+effect TICK -> YES
+primitive CLICK -> false
+primitive TICK -> false
+primitive LOW_TICK -> false
+primitive QUICK_RISE -> false
+primitive SLOW_RISE -> false
+primitive QUICK_FALL -> false
+primitive SPIN -> false
+primitive THUD -> false
+Settings.System.HAPTIC_FEEDBACK_ENABLED=1 (0=off, 1=on, -1=unset)
+===== /probe =====
+```
+
+This output is the smoking gun. Three things stand out:
+
+1. **All four predefined effects (`EFFECT_CLICK`, `EFFECT_DOUBLE_CLICK`, `EFFECT_HEAVY_CLICK`, `EFFECT_TICK`) report `YES`.** Pulsar's `systemEffectClick/Tick/HeavyClick/DoubleClick` presets — which route through `VibrationEffect.createPredefined` — should work on this device. (They likely *do*; the surprising-silent presets I observed are the view-based and primitive-based ones, see below.)
+
+2. **All eight composition primitives report `false`** — `PRIMITIVE_CLICK`, `PRIMITIVE_TICK`, `PRIMITIVE_LOW_TICK`, `PRIMITIVE_QUICK_RISE`, `PRIMITIVE_SLOW_RISE`, `PRIMITIVE_QUICK_FALL`, `PRIMITIVE_SPIN`, `PRIMITIVE_THUD`. Every `systemPrimitive*()` preset and every generated preset that lowers to composition primitives (afterglow, aftershock, and ~all the "system" feedback styles in the playground) is silent on this device because Pulsar calls `VibrationEffect.startComposition().addPrimitive(PRIMITIVE_*).compose()` without first calling `vibrator.arePrimitivesSupported(...)`.
+
+3. **`HAPTIC_FEEDBACK_ENABLED=1` and view-based presets are still silent.** The system haptic toggle is **on**, the vibrator is LRA-grade with amplitude control, yet `systemKeyboardTap()` produces nothing. That isolates the failure to the `decorView.performHapticFeedback(...)` path itself — most likely `View.isHapticFeedbackEnabled` is `false` on the decor view (needs `HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING`) or MagicOS's view base class intercepts.
+
+Probe source: `app/src/main/java/dev/gaddal/sifr/core/ui/feedback/VibratorCapabilityProbe.kt`. To reproduce on another device:
 
 ```powershell
 .\gradlew.bat :app:installDebug
 adb shell am start -n com.gaddal.materialcalculator/dev.gaddal.sifr.MainActivity
-# wait ~2s for app to start, then:
-adb pull /sdcard/Android/data/com.gaddal.materialcalculator/files/pulsar-probe.txt docs\pulsar-probe.txt
+adb pull /sdcard/Android/data/com.gaddal.materialcalculator/files/pulsar-probe.txt
 ```
 
-Probe source: `app/src/main/java/dev/gaddal/sifr/core/ui/feedback/VibratorCapabilityProbe.kt`. Fields reported: `hasVibrator`, `hasAmplitudeControl`, `areEffectsSupported` for `EFFECT_{CLICK, DOUBLE_CLICK, HEAVY_CLICK, TICK}`, `arePrimitivesSupported` for `PRIMITIVE_{CLICK, TICK, LOW_TICK, QUICK_RISE, SLOW_RISE, QUICK_FALL, SPIN, THUD}`, and `Settings.System.HAPTIC_FEEDBACK_ENABLED`.
+(Note: MagicOS encrypts `adb logcat` output by default — `(HKS)…(HKE)` blobs — so the probe writes a plaintext file to external app storage as a workaround.)
 
 **Workaround in my own integration**: substituted `presets.systemKeyboardTap()` → `presets.bloom()`. `bloom()` works because it ships with a `rawContinuousPattern` channel as well as discrete primitives, which the engine apparently falls back to when primitives aren't honored.
