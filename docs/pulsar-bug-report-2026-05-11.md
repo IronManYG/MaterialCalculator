@@ -18,6 +18,8 @@ Many system presets and amplitude-scaled presets silently no-op on devices whose
 
 ## Description
 
+*Note on authorship: this report was drafted with Claude Code (Anthropic's CLI) based on my own hands-on testing on the device described below. I reviewed every claim, ran every command, and confirmed the report's content before submitting.*
+
 On my device, large portions of Pulsar's preset library produce **no haptic feedback at all** — the call returns normally but nothing is felt. This is reproducible in both my own SDK integration and the official Pulsar demo app installed from Play Store (`com.swmansion.pulsar.app`).
 
 This is **not** a budget-device issue. Honor 400 Pro (2025 flagship, LRA vibrator) is the reproduction device. The hardware clearly supports rich haptics — `presets.bloom()` (which falls back to a continuous-amplitude waveform → `vibrate(VibrationEffect.createWaveform(...))`) is felt clearly. What is silent is everything routed through `View.performHapticFeedback`, `VibrationEffect.createPredefined`, and `VibrationEffect.Composition.addPrimitive` — i.e. the paths that depend on the vendor ROM honoring Android's system haptic-feedback service. MagicOS appears to filter all three. This pattern likely affects HarmonyOS-derived ROMs (Honor / Huawei) more broadly, and probably similar vendor stacks (EMUI, OriginOS, etc.) on devices users would expect "first-class" haptics on.
