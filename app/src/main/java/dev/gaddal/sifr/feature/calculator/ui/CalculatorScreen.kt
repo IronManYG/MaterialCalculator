@@ -29,24 +29,36 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.data.settings.SettingsRepository
+import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorButtonGrid
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplay
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun CalculatorRoot(
     onNavigateToSettings: () -> Unit,
     onNavigateToHistory: () -> Unit,
     viewModel: CalculatorViewModel = koinViewModel(),
+    settingsRepository: SettingsRepository = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settings by settingsRepository.observe()
+        .collectAsStateWithLifecycle(initialValue = AppSettings())
+    val feedback = rememberFeedbackController(
+        hapticsEnabled = settings.hapticsEnabled,
+        soundEnabled = settings.soundEnabled,
+    )
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             CalculatorEvent.NavigateToSettings -> onNavigateToSettings()
             CalculatorEvent.NavigateToHistory -> onNavigateToHistory()
+            is CalculatorEvent.PlayFeedback -> feedback.play(event.intent)
         }
     }
     CalculatorScreen(

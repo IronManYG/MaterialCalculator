@@ -8,8 +8,17 @@
     <string name="settings_theme_system">Follow system</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
-    <string name="settings_haptics">Haptics</string>
-    <string name="settings_sound">Sound</string>
+    <string name="settings_haptics">Haptic feedback</string>
+    <string name="settings_sound">Error sounds</string>
+
+    <!-- Haptics test (Pulsar diagnostic) -->
+    <string name="haptics_test_title">Haptics test (Pulsar diagnostic)</string>
+    <string name="haptics_test_subtitle">Tap each preset to verify which fire on this device</string>
+    <string name="haptics_test_back">Back</string>
+    <string name="haptics_test_tap">TAP</string>
+    <string name="haptics_test_section_felt">Expected: felt</string>
+    <string name="haptics_test_section_silent">Expected: silent</string>
+    <string name="haptics_test_banner">This screen calls Pulsar presets directly, bypassing the in-app Haptics toggle. Used to reproduce the bug report at docs/pulsar-bug-report-2026-05-11.md against github.com/software-mansion/pulsar.</string>
 
     <!-- Calculator screen -->
     <string name="calc_open_settings">Open settings</string>

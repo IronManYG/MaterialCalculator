@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
+import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
 import org.koin.androidx.compose.koinViewModel
@@ -40,12 +42,20 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsRoot(
     onNavigateBack: () -> Unit,
+    onNavigateToHapticsTest: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val feedback = rememberFeedbackController(
+        hapticsEnabled = state.settings.hapticsEnabled,
+        soundEnabled = state.settings.soundEnabled,
+    )
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             SettingsEvent.NavigateBack -> onNavigateBack()
+            SettingsEvent.NavigateToHapticsTest -> onNavigateToHapticsTest()
+            SettingsEvent.DemoHaptic -> feedback.playHaptic(FeedbackIntent.Selection)
+            SettingsEvent.DemoSound -> feedback.playSound(FeedbackIntent.Error)
         }
     }
     SettingsScreen(state = state, onAction = viewModel::onAction)
@@ -93,6 +103,28 @@ fun SettingsScreen(
                 label = stringResource(R.string.settings_sound),
                 checked = state.settings.soundEnabled,
                 onCheckedChange = { onAction(SettingsAction.ToggleSound) },
+            )
+            HorizontalDivider()
+            HapticsTestRow(onClick = { onAction(SettingsAction.HapticsTestClicked) })
+        }
+    }
+}
+
+@Composable
+private fun HapticsTestRow(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = stringResource(R.string.haptics_test_title))
+            Text(
+                text = stringResource(R.string.haptics_test_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -159,5 +191,13 @@ private fun SettingsScreenPreview() {
             state = SettingsState(isLoading = false),
             onAction = {},
         )
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsRootPreview() {
+    SifrTheme {
+        SettingsScreen(state = SettingsState(isLoading = false), onAction = {})
     }
 }

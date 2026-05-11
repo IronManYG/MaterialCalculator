@@ -6,6 +6,7 @@ import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
 import dev.gaddal.sifr.core.data.history.HistoryRepository
 import dev.gaddal.sifr.core.domain.history.HistoryEntry
+import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.util.MainDispatcherRule
 import dev.gaddal.sifr.core.ui.util.UiText
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
@@ -137,6 +138,71 @@ class CalculatorViewModelTest {
         viewModel.onAction(CalculatorAction.Calculate)
 
         assertThat(history.added).isEmpty()
+    }
+
+    @Test
+    fun `Successful Calculate emits CalculateSuccess feedback`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.events.test {
+            viewModel.onAction(CalculatorAction.Number(2))
+            viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+            viewModel.onAction(CalculatorAction.Number(3))
+            viewModel.onAction(CalculatorAction.Calculate)
+
+            assertThat(awaitItem())
+                .isEqualTo(CalculatorEvent.PlayFeedback(FeedbackIntent.CalculateSuccess))
+        }
+    }
+
+    @Test
+    fun `Failed Calculate emits Error feedback`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.events.test {
+            viewModel.onAction(CalculatorAction.Number(5))
+            viewModel.onAction(CalculatorAction.Op(Operation.DIVIDE))
+            viewModel.onAction(CalculatorAction.Number(0))
+            viewModel.onAction(CalculatorAction.Calculate)
+
+            assertThat(awaitItem())
+                .isEqualTo(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
+        }
+    }
+
+    @Test
+    fun `Clear with non-empty expression emits Destructive feedback`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.events.test {
+            viewModel.onAction(CalculatorAction.Number(7))
+            viewModel.onAction(CalculatorAction.Clear)
+
+            assertThat(awaitItem())
+                .isEqualTo(CalculatorEvent.PlayFeedback(FeedbackIntent.Destructive))
+        }
+    }
+
+    @Test
+    fun `Clear with empty expression emits no feedback`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.events.test {
+            viewModel.onAction(CalculatorAction.Clear)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `Number action emits no feedback`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.events.test {
+            viewModel.onAction(CalculatorAction.Number(5))
+            viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+            viewModel.onAction(CalculatorAction.Number(3))
+            expectNoEvents()
+        }
     }
 }
 

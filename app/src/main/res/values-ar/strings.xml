@@ -9,8 +9,17 @@
     <string name="settings_theme_system">حسب النظام</string>
     <string name="settings_theme_light">فاتح</string>
     <string name="settings_theme_dark">داكن</string>
-    <string name="settings_haptics">اهتزاز</string>
-    <string name="settings_sound">الصوت</string>
+    <string name="settings_haptics">الاهتزاز</string>
+    <string name="settings_sound">أصوات الأخطاء</string>
+
+    <!-- Haptics test (Pulsar diagnostic) -->
+    <string name="haptics_test_title">اختبار الاهتزاز (تشخيص مكتبة Pulsar)</string>
+    <string name="haptics_test_subtitle">اضغط كل نمط للتحقق من النماذج التي تعمل على هذا الجهاز</string>
+    <string name="haptics_test_back">رجوع</string>
+    <string name="haptics_test_tap">اضغط</string>
+    <string name="haptics_test_section_felt">المتوقع: يعمل</string>
+    <string name="haptics_test_section_silent">المتوقع: صامت</string>
+    <string name="haptics_test_banner">تستدعي هذه الشاشة نماذج Pulsar مباشرة، متجاوزةً مفتاح الاهتزاز في التطبيق. تُستخدم لإعادة إنتاج تقرير الخطأ في docs/pulsar-bug-report-2026-05-11.md المقدّم لـ github.com/software-mansion/pulsar.</string>
 
     <!-- Calculator screen -->
     <string name="calc_open_settings">فتح الإعدادات</string>

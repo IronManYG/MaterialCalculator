@@ -7,4 +7,5 @@ sealed interface SettingsAction {
     data object ToggleHaptics : SettingsAction
     data object ToggleSound : SettingsAction
     data object BackClicked : SettingsAction
+    data object HapticsTestClicked : SettingsAction
 }

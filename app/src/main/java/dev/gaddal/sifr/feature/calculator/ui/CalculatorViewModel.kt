@@ -6,6 +6,7 @@ import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
 import dev.gaddal.sifr.core.data.history.HistoryRepository
 import dev.gaddal.sifr.core.domain.util.onFailure
 import dev.gaddal.sifr.core.domain.util.onSuccess
+import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
 import kotlinx.coroutines.channels.Channel
@@ -50,16 +51,29 @@ class CalculatorViewModel(
             .onSuccess {
                 val post = writer.expression
                 _state.update { it.copy(expression = post, error = null) }
-                if (action == CalculatorAction.Calculate &&
-                    pre.isNotBlank() &&
-                    pre != post
-                ) {
-                    viewModelScope.launch { historyRepository.add(pre, post) }
-                }
+                onSuccessSideEffects(action, pre, post)
             }
             .onFailure { error ->
                 _state.update { it.copy(error = error.toUiText()) }
+                emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
             }
+    }
+
+    private fun onSuccessSideEffects(action: CalculatorAction, pre: String, post: String) {
+        when (action) {
+            CalculatorAction.Calculate -> {
+                if (pre.isNotBlank() && pre != post) {
+                    viewModelScope.launch { historyRepository.add(pre, post) }
+                    emit(CalculatorEvent.PlayFeedback(FeedbackIntent.CalculateSuccess))
+                }
+            }
+            CalculatorAction.Clear -> {
+                if (pre.isNotEmpty()) {
+                    emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Destructive))
+                }
+            }
+            else -> Unit
+        }
     }
 
     private fun emit(event: CalculatorEvent) {

@@ -31,21 +31,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.history.HistoryEntry
+import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
 import dev.gaddal.sifr.feature.history.ui.components.HistoryItem
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun HistoryRoot(
     onNavigateBack: () -> Unit,
     viewModel: HistoryViewModel = koinViewModel(),
+    settingsRepository: SettingsRepository = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settings by settingsRepository.observe()
+        .collectAsStateWithLifecycle(initialValue = AppSettings())
+    val feedback = rememberFeedbackController(
+        hapticsEnabled = settings.hapticsEnabled,
+        soundEnabled = settings.soundEnabled,
+    )
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             HistoryEvent.NavigateBack -> onNavigateBack()
+            is HistoryEvent.PlayFeedback -> feedback.play(event.intent)
         }
     }
     HistoryScreen(state = state, onAction = viewModel::onAction)

@@ -25,6 +25,9 @@ navigation3 = "1.1.1"
 datastore = "1.2.1"
 room = "2.8.4"
 
+# Haptics
+pulsar = "1.1.0"
+
 # Build tooling
 ksp = "2.3.7"
 
@@ -80,6 +83,9 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 
 # Serialization
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+
+# Haptics
+pulsar = { group = "com.swmansion", name = "pulsar", version.ref = "pulsar" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
