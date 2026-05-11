@@ -73,8 +73,10 @@ fun CalculatorDisplay(
                     AutoSizingExpressionField(
                         value = fieldValue,
                         onValueChange = { newValue ->
-                            // readOnly=true blocks IME text edits; we only react to
-                            // selection (cursor) moves driven by tap.
+                            // IME is blocked at the platform-input layer inside
+                            // AutoSizingExpressionField and the field also drops text
+                            // mutations defensively; we only react to selection (cursor)
+                            // moves driven by tap.
                             if (newValue.selection.start != cursor) {
                                 onCursorChange(newValue.selection.start)
                             }
