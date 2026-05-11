@@ -44,6 +44,16 @@ fun NavRoot() {
                     animationSpec = tween(SLIDE_DURATION_MS),
                 ) + fadeOut(tween(FADE_OUT_DURATION_MS))
         },
+        predictivePopTransitionSpec = { _ ->
+            slideIntoContainer(
+                towards = SlideDirection.End,
+                animationSpec = tween(SLIDE_DURATION_MS),
+            ) + fadeIn(tween(FADE_IN_DURATION_MS)) togetherWith
+                slideOutOfContainer(
+                    towards = SlideDirection.End,
+                    animationSpec = tween(SLIDE_DURATION_MS),
+                ) + fadeOut(tween(FADE_OUT_DURATION_MS))
+        },
         entryProvider = entryProvider {
             entry<CalculatorRoute> {
                 CalculatorRoot(
