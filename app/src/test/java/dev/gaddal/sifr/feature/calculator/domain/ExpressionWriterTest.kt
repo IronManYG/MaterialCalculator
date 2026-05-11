@@ -98,4 +98,54 @@ class ExpressionWriterTest {
 
         assertThat(again).isInstanceOf(Result.Error::class.java)
     }
+
+    @Test
+    fun `tryEvaluate returns formatted result for valid expression`() {
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(3))
+
+        assertThat(writer.tryEvaluate()).isEqualTo(Result.Success("5"))
+    }
+
+    @Test
+    fun `tryEvaluate returns DIVISION_BY_ZERO without mutating state`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(0))
+
+        val preview = writer.tryEvaluate()
+
+        assertThat(preview).isEqualTo(Result.Error(CalcError.DIVISION_BY_ZERO))
+        // tryEvaluate must NOT trip the writer into error state
+        assertThat(writer.expression).isEqualTo("5/0")
+        // And subsequent Calculate must still produce the genuine error
+        val real = writer.processAction(CalculatorAction.Calculate)
+        assertThat(real).isEqualTo(Result.Error(CalcError.DIVISION_BY_ZERO))
+    }
+
+    @Test
+    fun `tryEvaluate on empty expression returns Success of zero`() {
+        // prepareForCalculation maps empty to "0", so the preview pipeline
+        // succeeds with a zero result. The VM gates this externally so the
+        // user does not see a spurious "= 0" on a blank screen.
+        assertThat(writer.tryEvaluate()).isEqualTo(Result.Success("0"))
+    }
+
+    @Test
+    fun `tryEvaluate does not mutate expression for a complex case`() {
+        writer.processAction(CalculatorAction.Parentheses) // (
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Parentheses) // )
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+        writer.processAction(CalculatorAction.Number(4))
+        val before = writer.expression
+
+        val preview = writer.tryEvaluate()
+
+        assertThat(preview).isEqualTo(Result.Success("20"))
+        assertThat(writer.expression).isEqualTo(before)
+    }
 }
