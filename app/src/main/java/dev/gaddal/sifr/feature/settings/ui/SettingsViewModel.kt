@@ -44,7 +44,6 @@ class SettingsViewModel(
                 if (!wasEnabled) emit(SettingsEvent.DemoSound)
             }
             SettingsAction.BackClicked -> emit(SettingsEvent.NavigateBack)
-            SettingsAction.HapticsTestClicked -> emit(SettingsEvent.NavigateToHapticsTest)
         }
     }
 
