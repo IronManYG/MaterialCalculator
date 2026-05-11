@@ -315,6 +315,41 @@ class ExpressionWriterTest {
     }
 
     @Test
+    fun `Scientific result is idempotent under repeated Calculate`() {
+        // Regression: before the parser learned scientific notation, pressing `=`
+        // on a result like `1E-10` re-parsed it as `1 - 10 = -9` (the `E` was
+        // silently skipped and `-` was treated as subtraction). Now `=` is a
+        // no-op on a scientific-form result, matching every other single-number
+        // expression.
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(1))
+        repeat(10) { writer.processAction(CalculatorAction.Number(0)) }
+        writer.processAction(CalculatorAction.Calculate) // -> "1E-10"
+
+        writer.processAction(CalculatorAction.Calculate) // pressing = again
+
+        assertThat(writer.expression).isEqualTo("1E-10")
+    }
+
+    @Test
+    fun `Scientific result can be operated on as a number`() {
+        // After "1E-10" lands as the expression, typing "+ 5 =" should evaluate
+        // 1e-10 + 5, not parse the result as "1 - 10 + 5".
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(1))
+        repeat(10) { writer.processAction(CalculatorAction.Number(0)) }
+        writer.processAction(CalculatorAction.Calculate) // -> "1E-10"
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Calculate)
+
+        // 5 + 1e-10 = 5.0000000001 (Double can represent this exactly)
+        assertThat(writer.expression).isEqualTo("5.0000000001")
+    }
+
+    @Test
     fun `Small floating-point noise is hidden by the sig-digit cap`() {
         // 0.1 + 0.2 = 0.30000000000000004 in Double; the trailing 4 is rounding
         // noise past the 16-digit budget and should be hidden.
