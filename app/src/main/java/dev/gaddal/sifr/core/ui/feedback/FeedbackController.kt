@@ -22,6 +22,10 @@ class FeedbackController internal constructor(
         ToneGenerator(AudioManager.STREAM_SYSTEM, TONE_VOLUME)
     }.getOrNull()
 
+    init {
+        VibratorCapabilityProbe.logOnce(context)
+    }
+
     fun click() {
         if (hapticsEnabled) presets.systemKeyboardTap()
         if (soundEnabled) toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, TONE_DURATION_MS)

@@ -75,9 +75,9 @@ The pattern of what works vs. what is silent maps exactly to Android `Vibrator` 
 
 ## Link to a repository
 
-**TODO:** fill in. Options:
-- Minimal two-button repro (one-screen Compose Activity with `systemKeyboardTap` and `bloom` buttons) under your account, or
-- This project's branch: `https://github.com/IronManYG/MaterialCalculator/tree/feature/phase2.6-feedback-wiring` (look at `app/src/main/java/dev/gaddal/sifr/core/ui/feedback/FeedbackController.kt`)
+`https://github.com/IronManYG/MaterialCalculator/tree/feature/phase2.6-feedback-wiring`
+
+The relevant file is `app/src/main/java/dev/gaddal/sifr/core/ui/feedback/FeedbackController.kt`. Swap `presets.systemKeyboardTap()` ↔ `presets.bloom()` in `click()` and install with `./gradlew :app:installDebug` to reproduce both ends of the symptom on the same APK.
 
 ---
 
@@ -103,7 +103,7 @@ The pattern of what works vs. what is silent maps exactly to Android `Vibrator` 
 
 ## Device model
 
-`Honor 400 Pro, Android 16 (MagicOS — check Settings → About phone for the exact MagicOS version and add it here)`
+`Honor 400 Pro, Android 16, MagicOS ` **TODO**: append the exact MagicOS version. Settings → About phone → look for the "MagicOS" line (commonly "MagicOS 9.0.0" or similar).
 
 ## Host machine
 
@@ -115,6 +115,21 @@ The pattern of what works vs. what is silent maps exactly to Android `Vibrator` 
 
 - VIBRATE permission is declared in the manifest.
 - Tested with the device **not** in silent / DND mode; vibration master toggle is on. Other apps (system keyboard, Settings → Sound → Vibration & haptics test) vibrate correctly with the same kind of effects.
-- The MagicOS system-haptic-feedback toggle: **TODO** — check Settings → Sounds & vibration → Vibration & haptics → System haptics. Note whether it was on or off when Pulsar was silent. If turning it on makes `system*` presets work, that's worth screenshotting as the smoking gun. If it's already on and they still don't work, that's an even stronger bug — the toggle is on but MagicOS still isn't routing haptic feedback to third-party apps.
-- Capability probe results from my device — **TODO**: paste output of a `Vibrator.hasAmplitudeControl()` / `areAllEffectsSupported(...)` / `areAllPrimitivesSupported(...)` probe. (Ask Claude to add a debug-build button that dumps these to Logcat if needed.)
-- Workaround in my own integration: substituted `presets.systemKeyboardTap()` → `presets.bloom()`. `bloom()` works because it ships with a `rawContinuousPattern` channel as well as discrete primitives, which the engine apparently falls back to when primitives aren't honored.
+
+**MagicOS haptic toggle** — **TODO**: open Settings → Sounds & vibration → Vibration & haptics (path may vary slightly by MagicOS version). Note the state of any "System haptics" / "Touch feedback" / "Keyboard haptics" toggles. If turning them on makes Pulsar's `system*` presets fire, that's the smoking gun — attach a screenshot. If they're already on and Pulsar is still silent, that's the stronger bug (vendor ROM isn't honoring its own setting for third-party apps).
+
+**Capability probe output** — **TODO**: paste the logcat dump produced by my app at startup.
+
+How to capture it on the linked repo:
+```bash
+./gradlew :app:installDebug
+adb logcat -c              # clear
+adb shell am start -n com.gaddal.materialcalculator/dev.gaddal.sifr.MainActivity
+adb logcat -d -s PulsarRepro:* > pulsar-probe.txt
+```
+
+Then paste the contents of `pulsar-probe.txt` here. The probe lives at
+`app/src/main/java/dev/gaddal/sifr/core/ui/feedback/VibratorCapabilityProbe.kt`
+and reports: `hasVibrator`, `hasAmplitudeControl`, `areEffectsSupported` for `EFFECT_{CLICK, DOUBLE_CLICK, HEAVY_CLICK, TICK}`, `arePrimitivesSupported` for `PRIMITIVE_{CLICK, TICK, LOW_TICK, QUICK_RISE, SLOW_RISE, QUICK_FALL, SPIN, THUD}`, and `Settings.System.HAPTIC_FEEDBACK_ENABLED`.
+
+**Workaround in my own integration**: substituted `presets.systemKeyboardTap()` → `presets.bloom()`. `bloom()` works because it ships with a `rawContinuousPattern` channel as well as discrete primitives, which the engine apparently falls back to when primitives aren't honored.
