@@ -95,6 +95,21 @@ class ExpressionWriter {
         }
     }
 
+    /**
+     * Restores the writer to a previously-captured `(expression, cursor)`
+     * pair without going through the action pipeline — used on process-death
+     * recovery so the ViewModel can re-hydrate the same writer state that
+     * the user left off in. The cursor is clamped to the expression's bounds
+     * and any prior error flag is cleared (the writer is treated as a fresh
+     * surface on restore; if the saved expression is still invalid, the next
+     * Calculate will re-surface the error normally).
+     */
+    fun restoreState(expression: String, cursor: Int) {
+        this.expression = expression
+        this.cursor = cursor.coerceIn(0, expression.length)
+        this.lastWasError = false
+    }
+
     fun tryEvaluate(): Result<String, CalcError> {
         if (lastWasError) return Result.Error(CalcError.INVALID_EXPRESSION)
         return try {
