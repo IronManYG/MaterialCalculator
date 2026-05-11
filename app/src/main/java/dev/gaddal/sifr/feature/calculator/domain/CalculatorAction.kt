@@ -11,4 +11,5 @@ sealed interface CalculatorAction {
     data object SettingsClicked: CalculatorAction
     data object HistoryClicked: CalculatorAction
     data class RestoreExpression(val value: String): CalculatorAction
+    data class CursorChanged(val newPosition: Int): CalculatorAction
 }

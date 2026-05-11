@@ -148,4 +148,135 @@ class ExpressionWriterTest {
         assertThat(preview).isEqualTo(Result.Success("20"))
         assertThat(writer.expression).isEqualTo(before)
     }
+
+    // -------- cursor-aware behavior (Phase 2.9) --------
+
+    @Test
+    fun `Cursor tracks tail-append default`() {
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Number(3))
+
+        assertThat(writer.expression).isEqualTo("123")
+        assertThat(writer.cursor).isEqualTo(3)
+    }
+
+    @Test
+    fun `Number inserted at mid-cursor splits the expression`() {
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(3))
+        // Move cursor between 1 and 3
+        writer.processAction(CalculatorAction.CursorChanged(1))
+
+        writer.processAction(CalculatorAction.Number(2))
+
+        assertThat(writer.expression).isEqualTo("123")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete at cursor removes char before cursor and moves it back`() {
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.CursorChanged(2)) // between 2 and 3
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("13")
+        assertThat(writer.cursor).isEqualTo(1)
+    }
+
+    @Test
+    fun `Delete at cursor=0 is a no-op`() {
+        writer.processAction(CalculatorAction.Number(7))
+        writer.processAction(CalculatorAction.CursorChanged(0))
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("7")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Cursor clamps to expression bounds`() {
+        writer.processAction(CalculatorAction.Number(5))
+
+        writer.processAction(CalculatorAction.CursorChanged(99))
+        assertThat(writer.cursor).isEqualTo(1)
+
+        writer.processAction(CalculatorAction.CursorChanged(-3))
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Decimal rejected when current number already has a decimal point`() {
+        // 1.5+2 — cursor between 1 and . should reject another decimal
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Decimal)
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.CursorChanged(1)) // between 1 and .
+
+        writer.processAction(CalculatorAction.Decimal)
+
+        assertThat(writer.expression).isEqualTo("1.5+2")
+    }
+
+    @Test
+    fun `Decimal allowed in a separate number group`() {
+        // 12+34 — cursor between 3 and 4 should accept a decimal in the second group
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(4))
+        writer.processAction(CalculatorAction.CursorChanged(4)) // between 3 and 4
+
+        writer.processAction(CalculatorAction.Decimal)
+
+        assertThat(writer.expression).isEqualTo("12+3.4")
+        assertThat(writer.cursor).isEqualTo(5)
+    }
+
+    @Test
+    fun `Operator rejected when char-before-cursor is an operator`() {
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.CursorChanged(2)) // between + and 2
+
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+
+        // Multiply needs a number/`)` before it; the prevChar is `+` so the action is rejected
+        assertThat(writer.expression).isEqualTo("1+2")
+    }
+
+    @Test
+    fun `Calculate moves cursor to end of result`() {
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.CursorChanged(1)) // mid-expression cursor
+
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("5")
+        assertThat(writer.cursor).isEqualTo(1)
+    }
+
+    @Test
+    fun `Error-recovery typing resets expression and cursor`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Calculate) // -> error
+        writer.processAction(CalculatorAction.CursorChanged(3))
+
+        writer.processAction(CalculatorAction.Number(7))
+
+        assertThat(writer.expression).isEqualTo("7")
+        assertThat(writer.cursor).isEqualTo(1)
+    }
 }

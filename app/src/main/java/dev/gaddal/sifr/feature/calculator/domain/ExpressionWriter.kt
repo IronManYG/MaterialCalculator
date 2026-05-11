@@ -9,46 +9,66 @@ class ExpressionWriter {
     var expression = ""
         private set
 
+    var cursor: Int = 0
+        private set
+
     private var lastWasError = false
 
     fun processAction(action: CalculatorAction): EmptyResult<CalcError> {
         if (lastWasError && action !is CalculatorAction.Calculate) {
             expression = ""
+            cursor = 0
             lastWasError = false
         }
         return when (action) {
             CalculatorAction.Calculate -> calculate()
             CalculatorAction.Clear -> {
                 expression = ""
+                cursor = 0
                 Result.Success(Unit)
             }
             CalculatorAction.Decimal -> {
-                if (canEnterDecimal()) expression += "."
+                if (canEnterDecimal()) insertAtCursor(".")
                 Result.Success(Unit)
             }
             CalculatorAction.Delete -> {
-                expression = expression.dropLast(1)
+                if (cursor > 0) {
+                    expression = expression.removeRange(cursor - 1, cursor)
+                    cursor--
+                }
                 Result.Success(Unit)
             }
             is CalculatorAction.Number -> {
-                expression += action.number
+                insertAtCursor(action.number.toString())
                 Result.Success(Unit)
             }
             is CalculatorAction.Op -> {
-                if (canEnterOperation(action.operation)) expression += action.operation.symbol
+                if (canEnterOperation(action.operation)) {
+                    insertAtCursor(action.operation.symbol.toString())
+                }
                 Result.Success(Unit)
             }
             CalculatorAction.Parentheses -> {
                 processParentheses()
                 Result.Success(Unit)
             }
+            is CalculatorAction.CursorChanged -> {
+                cursor = action.newPosition.coerceIn(0, expression.length)
+                Result.Success(Unit)
+            }
             CalculatorAction.SettingsClicked -> Result.Success(Unit)
             CalculatorAction.HistoryClicked -> Result.Success(Unit)
             is CalculatorAction.RestoreExpression -> {
                 expression = action.value
+                cursor = expression.length
                 Result.Success(Unit)
             }
         }
+    }
+
+    private fun insertAtCursor(text: String) {
+        expression = expression.substring(0, cursor) + text + expression.substring(cursor)
+        cursor += text.length
     }
 
     private fun calculate(): EmptyResult<CalcError> {
@@ -60,6 +80,7 @@ class ExpressionWriter {
             val result = ExpressionEvaluator(parser.parse()).evaluate()
             if (result.isFinite()) {
                 expression = formatResult(result)
+                cursor = expression.length
                 Result.Success(Unit)
             } else {
                 lastWasError = true
@@ -96,29 +117,39 @@ class ExpressionWriter {
     private fun processParentheses() {
         val openingCount = expression.count { it == '(' }
         val closingCount = expression.count { it == ')' }
-        expression += when {
-            expression.isEmpty() ||
-                    expression.last() in "$operationSymbols(" -> "("
-            expression.last() in "0123456789)" &&
-                    openingCount == closingCount -> return
+        val prevChar = expression.getOrNull(cursor - 1)
+        val toInsert = when {
+            prevChar == null || prevChar in "$operationSymbols(" -> "("
+            prevChar in "0123456789)" && openingCount == closingCount -> return
             else -> ")"
         }
+        insertAtCursor(toInsert)
     }
 
     private fun canEnterDecimal(): Boolean {
-        if (expression.isEmpty() || expression.last() in "$operationSymbols.()") {
-            return false
+        val prevChar = expression.getOrNull(cursor - 1) ?: return false
+        if (prevChar in "$operationSymbols.()") return false
+        // The current number-group extends both backward and forward from the cursor.
+        // Reject if either direction already contains a decimal point.
+        var i = cursor - 1
+        while (i >= 0 && expression[i] in "0123456789.") {
+            if (expression[i] == '.') return false
+            i--
         }
-        return !expression.takeLastWhile {
-            it in "0123456789."
-        }.contains(".")
+        var j = cursor
+        while (j < expression.length && expression[j] in "0123456789.") {
+            if (expression[j] == '.') return false
+            j++
+        }
+        return true
     }
 
     private fun canEnterOperation(operation: Operation): Boolean {
+        val prevChar = expression.getOrNull(cursor - 1)
         if (operation in listOf(Operation.ADD, Operation.SUBTRACT)) {
-            return expression.isEmpty() || expression.last() in "$operationSymbols()0123456789"
+            return prevChar == null || prevChar in "$operationSymbols()0123456789"
         }
-        return expression.isNotEmpty() && expression.last() in "0123456789)"
+        return prevChar != null && prevChar in "0123456789)"
     }
 
     private fun formatResult(value: Double): String {
