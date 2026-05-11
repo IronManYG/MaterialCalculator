@@ -184,7 +184,14 @@ Tapping `bloom` and `alarm` produces a clear haptic on Honor 400 Pro. Tapping `s
 - VIBRATE permission is declared in the manifest.
 - Tested with the device **not** in silent / DND mode; vibration master toggle is on. Other apps (system keyboard, Settings → Sound → Vibration & haptics test) vibrate correctly with the same kind of effects.
 
-**MagicOS haptic toggle** — **TODO**: open Settings → Sounds & vibration → Vibration & haptics (path may vary slightly by MagicOS version). Note the state of any "System haptics" / "Touch feedback" / "Keyboard haptics" toggles. If turning them on makes Pulsar's `system*` presets fire, that's the smoking gun — attach a screenshot. If they're already on and Pulsar is still silent, that's the stronger bug (vendor ROM isn't honoring its own setting for third-party apps).
+**MagicOS haptic toggles — all ON.** Verified in Settings → Sound & haptics:
+
+- *System haptics* (described as "Haptic feedback for interaction operations and system status"): **on**
+- *Back gesture haptics*: **on**
+- *Dial pad haptics*: **on**
+- *Haptic* (master vibration intensity): **on**
+
+This is the stronger version of the bug — the user has every haptic-related toggle enabled, the framework reports `HAPTIC_FEEDBACK_ENABLED=1`, the device has an LRA vibrator with amplitude control and full predefined-effect support, and Pulsar's `system*` view-based presets *still* produce nothing. The failure isn't a system setting the user can fix — it's in Pulsar's call path.
 
 **Capability probe output** (from Honor 400 Pro / MagicOS 10.0.0.151):
 

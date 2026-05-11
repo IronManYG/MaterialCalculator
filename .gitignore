@@ -25,3 +25,7 @@ local.properties
 # JVM crash dumps (pid-named — not tied to a specific run)
 hs_err_pid*.log
 replay_pid*.log
+
+# Pulsar capability-probe output (pulled via adb, not authoritative for git)
+docs/pulsar-probe.txt
+pulsar-tree.json
