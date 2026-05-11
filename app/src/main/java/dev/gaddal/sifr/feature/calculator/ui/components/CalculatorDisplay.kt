@@ -9,6 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.contextmenu.data.TextContextMenuKeys
+import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
+import androidx.compose.foundation.text.contextmenu.provider.LocalTextContextMenuToolbarProvider
+import androidx.compose.foundation.text.contextmenu.provider.TextContextMenuDataProvider
+import androidx.compose.foundation.text.contextmenu.provider.TextContextMenuProvider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -19,6 +24,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,10 +33,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalTextToolbar
-import androidx.compose.ui.platform.TextToolbar
-import androidx.compose.ui.platform.TextToolbarStatus
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import dev.gaddal.sifr.core.ui.util.UiText
+import kotlinx.coroutines.awaitCancellation
 
 private const val PROMOTION_ANIMATION_MS = 340
 
@@ -50,66 +53,16 @@ private const val PROMOTION_ANIMATION_MS = 340
 // plus default line metrics on every density we ship to.
 private val PREVIEW_SLOT_HEIGHT = 32.dp
 
-// A no-op TextToolbar that suppresses the floating Cut/Copy/Paste menu when
-// `showSelectionToolbar` is off in settings. status is always Hidden and the
-// show/hide methods don't do anything, so Compose never draws the toolbar.
-private object EmptyTextToolbar : TextToolbar {
-    override val status: TextToolbarStatus = TextToolbarStatus.Hidden
-    override fun hide() {}
-    override fun showMenu(
-        rect: Rect,
-        onCopyRequested: (() -> Unit)?,
-        onPasteRequested: (() -> Unit)?,
-        onCutRequested: (() -> Unit)?,
-        onSelectAllRequested: (() -> Unit)?,
+// A TextContextMenuProvider whose show method suspends forever instead of
+// presenting a menu. Wiring this through `LocalTextContextMenuToolbarProvider`
+// is the supported way (Compose Foundation 1.8+) to suppress the long-press
+// selection toolbar entirely — the legacy `LocalTextToolbar` override that
+// worked for older BasicTextField is no longer authoritative in 1.9.
+private val SuppressTextContextMenuProvider = object : TextContextMenuProvider {
+    override suspend fun showTextContextMenu(
+        dataProvider: TextContextMenuDataProvider,
     ) {
-    }
-}
-
-// Wraps the system text toolbar so each selection state offers exactly one
-// useful action:
-//   * Range selected → Copy only (Cut and Paste are no-ops because the
-//     writer's defensive filter blocks the field's text mutations).
-//   * Collapsed selection → Select All only (Paste is broken for the same
-//     reason; Select All flows naturally into the range case where Copy
-//     then becomes available).
-// Compose's `onCopyRequested != null` is its "selection is non-empty"
-// signal and is the reliable way to discriminate the two cases.
-private class CalculatorTextToolbar(
-    private val delegate: TextToolbar,
-) : TextToolbar {
-
-    override val status: TextToolbarStatus get() = delegate.status
-
-    override fun hide() {
-        delegate.hide()
-    }
-
-    override fun showMenu(
-        rect: Rect,
-        onCopyRequested: (() -> Unit)?,
-        onPasteRequested: (() -> Unit)?,
-        onCutRequested: (() -> Unit)?,
-        onSelectAllRequested: (() -> Unit)?,
-    ) {
-        val hasRange = onCopyRequested != null
-        if (hasRange) {
-            delegate.showMenu(
-                rect = rect,
-                onCopyRequested = onCopyRequested,
-                onPasteRequested = null,
-                onCutRequested = null,
-                onSelectAllRequested = null,
-            )
-        } else {
-            delegate.showMenu(
-                rect = rect,
-                onCopyRequested = null,
-                onPasteRequested = null,
-                onCutRequested = null,
-                onSelectAllRequested = onSelectAllRequested,
-            )
-        }
+        awaitCancellation()
     }
 }
 
@@ -230,73 +183,93 @@ fun CalculatorDisplay(
                             ),
                         )
                     }
-                    // Customize the long-press text toolbar:
-                    //   - showSelectionToolbar = false: route to an EmptyTextToolbar
-                    //     so no menu appears at all.
-                    //   - showSelectionToolbar = true + range selected: show only
-                    //     Copy (Cut/Paste are no-ops in the calculator, hiding them
-                    //     prevents user confusion).
-                    //   - showSelectionToolbar = true + collapsed selection: pass
-                    //     through to the system's default behavior (typically
-                    //     Paste + Select All).
-                    // Scoped to the field — history and settings text still use
-                    // the system toolbar.
-                    val systemToolbar = LocalTextToolbar.current
-                    val fieldToolbar: TextToolbar =
-                        remember(showSelectionToolbar, systemToolbar) {
-                            if (showSelectionToolbar) {
-                                CalculatorTextToolbar(systemToolbar)
-                            } else {
-                                EmptyTextToolbar
+                    // `rememberUpdatedState` keeps the lambda below seeing the
+                    // freshest "is a range selected?" answer without rebuilding
+                    // the modifier chain on every state change.
+                    val hasRangeNow = rememberUpdatedState(cursor != selectionStart)
+                    val onValueChangeImpl: (TextFieldValue) -> Unit = { newValue ->
+                        // IME is blocked at the platform-input layer inside
+                        // AutoSizingExpressionField and the field also drops
+                        // text mutations defensively; we react to selection
+                        // changes driven by tap or long-press + drag.
+                        val newStart = newValue.selection.start
+                        val newEnd = newValue.selection.end
+                        if (rangeSelectionEnabled) {
+                            if (newStart != selectionStart || newEnd != cursor) {
+                                onSelectionChange(newStart, newEnd)
+                            }
+                        } else {
+                            // Range support off: collapse any range the user
+                            // forms back to a single caret at the field's
+                            // selection.start (anchor). The next state push
+                            // re-collapses the visual selection.
+                            if (newStart != cursor) {
+                                onCursorChange(newStart)
                             }
                         }
-                    CompositionLocalProvider(LocalTextToolbar provides fieldToolbar) {
+                    }
+                    val fieldModifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coords ->
+                            if (!isAnimating) {
+                                mainTextCenterYPx =
+                                    coords.positionInParent().y + coords.size.height / 2f
+                            }
+                        }
+                        .graphicsLayer {
+                            // Main fades in only in the second half of the
+                            // promotion, after the preview has finished its
+                            // trip up. Until then, it's invisible so the
+                            // preview text is the sole visual actor.
+                            alpha = if (isAnimating) {
+                                val p = promotionProgress.value
+                                ((p - 0.55f) / 0.45f).coerceIn(0f, 1f)
+                            } else {
+                                1f
+                            }
+                        }
+                        .let { mod ->
+                            // When the toolbar is on, filter its contents so a
+                            // range-selected toolbar shows only Copy; collapsed
+                            // selection falls through to the system's defaults.
+                            if (showSelectionToolbar) {
+                                mod.filterTextContextMenuComponents { component ->
+                                    if (hasRangeNow.value) {
+                                        component.key == TextContextMenuKeys.CopyKey
+                                    } else {
+                                        true
+                                    }
+                                }
+                            } else {
+                                mod
+                            }
+                        }
+
+                    // When the toolbar is off, override the new context-menu
+                    // provider (the legacy LocalTextToolbar is no longer
+                    // authoritative in Compose Foundation 1.8+). The no-op
+                    // provider suspends forever instead of presenting a menu.
+                    if (showSelectionToolbar) {
                         AutoSizingExpressionField(
                             value = fieldValue,
-                            onValueChange = { newValue ->
-                                // IME is blocked at the platform-input layer inside
-                                // AutoSizingExpressionField and the field also drops
-                                // text mutations defensively; we react to selection
-                                // changes driven by tap or long-press + drag.
-                                val newStart = newValue.selection.start
-                                val newEnd = newValue.selection.end
-                                if (rangeSelectionEnabled) {
-                                    if (newStart != selectionStart || newEnd != cursor) {
-                                        onSelectionChange(newStart, newEnd)
-                                    }
-                                } else {
-                                    // Range support off: collapse any range the user
-                                    // forms back to a single caret at the field's
-                                    // selection.start (anchor). The next state push
-                                    // re-collapses the visual selection.
-                                    if (newStart != cursor) {
-                                        onCursorChange(newStart)
-                                    }
-                                }
-                            },
+                            onValueChange = onValueChangeImpl,
                             style = mainStyle,
                             onFontSizePicked = { mainFontSizeSp = it.value },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .onGloballyPositioned { coords ->
-                                    if (!isAnimating) {
-                                        mainTextCenterYPx =
-                                            coords.positionInParent().y + coords.size.height / 2f
-                                    }
-                                }
-                                .graphicsLayer {
-                                // Main fades in only in the second half of the
-                                // promotion, after the preview has finished its
-                                // trip up. Until then, it's invisible so the
-                                // preview text is the sole visual actor.
-                                    alpha = if (isAnimating) {
-                                        val p = promotionProgress.value
-                                        ((p - 0.55f) / 0.45f).coerceIn(0f, 1f)
-                                    } else {
-                                        1f
-                                    }
-                                },
+                            modifier = fieldModifier,
                         )
+                    } else {
+                        CompositionLocalProvider(
+                            LocalTextContextMenuToolbarProvider provides
+                                SuppressTextContextMenuProvider,
+                        ) {
+                            AutoSizingExpressionField(
+                                value = fieldValue,
+                                onValueChange = onValueChangeImpl,
+                                style = mainStyle,
+                                onFontSizePicked = { mainFontSizeSp = it.value },
+                                modifier = fieldModifier,
+                            )
+                        }
                     }
                 }
 
