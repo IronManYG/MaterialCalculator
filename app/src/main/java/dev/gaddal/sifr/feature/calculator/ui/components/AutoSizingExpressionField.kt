@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ fun AutoSizingExpressionField(
     maxFontSize: TextUnit = 80.sp,
     style: TextStyle = TextStyle.Default,
     cursorBrush: Brush = SolidColor(MaterialTheme.colorScheme.primary),
+    onFontSizePicked: (TextUnit) -> Unit = {},
 ) {
     InterceptPlatformTextInput(
         interceptor = { _, _ -> awaitCancellation() },
@@ -82,6 +84,11 @@ fun AutoSizingExpressionField(
                 }
                 minFontSize
             }
+
+            // Report the chosen font size so parents that overlay scaled copies
+            // of this text (e.g. the preview-promotion animation) can match the
+            // visual target size.
+            LaunchedEffect(pickedFontSize) { onFontSizePicked(pickedFontSize) }
 
             BasicTextField(
                 value = value,
