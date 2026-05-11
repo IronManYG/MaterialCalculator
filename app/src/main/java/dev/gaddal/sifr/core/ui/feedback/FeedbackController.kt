@@ -13,11 +13,13 @@ import com.swmansion.pulsar.Pulsar
  * Plays semantic [FeedbackIntent]s as haptic + optional sound, gated by the
  * user's [hapticsEnabled] / [soundEnabled] preferences.
  *
- * Preset choice is constrained to those confirmed to fire on Honor 400 Pro
- * (Android 16 / MagicOS 10) — the device exposed in the Pulsar bug report at
- * `docs/pulsar-bug-report-2026-05-11.md`. Pulsar's `system*` view-based and
- * composition-primitive presets are silent on that device, so we use the
- * continuous-pattern built-ins: `alarm`, `applause`, `anvil`, `bloom`.
+ * Preset choice favors short, punchy continuous-pattern built-ins:
+ * `bloom`, `flick`, `burst`, `thud`. Pulsar's `system*` view-based and
+ * composition-primitive presets are silent on some vendor ROMs (MagicOS /
+ * EMUI / HarmonyOS-derived) — see `docs/pulsar-bug-report-2026-05-11.md`.
+ * The four presets used here all carry a `rawContinuousPattern` channel,
+ * which Pulsar's engine lowers to amplitude-scaled `createWaveform` —
+ * the same fallback that makes `bloom` survive on Honor 400 Pro.
  */
 class FeedbackController internal constructor(
     context: Context,
@@ -33,6 +35,11 @@ class FeedbackController internal constructor(
     }.getOrNull()
 
     init {
+        // Retained in shipping builds as a permanent device-compatibility
+        // audit hook — when a future user reports "haptics don't work on my
+        // X", `adb pull` of pulsar-probe.txt gives an immediate capability
+        // map. Cost: one Vibrator system-service read + a tiny file write,
+        // once per FeedbackController construction. See VibratorCapabilityProbe.
         VibratorCapabilityProbe.logOnce(context)
     }
 
@@ -46,9 +53,9 @@ class FeedbackController internal constructor(
      * the feature is exactly what they asked for. */
     fun playHaptic(intent: FeedbackIntent) {
         when (intent) {
-            FeedbackIntent.Error -> presets.alarm()
-            FeedbackIntent.CalculateSuccess -> presets.applause()
-            FeedbackIntent.Destructive -> presets.anvil()
+            FeedbackIntent.Error -> presets.thud()
+            FeedbackIntent.CalculateSuccess -> presets.burst()
+            FeedbackIntent.Destructive -> presets.flick()
             FeedbackIntent.Selection -> presets.bloom()
         }
     }

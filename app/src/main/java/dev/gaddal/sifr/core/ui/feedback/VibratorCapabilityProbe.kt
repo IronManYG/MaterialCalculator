@@ -19,6 +19,16 @@ import java.io.File
  *     adb pull /sdcard/Android/data/com.gaddal.materialcalculator/files/pulsar-probe.txt
  *
  * Output is meant to be copy-pasted into docs/pulsar-bug-report-2026-05-11.md.
+ *
+ * **Retained in shipping builds.** Originally written to assemble evidence for
+ * the Pulsar bug report; retained because the underlying problem (vendor ROMs
+ * silently no-op on unsupported primitive/effect/view-haptic paths) is broad
+ * enough that future "haptics don't work on my X" reports will recur as the
+ * app reaches more devices. The probe is one-shot per process, cheap (a
+ * single Vibrator system-service read + a tiny text-file write), and gives
+ * any future bug report an immediate capability matrix without a code change.
+ * Strip only if the app's haptic surface shrinks enough that the diagnostic
+ * is no longer worth its ~1 KB of bytecode.
  */
 internal object VibratorCapabilityProbe {
 

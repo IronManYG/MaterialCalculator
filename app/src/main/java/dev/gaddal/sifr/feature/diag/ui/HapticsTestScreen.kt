@@ -165,15 +165,22 @@ data class PresetEntry(
     val invoke: (PresetsWrapper) -> Unit,
 )
 
-/** Presets confirmed felt on Honor 400 Pro (Android 16 / MagicOS 10) plus six
+/** Presets confirmed felt on Honor 400 Pro (Android 16 / MagicOS 10) plus
  * likely-felt continuous-pattern built-ins. Each has a `rawContinuousPattern`
  * channel; Pulsar's engine falls back to amplitude-scaled `createWaveform`,
- * which the device's LRA renders correctly. */
+ * which the device's LRA renders correctly.
+ *
+ * The first four (bloom / flick / burst / thud) are the in-app feedback
+ * intents — wired into `FeedbackController.playHaptic`. They're listed
+ * first so they're easy to A/B against the rest. */
 internal val expectedFelt: List<PresetEntry> = listOf(
+    PresetEntry("bloom", "In-app: Selection (confirmed felt)") { it.bloom() },
+    PresetEntry("flick", "In-app: Destructive (verify here)") { it.flick() },
+    PresetEntry("burst", "In-app: CalculateSuccess (verify here)") { it.burst() },
+    PresetEntry("thud", "In-app: Error (verify here)") { it.thud() },
     PresetEntry("alarm", "Continuous + discrete (confirmed felt)") { it.alarm() },
     PresetEntry("anvil", "Continuous + discrete (confirmed felt)") { it.anvil() },
     PresetEntry("applause", "Continuous + discrete (confirmed felt)") { it.applause() },
-    PresetEntry("bloom", "Continuous + discrete (confirmed felt)") { it.bloom() },
     PresetEntry("heartbeat", "Rhythmic continuous (likely felt)") { it.heartbeat() },
     PresetEntry("breath", "Slow continuous (likely felt)") { it.breath() },
     PresetEntry("pulse", "Rhythmic continuous (likely felt)") { it.pulse() },
