@@ -7,32 +7,40 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.Settings
 import android.util.Log
+import java.io.File
 
 /**
- * One-shot probe that dumps the device's vibrator capabilities to logcat.
- * Run once on first construction of [FeedbackController]. Output is meant to be
- * copy-pasted into the Pulsar bug report at docs/pulsar-bug-report-2026-05-11.md
- * (TODO #3: capability probe output).
+ * One-shot probe that dumps the device's vibrator capabilities to logcat AND
+ * to a file in the app's external-files directory (no permission required).
+ * Some vendor ROMs (MagicOS / EMUI / HarmonyOS) encrypt logcat output by
+ * default, which makes `adb logcat` unreadable — the file fallback sidesteps
+ * that. Pull the file with:
  *
- * Filter logcat with `adb logcat -s PulsarRepro:*` to isolate.
+ *     adb pull /sdcard/Android/data/com.gaddal.materialcalculator/files/pulsar-probe.txt
+ *
+ * Output is meant to be copy-pasted into docs/pulsar-bug-report-2026-05-11.md.
  */
 internal object VibratorCapabilityProbe {
 
     private const val TAG = "PulsarRepro"
+    private const val FILE_NAME = "pulsar-probe.txt"
     private var logged = false
 
     fun logOnce(context: Context) {
         if (logged) return
         logged = true
-        runCatching { logCapabilities(context) }
-            .onFailure { Log.w(TAG, "probe failed", it) }
+        runCatching {
+            val text = buildReport(context)
+            Log.i(TAG, text)
+            writeToFile(context, text)
+        }.onFailure { Log.w(TAG, "probe failed", it) }
     }
 
-    private fun logCapabilities(context: Context) {
-        Log.i(TAG, "===== Vibrator capability probe =====")
-        Log.i(TAG, "Device: ${Build.MANUFACTURER} ${Build.MODEL} (${Build.PRODUCT})")
-        Log.i(TAG, "Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
-        Log.i(TAG, "Build: ${Build.DISPLAY}")
+    private fun buildReport(context: Context): String = buildString {
+        appendLine("===== Vibrator capability probe =====")
+        appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL} (${Build.PRODUCT})")
+        appendLine("Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+        appendLine("Build: ${Build.DISPLAY}")
 
         val vibrator: Vibrator? =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -42,11 +50,11 @@ internal object VibratorCapabilityProbe {
                 context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
             }
         if (vibrator == null) {
-            Log.i(TAG, "vibrator: <null>")
-            return
+            appendLine("vibrator: <null>")
+            return@buildString
         }
-        Log.i(TAG, "hasVibrator()=${vibrator.hasVibrator()}")
-        Log.i(TAG, "hasAmplitudeControl()=${vibrator.hasAmplitudeControl()}")
+        appendLine("hasVibrator()=${vibrator.hasVibrator()}")
+        appendLine("hasAmplitudeControl()=${vibrator.hasAmplitudeControl()}")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val effects = intArrayOf(
@@ -58,7 +66,7 @@ internal object VibratorCapabilityProbe {
             val effectNames = listOf("CLICK", "DOUBLE_CLICK", "HEAVY_CLICK", "TICK")
             val effectSupport = vibrator.areEffectsSupported(*effects)
             effectNames.zip(effectSupport.toList()).forEach { (name, v) ->
-                Log.i(TAG, "effect $name -> ${effectSupportToString(v)}")
+                appendLine("effect $name -> ${effectSupportToString(v)}")
             }
 
             val primitives = intArrayOf(
@@ -77,10 +85,10 @@ internal object VibratorCapabilityProbe {
             )
             val primitiveSupport = vibrator.arePrimitivesSupported(*primitives)
             primitiveNames.zip(primitiveSupport.toList()).forEach { (name, v) ->
-                Log.i(TAG, "primitive $name -> $v")
+                appendLine("primitive $name -> $v")
             }
         } else {
-            Log.i(TAG, "areEffectsSupported / arePrimitivesSupported require API 30+")
+            appendLine("areEffectsSupported / arePrimitivesSupported require API 30+")
         }
 
         runCatching {
@@ -89,10 +97,17 @@ internal object VibratorCapabilityProbe {
                 Settings.System.HAPTIC_FEEDBACK_ENABLED,
                 -1,
             )
-            Log.i(TAG, "Settings.System.HAPTIC_FEEDBACK_ENABLED=$haptic (0=off, 1=on, -1=unset)")
-        }.onFailure { Log.w(TAG, "Settings.System read failed", it) }
+            appendLine("Settings.System.HAPTIC_FEEDBACK_ENABLED=$haptic (0=off, 1=on, -1=unset)")
+        }.onFailure { appendLine("Settings.System read failed: ${it.message}") }
 
-        Log.i(TAG, "===== /probe =====")
+        appendLine("===== /probe =====")
+    }
+
+    private fun writeToFile(context: Context, text: String) {
+        val dir: File = context.getExternalFilesDir(null) ?: context.filesDir
+        val target = File(dir, FILE_NAME)
+        target.writeText(text)
+        Log.i(TAG, "wrote ${target.absolutePath}")
     }
 
     private fun effectSupportToString(v: Int): String = when (v) {

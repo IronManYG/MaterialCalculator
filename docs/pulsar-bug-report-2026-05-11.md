@@ -182,18 +182,17 @@ Tapping `bloom` and `alarm` produces a clear haptic on Honor 400 Pro. Tapping `s
 
 **MagicOS haptic toggle** — **TODO**: open Settings → Sounds & vibration → Vibration & haptics (path may vary slightly by MagicOS version). Note the state of any "System haptics" / "Touch feedback" / "Keyboard haptics" toggles. If turning them on makes Pulsar's `system*` presets fire, that's the smoking gun — attach a screenshot. If they're already on and Pulsar is still silent, that's the stronger bug (vendor ROM isn't honoring its own setting for third-party apps).
 
-**Capability probe output** — **TODO**: paste the logcat dump produced by my app at startup.
+**Capability probe output** — **TODO**: paste the file dump produced by the app at startup.
 
-How to capture it on the linked repo:
-```bash
-./gradlew :app:installDebug
-adb logcat -c              # clear
+Note: MagicOS encrypts `adb logcat` output by default (lines look like `(HKS)…(HKE)` blobs), so the probe also writes a plaintext file to app-external storage. Pull it like this:
+
+```powershell
+.\gradlew.bat :app:installDebug
 adb shell am start -n com.gaddal.materialcalculator/dev.gaddal.sifr.MainActivity
-adb logcat -d -s PulsarRepro:* > pulsar-probe.txt
+# wait ~2s for app to start, then:
+adb pull /sdcard/Android/data/com.gaddal.materialcalculator/files/pulsar-probe.txt docs\pulsar-probe.txt
 ```
 
-Then paste the contents of `pulsar-probe.txt` here. The probe lives at
-`app/src/main/java/dev/gaddal/sifr/core/ui/feedback/VibratorCapabilityProbe.kt`
-and reports: `hasVibrator`, `hasAmplitudeControl`, `areEffectsSupported` for `EFFECT_{CLICK, DOUBLE_CLICK, HEAVY_CLICK, TICK}`, `arePrimitivesSupported` for `PRIMITIVE_{CLICK, TICK, LOW_TICK, QUICK_RISE, SLOW_RISE, QUICK_FALL, SPIN, THUD}`, and `Settings.System.HAPTIC_FEEDBACK_ENABLED`.
+Probe source: `app/src/main/java/dev/gaddal/sifr/core/ui/feedback/VibratorCapabilityProbe.kt`. Fields reported: `hasVibrator`, `hasAmplitudeControl`, `areEffectsSupported` for `EFFECT_{CLICK, DOUBLE_CLICK, HEAVY_CLICK, TICK}`, `arePrimitivesSupported` for `PRIMITIVE_{CLICK, TICK, LOW_TICK, QUICK_RISE, SLOW_RISE, QUICK_FALL, SPIN, THUD}`, and `Settings.System.HAPTIC_FEEDBACK_ENABLED`.
 
 **Workaround in my own integration**: substituted `presets.systemKeyboardTap()` → `presets.bloom()`. `bloom()` works because it ships with a `rawContinuousPattern` channel as well as discrete primitives, which the engine apparently falls back to when primitives aren't honored.
