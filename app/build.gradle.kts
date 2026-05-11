@@ -20,6 +20,12 @@ android {
     namespace = "dev.gaddal.sifr"
     compileSdk = 36
 
+    // Pin to the NDK version installed on the dev machine. AGP 9.2.1 defaults
+    // to 28.2.13676358 which isn't a meaningful upgrade over .1 for our use
+    // (we only ship transitive .so files from Room + androidx.graphics.path,
+    // no project-defined native code). Avoids a 1.4 GB toolchain download.
+    ndkVersion = "28.1.13356709"
+
     defaultConfig {
         applicationId = "com.gaddal.materialcalculator"
         minSdk = 24
@@ -30,6 +36,14 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        // Bundle native debug symbols into the AAB so Play Console can
+        // symbolicate native crashes (Room SQLite + Activity baseline-profile
+        // shim ship .so libraries). SYMBOL_TABLE is sufficient for a pure-
+        // Kotlin app; FULL would balloon to ~300 MB for no extra benefit.
+        ndk {
+            debugSymbolLevel = "SYMBOL_TABLE"
         }
     }
 
