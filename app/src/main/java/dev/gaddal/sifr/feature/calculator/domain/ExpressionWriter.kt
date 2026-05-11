@@ -15,12 +15,25 @@ class ExpressionWriter {
     var cursor: Int = 0
         private set
 
+    // Anchor of the current selection. Equals `cursor` when there's no range
+    // (collapsed). Diverges from `cursor` only when the UI dispatches a
+    // SelectionChanged action — which happens only under `rangeSelectionEnabled`.
+    // Insertions and deletions replace `min(cursor, selectionStart) ..
+    // max(cursor, selectionStart)` and collapse the selection back.
+    var selectionStart: Int = 0
+        private set
+
+    private val selectionLow get() = minOf(cursor, selectionStart)
+    private val selectionHigh get() = maxOf(cursor, selectionStart)
+    private val hasRange get() = cursor != selectionStart
+
     private var lastWasError = false
 
     fun processAction(action: CalculatorAction): EmptyResult<CalcError> {
         if (lastWasError && action !is CalculatorAction.Calculate) {
             expression = ""
             cursor = 0
+            selectionStart = 0
             lastWasError = false
         }
         return when (action) {
@@ -28,6 +41,7 @@ class ExpressionWriter {
             CalculatorAction.Clear -> {
                 expression = ""
                 cursor = 0
+                selectionStart = 0
                 Result.Success(Unit)
             }
             CalculatorAction.Decimal -> {
@@ -35,9 +49,14 @@ class ExpressionWriter {
                 Result.Success(Unit)
             }
             CalculatorAction.Delete -> {
-                if (cursor > 0) {
+                if (hasRange) {
+                    expression = expression.removeRange(selectionLow, selectionHigh)
+                    cursor = selectionLow
+                    selectionStart = cursor
+                } else if (cursor > 0) {
                     expression = expression.removeRange(cursor - 1, cursor)
                     cursor--
+                    selectionStart = cursor
                 }
                 Result.Success(Unit)
             }
@@ -56,7 +75,14 @@ class ExpressionWriter {
                 Result.Success(Unit)
             }
             is CalculatorAction.CursorChanged -> {
-                cursor = action.newPosition.coerceIn(0, expression.length)
+                val clamped = action.newPosition.coerceIn(0, expression.length)
+                cursor = clamped
+                selectionStart = clamped
+                Result.Success(Unit)
+            }
+            is CalculatorAction.SelectionChanged -> {
+                selectionStart = action.start.coerceIn(0, expression.length)
+                cursor = action.end.coerceIn(0, expression.length)
                 Result.Success(Unit)
             }
             CalculatorAction.SettingsClicked -> Result.Success(Unit)
@@ -64,14 +90,22 @@ class ExpressionWriter {
             is CalculatorAction.RestoreExpression -> {
                 expression = action.value
                 cursor = expression.length
+                selectionStart = cursor
                 Result.Success(Unit)
             }
         }
     }
 
     private fun insertAtCursor(text: String) {
-        expression = expression.substring(0, cursor) + text + expression.substring(cursor)
-        cursor += text.length
+        // Replaces any selected range with `text` and collapses the selection
+        // at the new caret position. When the selection is already collapsed
+        // (the common typing case), selectionLow == selectionHigh == cursor
+        // and this reduces to the original "insert at cursor" behavior.
+        val low = selectionLow
+        val high = selectionHigh
+        expression = expression.substring(0, low) + text + expression.substring(high)
+        cursor = low + text.length
+        selectionStart = cursor
     }
 
     private fun calculate(): EmptyResult<CalcError> {
@@ -84,6 +118,7 @@ class ExpressionWriter {
             if (result.isFinite()) {
                 expression = formatResult(result)
                 cursor = expression.length
+                selectionStart = cursor
                 Result.Success(Unit)
             } else {
                 lastWasError = true
@@ -104,9 +139,10 @@ class ExpressionWriter {
      * surface on restore; if the saved expression is still invalid, the next
      * Calculate will re-surface the error normally).
      */
-    fun restoreState(expression: String, cursor: Int) {
+    fun restoreState(expression: String, cursor: Int, selectionStart: Int = cursor) {
         this.expression = expression
         this.cursor = cursor.coerceIn(0, expression.length)
+        this.selectionStart = selectionStart.coerceIn(0, expression.length)
         this.lastWasError = false
     }
 
@@ -135,7 +171,8 @@ class ExpressionWriter {
     private fun processParentheses() {
         val openingCount = expression.count { it == '(' }
         val closingCount = expression.count { it == ')' }
-        val prevChar = expression.getOrNull(cursor - 1)
+        val effectiveStart = selectionLow
+        val prevChar = expression.getOrNull(effectiveStart - 1)
         val toInsert = when {
             prevChar == null || prevChar in "$operationSymbols(" -> "("
             prevChar in "0123456789)" && openingCount == closingCount -> return
@@ -145,16 +182,18 @@ class ExpressionWriter {
     }
 
     private fun canEnterDecimal(): Boolean {
-        val prevChar = expression.getOrNull(cursor - 1) ?: return false
+        // Effective insertion point is the start of any selected range — the
+        // range will be replaced by the inserted character. Forward walk picks
+        // up at selectionHigh to see what would remain after deletion.
+        val effectiveStart = selectionLow
+        val prevChar = expression.getOrNull(effectiveStart - 1) ?: return false
         if (prevChar in "$operationSymbols.()") return false
-        // The current number-group extends both backward and forward from the cursor.
-        // Reject if either direction already contains a decimal point.
-        var i = cursor - 1
+        var i = effectiveStart - 1
         while (i >= 0 && expression[i] in "0123456789.") {
             if (expression[i] == '.') return false
             i--
         }
-        var j = cursor
+        var j = selectionHigh
         while (j < expression.length && expression[j] in "0123456789.") {
             if (expression[j] == '.') return false
             j++
@@ -163,7 +202,7 @@ class ExpressionWriter {
     }
 
     private fun canEnterOperation(operation: Operation): Boolean {
-        val prevChar = expression.getOrNull(cursor - 1)
+        val prevChar = expression.getOrNull(selectionLow - 1)
         if (operation in listOf(Operation.ADD, Operation.SUBTRACT)) {
             return prevChar == null || prevChar in "$operationSymbols()0123456789"
         }

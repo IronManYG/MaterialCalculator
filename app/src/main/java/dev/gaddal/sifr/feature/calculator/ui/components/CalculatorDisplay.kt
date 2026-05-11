@@ -27,6 +27,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalTextToolbar
+import androidx.compose.ui.platform.TextToolbar
+import androidx.compose.ui.platform.TextToolbarStatus
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
@@ -46,13 +50,33 @@ private const val PROMOTION_ANIMATION_MS = 340
 // plus default line metrics on every density we ship to.
 private val PREVIEW_SLOT_HEIGHT = 32.dp
 
+// A no-op TextToolbar that suppresses the floating Cut/Copy/Paste menu when
+// `showSelectionToolbar` is off in settings. status is always Hidden and the
+// show/hide methods don't do anything, so Compose never draws the toolbar.
+private object EmptyTextToolbar : TextToolbar {
+    override val status: TextToolbarStatus = TextToolbarStatus.Hidden
+    override fun hide() {}
+    override fun showMenu(
+        rect: Rect,
+        onCopyRequested: (() -> Unit)?,
+        onPasteRequested: (() -> Unit)?,
+        onCutRequested: (() -> Unit)?,
+        onSelectAllRequested: (() -> Unit)?,
+    ) {
+    }
+}
+
 @Composable
 fun CalculatorDisplay(
     expression: String,
     cursor: Int,
+    selectionStart: Int,
     livePreview: String?,
     error: UiText?,
+    showSelectionToolbar: Boolean,
+    rangeSelectionEnabled: Boolean,
     onCursorChange: (Int) -> Unit,
+    onSelectionChange: (start: Int, end: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
@@ -149,46 +173,70 @@ fun CalculatorDisplay(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
-                    val fieldValue = remember(expression, cursor) {
+                    val fieldValue = remember(expression, cursor, selectionStart) {
+                        val maxLen = expression.length
                         TextFieldValue(
                             text = expression,
-                            selection = TextRange(cursor.coerceIn(0, expression.length)),
+                            selection = TextRange(
+                                start = selectionStart.coerceIn(0, maxLen),
+                                end = cursor.coerceIn(0, maxLen),
+                            ),
                         )
                     }
-                    AutoSizingExpressionField(
-                        value = fieldValue,
-                        onValueChange = { newValue ->
-                            // IME is blocked at the platform-input layer inside
-                            // AutoSizingExpressionField and the field also drops text
-                            // mutations defensively; we only react to selection
-                            // (cursor) moves driven by tap.
-                            if (newValue.selection.start != cursor) {
-                                onCursorChange(newValue.selection.start)
-                            }
-                        },
-                        style = mainStyle,
-                        onFontSizePicked = { mainFontSizeSp = it.value },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { coords ->
-                                if (!isAnimating) {
-                                    mainTextCenterYPx =
-                                        coords.positionInParent().y + coords.size.height / 2f
+                    // Suppress the long-press Cut/Copy/Paste toolbar by overriding
+                    // LocalTextToolbar with a no-op implementation when the setting
+                    // is off. We keep this scoped to the field so the rest of the
+                    // app's text (history, settings) still gets the system toolbar.
+                    val fieldToolbar: TextToolbar =
+                        if (showSelectionToolbar) LocalTextToolbar.current else EmptyTextToolbar
+                    CompositionLocalProvider(LocalTextToolbar provides fieldToolbar) {
+                        AutoSizingExpressionField(
+                            value = fieldValue,
+                            onValueChange = { newValue ->
+                                // IME is blocked at the platform-input layer inside
+                                // AutoSizingExpressionField and the field also drops
+                                // text mutations defensively; we react to selection
+                                // changes driven by tap or long-press + drag.
+                                val newStart = newValue.selection.start
+                                val newEnd = newValue.selection.end
+                                if (rangeSelectionEnabled) {
+                                    if (newStart != selectionStart || newEnd != cursor) {
+                                        onSelectionChange(newStart, newEnd)
+                                    }
+                                } else {
+                                    // Range support off: collapse any range the user
+                                    // forms back to a single caret at the field's
+                                    // selection.start (anchor). The next state push
+                                    // re-collapses the visual selection.
+                                    if (newStart != cursor) {
+                                        onCursorChange(newStart)
+                                    }
                                 }
-                            }
-                            .graphicsLayer {
+                            },
+                            style = mainStyle,
+                            onFontSizePicked = { mainFontSizeSp = it.value },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coords ->
+                                    if (!isAnimating) {
+                                        mainTextCenterYPx =
+                                            coords.positionInParent().y + coords.size.height / 2f
+                                    }
+                                }
+                                .graphicsLayer {
                                 // Main fades in only in the second half of the
                                 // promotion, after the preview has finished its
                                 // trip up. Until then, it's invisible so the
                                 // preview text is the sole visual actor.
-                                alpha = if (isAnimating) {
-                                    val p = promotionProgress.value
-                                    ((p - 0.55f) / 0.45f).coerceIn(0f, 1f)
-                                } else {
-                                    1f
-                                }
-                            },
-                    )
+                                    alpha = if (isAnimating) {
+                                        val p = promotionProgress.value
+                                        ((p - 0.55f) / 0.45f).coerceIn(0f, 1f)
+                                    } else {
+                                        1f
+                                    }
+                                },
+                        )
+                    }
                 }
 
                 // Fixed-height preview slot — always rendered so the Column

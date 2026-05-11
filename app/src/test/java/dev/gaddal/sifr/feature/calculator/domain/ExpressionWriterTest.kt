@@ -266,6 +266,99 @@ class ExpressionWriterTest {
         assertThat(writer.cursor).isEqualTo(1)
     }
 
+    // -------- range-aware selection (Phase 2.9 polish, gated by setting) --------
+
+    @Test
+    fun `SelectionChanged sets selectionStart and cursor independently`() {
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(4))
+
+        writer.processAction(CalculatorAction.SelectionChanged(start = 1, end = 3))
+
+        assertThat(writer.selectionStart).isEqualTo(1)
+        assertThat(writer.cursor).isEqualTo(3)
+    }
+
+    @Test
+    fun `Number action replaces selected range and collapses cursor`() {
+        // "1234" with range "23" selected — typing 9 should yield "194"
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(4))
+        writer.processAction(CalculatorAction.SelectionChanged(start = 1, end = 3))
+
+        writer.processAction(CalculatorAction.Number(9))
+
+        assertThat(writer.expression).isEqualTo("194")
+        assertThat(writer.cursor).isEqualTo(2)
+        assertThat(writer.selectionStart).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete with a range removes the range without backspacing further`() {
+        // "1234" with range "23" selected — Delete removes "23", cursor lands at 1
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(4))
+        writer.processAction(CalculatorAction.SelectionChanged(start = 1, end = 3))
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("14")
+        assertThat(writer.cursor).isEqualTo(1)
+        assertThat(writer.selectionStart).isEqualTo(1)
+    }
+
+    @Test
+    fun `CursorChanged collapses the selection`() {
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.SelectionChanged(start = 0, end = 2))
+
+        writer.processAction(CalculatorAction.CursorChanged(1))
+
+        assertThat(writer.cursor).isEqualTo(1)
+        assertThat(writer.selectionStart).isEqualTo(1)
+    }
+
+    @Test
+    fun `Reversed selection (start greater than end) still replaces the range`() {
+        // Compose's TextRange can have selection.start > selection.end when
+        // the user drags right-to-left. The writer treats min/max symmetrically.
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(4))
+        writer.processAction(CalculatorAction.SelectionChanged(start = 3, end = 1))
+
+        writer.processAction(CalculatorAction.Number(9))
+
+        assertThat(writer.expression).isEqualTo("194")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Validity checks honor the post-replacement context`() {
+        // "1.5" with range "1.5" fully selected — pressing Decimal should be
+        // rejected (prevChar would be null after replacement, no number for it).
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Decimal)
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.SelectionChanged(start = 0, end = 3))
+
+        writer.processAction(CalculatorAction.Decimal)
+
+        // Decimal rejected; range stays selected and unchanged.
+        assertThat(writer.expression).isEqualTo("1.5")
+        assertThat(writer.selectionStart).isEqualTo(0)
+        assertThat(writer.cursor).isEqualTo(3)
+    }
+
     // -------- result formatting (Phase 2.9 polish) --------
 
     @Test

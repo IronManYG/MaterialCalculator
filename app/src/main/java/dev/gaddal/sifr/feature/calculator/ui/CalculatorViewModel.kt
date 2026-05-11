@@ -46,6 +46,7 @@ class CalculatorViewModel(
             CalculatorState(
                 expression = writer.expression,
                 cursor = writer.cursor,
+                selectionStart = writer.selectionStart,
                 livePreview = computePreview(),
             )
         )
@@ -75,6 +76,7 @@ class CalculatorViewModel(
                     it.copy(
                         expression = post,
                         cursor = writer.cursor,
+                        selectionStart = writer.selectionStart,
                         livePreview = computePreview(),
                         error = null,
                     )
