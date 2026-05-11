@@ -11,11 +11,6 @@
     <string name="settings_theme_dark">داكن</string>
     <string name="settings_haptics">الاهتزاز</string>
     <string name="settings_sound">أصوات الأخطاء</string>
-    <string name="settings_editing_section">التحرير</string>
-    <string name="settings_selection_toolbar">شريط أدوات التحديد</string>
-    <string name="settings_selection_toolbar_desc">إظهار قص ‏/ نسخ ‏/ لصق عند الضغط المطوّل على المعادلة</string>
-    <string name="settings_range_selection">تحرير النطاق</string>
-    <string name="settings_range_selection_desc">الضغط المطوّل والسحب لتحديد عدة أحرف؛ الكتابة تستبدل التحديد</string>
 
     <!-- Calculator screen -->
     <string name="calc_open_settings">فتح الإعدادات</string>

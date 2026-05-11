@@ -102,24 +102,6 @@ fun SettingsScreen(
                 checked = state.settings.soundEnabled,
                 onCheckedChange = { onAction(SettingsAction.ToggleSound) },
             )
-            HorizontalDivider()
-            Text(
-                text = stringResource(R.string.settings_editing_section),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            SwitchRow(
-                label = stringResource(R.string.settings_selection_toolbar),
-                description = stringResource(R.string.settings_selection_toolbar_desc),
-                checked = state.settings.showSelectionToolbar,
-                onCheckedChange = { onAction(SettingsAction.ToggleSelectionToolbar) },
-            )
-            SwitchRow(
-                label = stringResource(R.string.settings_range_selection),
-                description = stringResource(R.string.settings_range_selection_desc),
-                checked = state.settings.rangeSelectionEnabled,
-                onCheckedChange = { onAction(SettingsAction.ToggleRangeSelection) },
-            )
         }
     }
 }
@@ -158,7 +140,6 @@ private fun SwitchRow(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    description: String? = null,
 ) {
     Row(
         modifier = Modifier
@@ -167,17 +148,7 @@ private fun SwitchRow(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = label)
-            if (description != null) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(12.dp))
+        Text(text = label, modifier = Modifier.weight(1f))
         Switch(checked = checked, onCheckedChange = null)
     }
 }

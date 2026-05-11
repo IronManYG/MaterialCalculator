@@ -43,10 +43,6 @@ class SettingsViewModel(
                 updateSettings { copy(soundEnabled = !soundEnabled) }
                 if (!wasEnabled) emit(SettingsEvent.DemoSound)
             }
-            SettingsAction.ToggleSelectionToolbar ->
-                updateSettings { copy(showSelectionToolbar = !showSelectionToolbar) }
-            SettingsAction.ToggleRangeSelection ->
-                updateSettings { copy(rangeSelectionEnabled = !rangeSelectionEnabled) }
             SettingsAction.BackClicked -> emit(SettingsEvent.NavigateBack)
         }
     }

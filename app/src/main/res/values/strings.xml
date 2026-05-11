@@ -10,11 +10,6 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_haptics">Haptic feedback</string>
     <string name="settings_sound">Error sounds</string>
-    <string name="settings_editing_section">Editing</string>
-    <string name="settings_selection_toolbar">Selection toolbar</string>
-    <string name="settings_selection_toolbar_desc">Show Cut / Copy / Paste when long-pressing the expression</string>
-    <string name="settings_range_selection">Range editing</string>
-    <string name="settings_range_selection_desc">Long-press and drag to select multiple chars; typing replaces the selection</string>
 
     <!-- Calculator screen -->
     <string name="calc_open_settings">Open settings</string>

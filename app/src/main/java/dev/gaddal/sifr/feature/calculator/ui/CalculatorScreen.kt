@@ -64,8 +64,6 @@ fun CalculatorRoot(
     CalculatorScreen(
         state = state,
         onAction = viewModel::onAction,
-        showSelectionToolbar = settings.showSelectionToolbar,
-        rangeSelectionEnabled = settings.rangeSelectionEnabled,
     )
 }
 
@@ -73,8 +71,6 @@ fun CalculatorRoot(
 fun CalculatorScreen(
     state: CalculatorState,
     onAction: (CalculatorAction) -> Unit,
-    showSelectionToolbar: Boolean = true,
-    rangeSelectionEnabled: Boolean = false,
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -104,9 +100,6 @@ fun CalculatorScreen(
                     selectionStart = state.selectionStart,
                     livePreview = state.livePreview,
                     error = state.error,
-                    showSelectionToolbar = showSelectionToolbar,
-                    rangeSelectionEnabled = rangeSelectionEnabled,
-                    onCursorChange = { onAction(CalculatorAction.CursorChanged(it)) },
                     onSelectionChange = { start, end ->
                         onAction(CalculatorAction.SelectionChanged(start, end))
                     },

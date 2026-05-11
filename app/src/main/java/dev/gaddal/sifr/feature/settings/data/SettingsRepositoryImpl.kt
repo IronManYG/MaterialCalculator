@@ -28,8 +28,6 @@ class SettingsRepositoryImpl(
             prefs[KEY_THEME_MODE] = updated.themeMode.name
             prefs[KEY_HAPTICS] = updated.hapticsEnabled
             prefs[KEY_SOUND] = updated.soundEnabled
-            prefs[KEY_SELECTION_TOOLBAR] = updated.showSelectionToolbar
-            prefs[KEY_RANGE_SELECTION] = updated.rangeSelectionEnabled
         }
     }
 
@@ -39,15 +37,11 @@ class SettingsRepositoryImpl(
             ?: ThemeMode.System,
         hapticsEnabled = this[KEY_HAPTICS] ?: true,
         soundEnabled = this[KEY_SOUND] ?: false,
-        showSelectionToolbar = this[KEY_SELECTION_TOOLBAR] ?: true,
-        rangeSelectionEnabled = this[KEY_RANGE_SELECTION] ?: false,
     )
 
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_HAPTICS = booleanPreferencesKey("haptics_enabled")
         val KEY_SOUND = booleanPreferencesKey("sound_enabled")
-        val KEY_SELECTION_TOOLBAR = booleanPreferencesKey("show_selection_toolbar")
-        val KEY_RANGE_SELECTION = booleanPreferencesKey("range_selection_enabled")
     }
 }
