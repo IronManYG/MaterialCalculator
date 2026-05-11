@@ -312,6 +312,69 @@
 
 </div>
 
+<h2>2b · Landscape addendum to Layout A</h2>
+<p>The chosen layout (A) should adapt to landscape — not by rotating the portrait stack, but by <em>restructuring</em> so horizontal real estate is used. iOS calculator is the canonical reference: display along the top, scientific block on the left, basic block on the right.</p>
+
+<div class="grid-options">
+
+  <div class="option rec">
+    <h4>A-Land · Restructured landscape <span class="tag">REC</span></h4>
+    <div class="mock">┌─ Sifr ─────────────────────────────────────── [⚙] [📜] [🧪] ─┐
+│                                                              │
+│              12 × sin(45) + π        = 12.500…               │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│ sin  cos  tan  asin acos atan  │  MC  M+  M−  MR             │
+│ ln   log  exp  x²   √    x^y   │  AC  ⌫   %    ÷             │
+│ π    e    x!   (    )    deg   │  7   8   9    ×             │
+│                                │  4   5   6    −             │
+│                                │  1   2   3    +             │
+│                                │  +/− 0   .    =             │
+└──────────────────────────────────────────────────────────────┘
+                ◀── scientific block ──▶  ◀── basic block ──▶</div>
+    <div class="pros-cons">
+      <div class="pro">Display spans full width; auto-shrink from 2.8 keeps long expressions legible</div>
+      <div class="pro">Both blocks visible simultaneously — scientific mode in landscape is essentially "free"</div>
+      <div class="pro">Memory row sits at the top of basic block; symmetric with portrait M1</div>
+      <div class="pro">Toolbar toggle still works; rotation just exposes more space, doesn't override mode</div>
+      <div class="con">Adds a real adaptive-layout pass — needs WindowSizeClass plumbing</div>
+      <div class="con">Doubles preview surface — handled via <code>@PreviewScreenSizes</code> on typical states only, not Cartesian product</div>
+    </div>
+  </div>
+
+</div>
+
+<table>
+  <thead><tr><th>Decision</th><th>Choice</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Adaptive driver</td>
+      <td><code>WindowSizeClass</code> (compact / medium / expanded widths)</td>
+      <td>Future-proofs for tablets (deferred open question) and foldables; orientation is a poor proxy for "do I have horizontal space?"</td>
+    </tr>
+    <tr>
+      <td>Mode authority on rotation</td>
+      <td>Toolbar toggle stays authoritative</td>
+      <td>Don't surface scientific keys someone deliberately hid; rotation is opportunistic, not declarative</td>
+    </tr>
+    <tr>
+      <td>Activity recreation</td>
+      <td>Let the default behavior run; <code>SavedStateHandle</code> already preserves state (from 2.9)</td>
+      <td>Avoids adding <code>android:configChanges</code> manifest hacks. If rotation feels janky later, revisit.</td>
+    </tr>
+    <tr>
+      <td>Preview coverage</td>
+      <td>One landscape preview per <em>state machine state</em>, not per theme/font-scale combination</td>
+      <td>Stacked <code>@PreviewScreenSizes</code> on the typical-success preview only; matches CLAUDE.md "no Cartesian-product noise" rule</td>
+    </tr>
+    <tr>
+      <td>RTL in landscape</td>
+      <td>Mirror block order: basic on left, scientific on right under <code>LayoutDirection.Rtl</code></td>
+      <td>Matches reading direction; numbers in basic block still LTR-anchored per 2.8</td>
+    </tr>
+  </tbody>
+</table>
+
 <h2>3 · Memory function placement</h2>
 <p>The four memory keys are tiny (4 buttons) but always-on. Three placement candidates.</p>
 
@@ -409,16 +472,17 @@ constant   → "π" | "e"</pre>
 <!-- Recommendation -->
 <div class="rec-banner">
   <h3>Recommended path</h3>
-  <p><strong>Layout A + Memory M1</strong> — toggle in toolbar, scientific rows visible in scientific mode, memory row always visible. This is the closest analogue to the standard iOS/Samsung scientific calculator, surfaces every key to a casual user without a hidden gesture, and keeps the basic-mode UI close to today's. Memory M1 separates "stored" from "current" cleanly and works in both modes.</p>
+  <p><strong>Layout A (portrait) + A-Land (landscape) + Memory M1</strong> — toggle in toolbar; scientific rows visible in scientific mode; landscape exposes both blocks side-by-side; memory row always visible. Closest analogue to the iOS/Samsung scientific calculator, surfaces every key without a hidden gesture, keeps basic-mode UI close to today's, and earns "free" scientific mode in landscape via <code>WindowSizeClass</code>.</p>
   <p>Phase ordering inside 2.10 (atomic commits, each shippable on its own):</p>
   <ol style="margin: 8px 0 0 18px; color: var(--ink-soft); font-size: 14px;">
     <li>Extend <code>ExpressionPart</code> + parser grammar (no UI change)</li>
     <li>Extend <code>ExpressionEvaluator</code> with new ops + <code>AngleUnit</code> wiring</li>
     <li>Wire <code>CalculatorMode</code> + <code>angleUnit</code> through state &amp; settings</li>
-    <li>Add scientific rows to <code>CalculatorActions</code>; toggle button in toolbar</li>
+    <li>Add scientific rows to <code>CalculatorActions</code>; toggle button in toolbar (portrait only at this point)</li>
     <li>Memory row + <code>memoryValue</code> in <code>CalculatorState</code> + SavedStateHandle</li>
-    <li>Arabic strings + RTL previews + stacked <code>@PreviewLightDark</code> sweep</li>
-    <li>Test additions (parser, evaluator, ViewModel for memory) + lint clean</li>
+    <li>Adaptive landscape layout via <code>WindowSizeClass</code> — restructured A-Land block</li>
+    <li>Arabic strings + RTL previews + stacked <code>@PreviewLightDark</code> + <code>@PreviewScreenSizes</code> sweep</li>
+    <li>Test additions (parser, evaluator, ViewModel for memory, config-change preservation) + lint clean</li>
   </ol>
 </div>
 
