@@ -96,6 +96,7 @@ fun CalculatorScreen(
             ) {
                 CalculatorDisplay(
                     expression = state.expression,
+                    livePreview = state.livePreview,
                     error = state.error,
                     modifier = Modifier
                         .fillMaxSize()
@@ -142,7 +143,7 @@ fun CalculatorScreen(
 private fun CalculatorScreenPreview() {
     SifrTheme {
         CalculatorScreen(
-            state = CalculatorState(expression = "12+5"),
+            state = CalculatorState(expression = "12+5", livePreview = "17"),
             onAction = {},
         )
     }

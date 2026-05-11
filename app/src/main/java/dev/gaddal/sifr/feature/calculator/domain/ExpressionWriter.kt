@@ -71,6 +71,18 @@ class ExpressionWriter {
         }
     }
 
+    fun tryEvaluate(): Result<String, CalcError> {
+        if (lastWasError) return Result.Error(CalcError.INVALID_EXPRESSION)
+        return try {
+            val parser = ExpressionParser(prepareForCalculation())
+            val result = ExpressionEvaluator(parser.parse()).evaluate()
+            if (result.isFinite()) Result.Success(formatResult(result))
+            else Result.Error(CalcError.DIVISION_BY_ZERO)
+        } catch (_: Exception) {
+            Result.Error(CalcError.INVALID_EXPRESSION)
+        }
+    }
+
     private fun prepareForCalculation(): String {
         val newExpression = expression.dropLastWhile {
             it in "$operationSymbols(."
