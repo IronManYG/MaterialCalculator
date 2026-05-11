@@ -3,6 +3,8 @@ package dev.gaddal.sifr.feature.settings.ui
 sealed interface SettingsEvent {
     data object NavigateBack : SettingsEvent
 
+    data object NavigateToHapticsTest : SettingsEvent
+
     /** Toggle for haptics just flipped OFF → ON. Demo the haptic so the user
      * feels what they enabled (fires regardless of the just-set value to avoid
      * a DataStore flow-propagation race). */

@@ -81,7 +81,13 @@ D. **Diagnostics**: `Log.w` on first occurrence per session when a requested eff
 
 ## Link to a repository
 
-*(No standalone repro repo. Minimal usage shown below — drop into any empty Compose project.)*
+`https://github.com/IronManYG/MaterialCalculator/tree/feature/phase2.6-feedback-wiring`
+
+The fastest way to reproduce is the **Haptics test screen** baked into the debug build: build & install with `./gradlew :app:installDebug`, open the app, tap the **gear icon → Haptics test (Pulsar diagnostic)**. You'll see 20 named Pulsar presets in two sections — "Expected: felt" (10) and "Expected: silent" (10) — each labeled with its underlying API category (continuous-pattern built-in vs view-based `performHapticFeedback` vs `Composition.addPrimitive`). On Honor 400 Pro every row in the silent section produces nothing, every row in the felt section is clearly perceptible.
+
+Screen source: `app/src/main/java/dev/gaddal/sifr/feature/diag/ui/HapticsTestScreen.kt`. The 20 presets were chosen to cover all three failure paths in this report at ≥2 buttons each.
+
+If you'd rather paste-and-go without cloning, the minimal Compose Activity below reproduces the same behavior:
 
 **`app/build.gradle.kts`**
 ```kotlin
