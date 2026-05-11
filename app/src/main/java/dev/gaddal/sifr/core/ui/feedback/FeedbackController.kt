@@ -9,6 +9,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.swmansion.pulsar.Pulsar
 
+/**
+ * Plays semantic [FeedbackIntent]s as haptic + optional sound, gated by the
+ * user's [hapticsEnabled] / [soundEnabled] preferences.
+ *
+ * Preset choice is constrained to those confirmed to fire on Honor 400 Pro
+ * (Android 16 / MagicOS 10) — the device exposed in the Pulsar bug report at
+ * `docs/pulsar-bug-report-2026-05-11.md`. Pulsar's `system*` view-based and
+ * composition-primitive presets are silent on that device, so we use the
+ * continuous-pattern built-ins: `alarm`, `applause`, `anvil`, `bloom`.
+ */
 class FeedbackController internal constructor(
     context: Context,
 ) {
@@ -26,9 +36,26 @@ class FeedbackController internal constructor(
         VibratorCapabilityProbe.logOnce(context)
     }
 
-    fun click() {
-        if (hapticsEnabled) presets.systemKeyboardTap()
-        if (soundEnabled) toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, TONE_DURATION_MS)
+    fun play(intent: FeedbackIntent) {
+        if (hapticsEnabled) playHaptic(intent)
+        if (soundEnabled) playSound(intent)
+    }
+
+    private fun playHaptic(intent: FeedbackIntent) {
+        when (intent) {
+            FeedbackIntent.Error -> presets.alarm()
+            FeedbackIntent.CalculateSuccess -> presets.applause()
+            FeedbackIntent.Destructive -> presets.anvil()
+            FeedbackIntent.Selection -> presets.bloom()
+        }
+    }
+
+    private fun playSound(intent: FeedbackIntent) {
+        // Sound is reserved for top-priority signals only. Per-action sound
+        // is fatiguing in a calculator (every digit press would beep).
+        if (intent == FeedbackIntent.Error) {
+            toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, TONE_DURATION_MS)
+        }
     }
 
     internal fun release() {
