@@ -6,5 +6,7 @@ sealed interface SettingsAction {
     data class SetThemeMode(val mode: ThemeMode) : SettingsAction
     data object ToggleHaptics : SettingsAction
     data object ToggleSound : SettingsAction
+    data object ToggleSelectionToolbar : SettingsAction
+    data object ToggleRangeSelection : SettingsAction
     data object BackClicked : SettingsAction
 }
