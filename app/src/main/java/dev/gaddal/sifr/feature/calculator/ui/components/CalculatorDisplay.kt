@@ -148,12 +148,23 @@ fun CalculatorDisplay(
                 horizontalAlignment = Alignment.End,
             ) {
                 if (error != null) {
+                    // Error strings range from "Syntax error" (12 chars) to
+                    // "Input outside function domain" (29 chars, English) and
+                    // "المدخل خارج نطاق الدالة" (Arabic). At a fixed 56sp,
+                    // single-line, the longer ones got clipped on phones —
+                    // QA on Honor 400 Pro saw the overflow result text run
+                    // off-screen. Wrap up to two lines at a smaller size so
+                    // every string fits without sacrificing readability.
                     BasicText(
                         text = error.asString(),
-                        style = mainStyle.copy(fontSize = 56.sp),
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.StartEllipsis,
+                        style = mainStyle.copy(
+                            fontSize = 28.sp,
+                            textAlign = TextAlign.End,
+                            lineHeight = 32.sp,
+                        ),
+                        maxLines = 2,
+                        softWrap = true,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
