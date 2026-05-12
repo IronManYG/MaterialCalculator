@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
@@ -23,6 +25,7 @@ fun CalculatorButtonGrid(
     angleUnit: AngleUnit,
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
+    fontSize: TextUnit = 32.sp,
 ) {
     val actions = remember(mode, angleUnit) { buildCalculatorActions(mode, angleUnit) }
     val rows = remember(actions) { actions.chunked(GRID_COLUMNS) }
@@ -47,6 +50,7 @@ fun CalculatorButtonGrid(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
+                        fontSize = fontSize,
                         onClick = { onAction(action.action) },
                     )
                 }

@@ -85,6 +85,14 @@ fun CalculatorScreen(
     state: CalculatorState,
     onAction: (CalculatorAction) -> Unit,
 ) {
+    // Mode-aware ratios: in scientific mode the keypad has many more rows so
+    // it needs the lion's share; in basic mode the keypad has only 6 rows so
+    // the display can afford to be visually prominent. Weights are
+    // complementary (sum to 1.0) so they read directly as screen percentages.
+    val isScientific = state.mode == CalculatorMode.Scientific
+    val displayWeight = if (isScientific) 0.30f else 0.45f
+    val keypadWeight = 1f - displayWeight
+    val keypadFontSize = if (isScientific) 20.sp else 32.sp
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
@@ -94,16 +102,11 @@ fun CalculatorScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // Display gets a bounded share of the column height with a floor
-            // so it never collapses; the keypad below takes the remaining
-            // space and its cells shrink to fit when scientific mode adds
-            // more rows. Previously the keypad's intrinsic height grew with
-            // row count and pushed the display off-screen in scientific mode.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 200.dp)
-                    .weight(0.35f)
+                    .heightIn(min = 180.dp)
+                    .weight(displayWeight)
                     .clip(
                         RoundedCornerShape(
                             bottomStart = 25.dp,
@@ -184,8 +187,9 @@ fun CalculatorScreen(
                 angleUnit = state.angleUnit,
                 onAction = onAction,
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(keypadWeight)
                     .padding(8.dp),
+                fontSize = keypadFontSize,
             )
         }
     }

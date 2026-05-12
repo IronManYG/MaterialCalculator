@@ -181,6 +181,10 @@ fun CalculatorDisplay(
                             }
                         },
                         style = mainStyle,
+                        // Cap at 64sp so short expressions ("7410") stay visually
+                        // proportional to the bounded display box; auto-shrink
+                        // still kicks in once content exceeds available width.
+                        maxFontSize = 64.sp,
                         onFontSizePicked = { mainFontSizeSp = it.value },
                         modifier = Modifier
                             .fillMaxWidth()

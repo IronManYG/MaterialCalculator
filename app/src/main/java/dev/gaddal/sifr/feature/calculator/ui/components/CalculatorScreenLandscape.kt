@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
@@ -115,18 +115,9 @@ fun CalculatorScreenLandscape(
                             contentDescription = stringResource(R.string.calc_open_history),
                         )
                     }
-                    IconButton(
-                        onClick = dropUnlessResumed { onAction(CalculatorAction.ToggleMode) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Science,
-                            contentDescription = stringResource(R.string.calc_toggle_mode),
-                            tint = if (state.mode == CalculatorMode.Scientific)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    // Mode toggle hidden in landscape: scientific cells are
+                    // always visible here, so the toggle has no observable
+                    // effect on this screen and confuses users.
                     IconButton(
                         onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
                     ) {
@@ -164,6 +155,10 @@ fun CalculatorScreenLandscape(
 
 private const val SCIENTIFIC_COLUMNS = 3
 private const val BASIC_COLUMNS = 4
+// Landscape cells are visibly smaller than portrait (the panel shares
+// horizontal space with another panel and total height is roughly half
+// portrait). Pick a font size that fits a ~40dp cell.
+private val LANDSCAPE_KEY_FONT_SIZE = 18.sp
 
 @Composable
 private fun ScientificBlockLandscape(
@@ -182,6 +177,7 @@ private fun ScientificBlockLandscape(
         actions = actions,
         columns = SCIENTIFIC_COLUMNS,
         onAction = onAction,
+        fontSize = LANDSCAPE_KEY_FONT_SIZE,
         modifier = modifier,
     )
 }
@@ -197,6 +193,7 @@ private fun BasicBlockLandscape(
         actions = actions,
         columns = BASIC_COLUMNS,
         onAction = onAction,
+        fontSize = LANDSCAPE_KEY_FONT_SIZE,
         modifier = modifier,
     )
 }
@@ -210,6 +207,7 @@ private fun WeightedButtonGrid(
     columns: Int,
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
+    fontSize: TextUnit = 32.sp,
 ) {
     val rows = remember(actions, columns) { actions.chunked(columns) }
     Column(
@@ -229,6 +227,7 @@ private fun WeightedButtonGrid(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
+                        fontSize = fontSize,
                         onClick = { onAction(action.action) },
                     )
                 }

@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import dev.gaddal.sifr.feature.calculator.ui.CalculatorUiAction
 import dev.gaddal.sifr.feature.calculator.ui.HighlightLevel
@@ -19,6 +20,7 @@ import dev.gaddal.sifr.feature.calculator.ui.HighlightLevel
 fun CalculatorButton(
     action: CalculatorUiAction,
     modifier: Modifier = Modifier,
+    fontSize: TextUnit = 32.sp,
     onClick: () -> Unit
 ) {
     Box(
@@ -38,7 +40,7 @@ fun CalculatorButton(
         if (action.text != null) {
             Text(
                 text = action.text,
-                fontSize = 36.sp,
+                fontSize = fontSize,
                 textAlign = TextAlign.Center,
                 color = when (action.highlightLevel) {
                     is HighlightLevel.Neutral -> MaterialTheme.colorScheme.onSurfaceVariant
