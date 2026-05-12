@@ -362,14 +362,16 @@ class ExpressionWriterTest {
     // -------- result formatting (Phase 2.9 polish) --------
 
     @Test
-    fun `One divided by three keeps 16 significant digits`() {
+    fun `One divided by three keeps 15 significant digits`() {
         writer.processAction(CalculatorAction.Number(1))
         writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
         writer.processAction(CalculatorAction.Number(3))
         writer.processAction(CalculatorAction.Calculate)
 
-        // 16 threes after the decimal point — IEEE 754 double's honest precision
-        assertThat(writer.expression).isEqualTo("0.3333333333333333")
+        // 15 threes after the decimal point. IEEE 754 doubles only guarantee
+        // ~15 digits — dropping the 16th is what lets trig results like
+        // sin(30°) round cleanly to 0.5 instead of 0.4999999999999999.
+        assertThat(writer.expression).isEqualTo("0.333333333333333")
     }
 
     @Test
@@ -686,5 +688,48 @@ class ExpressionWriterTest {
         writer.processAction(CalculatorAction.Constant(ConstantSymbol.E))
 
         assertThat(writer.expression).isEqualTo("πxe")
+    }
+
+    // ---- Floating-point precision cleanup ----
+
+    @Test
+    fun `sin(30 degrees) formats as 0_5 without trailing-9 noise`() {
+        // sin(30°) is the canonical trig precision case — Math.sin returns
+        // 0.49999999999999994 because π_double ≠ π. Formatting at 15 sig
+        // digits rounds the noise away.
+        writer.processAction(CalculatorAction.Function("sin"))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Parentheses)
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("0.5")
+    }
+
+    @Test
+    fun `Computational zero snaps to literal zero`() {
+        // sin(π) in radians is ~1.22e-16 — that's pure IEEE-754 noise, not a
+        // meaningful answer. SNAP_TO_ZERO_THRESHOLD turns it into "0".
+        writer.angleUnit = AngleUnit.Radians
+        writer.processAction(CalculatorAction.Function("sin"))
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+        writer.processAction(CalculatorAction.Parentheses)
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("0")
+    }
+
+    @Test
+    fun `Result of 1e-10 still renders in scientific notation`() {
+        // Regression: the snap-to-zero threshold sits at 1e-12 so legitimate
+        // small results like 1e-10 must not get snapped — they still print
+        // in scientific notation per the SCI_LOWER_THRESHOLD path.
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(1))
+        repeat(10) { writer.processAction(CalculatorAction.Number(0)) }
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("1E-10")
     }
 }

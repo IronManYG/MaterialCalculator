@@ -345,6 +345,14 @@ class ExpressionWriter {
         if (value == 0.0) return "0"
 
         val absValue = abs(value)
+
+        // Computational-zero snap: trig identities like sin(π) and cos(π/2)
+        // come back as ~1e-16 because π_double ≠ π. Anything below this
+        // threshold is well past the point where any meaningful arithmetic
+        // could land — every digit is floating-point noise — so we show
+        // "0" instead of "1.224646...E-16" which reads as a precision bug.
+        if (absValue < SNAP_TO_ZERO_THRESHOLD) return "0"
+
         return if (absValue >= SCI_UPPER_THRESHOLD || absValue < SCI_LOWER_THRESHOLD) {
             formatScientific(value)
         } else {
@@ -395,9 +403,11 @@ class ExpressionWriter {
             "ln", "log", "exp", "sqrt",
         )
 
-        // IEEE 754 double reliably represents ~15-17 significant decimal digits;
-        // 16 is the honest cap where every printed digit is computable.
-        private const val MAX_SIG_DIGITS = 16
+        // IEEE 754 double reliably represents 15-17 significant decimal digits.
+        // 16 prints one digit of noise on derived results like sin(30°)
+        // (0.4999999999999999 instead of 0.5); 15 is the conservative cap where
+        // every printed digit is correct after standard half-even rounding.
+        private const val MAX_SIG_DIGITS = 15
 
         // Beyond 10^16 integers stop being exactly representable in Double, so we
         // switch to scientific to avoid silently emitting garbage low-order digits.
@@ -406,5 +416,11 @@ class ExpressionWriter {
         // Below 10^-9 fixed-point gets visually unwieldy (many leading zeros) and
         // ambiguous with rounding noise; scientific is more honest.
         private const val SCI_LOWER_THRESHOLD = 1e-9
+
+        // Computational-zero floor: anything closer to zero than 10^-12 is
+        // treated as zero. Comfortably above the IEEE-754 noise band of trig
+        // identities (~1e-16) and far below anything a user could land on by
+        // honest arithmetic in a basic calculator surface.
+        private const val SNAP_TO_ZERO_THRESHOLD = 1e-12
     }
 }
