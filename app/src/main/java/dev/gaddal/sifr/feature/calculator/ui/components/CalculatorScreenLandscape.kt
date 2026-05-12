@@ -96,7 +96,16 @@ fun CalculatorScreenLandscape(
                     maxFontSize = 40.sp,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 16.dp, horizontal = 16.dp),
+                        // Reserve top room for the toolbar overlay (IconButton
+                        // ≈ 48dp + 8dp padding ≈ 56dp). The display's content
+                        // is vertically centered, so without this, long numbers
+                        // crowd the History / Settings icons sitting at TopEnd.
+                        .padding(
+                            top = 56.dp,
+                            bottom = 16.dp,
+                            start = 16.dp,
+                            end = 16.dp,
+                        ),
                 )
                 Row(
                     modifier = Modifier
