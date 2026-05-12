@@ -31,7 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
+import androidx.compose.ui.tooling.preview.Preview
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
@@ -215,4 +217,45 @@ private fun BasicBlockLandscape(
             )
         }
     }
+}
+
+@Preview(
+    name = "Landscape — Scientific + Memory",
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 360,
+)
+@Composable
+private fun PreviewLandscapeScientific() = SifrTheme {
+    CalculatorScreenLandscape(
+        state = CalculatorState(
+            expression = "12xsin(45)",
+            cursor = 10,
+            mode = CalculatorMode.Scientific,
+            angleUnit = AngleUnit.Degrees,
+            livePreview = "8.485",
+            memoryValue = 42.0,
+        ),
+        onAction = {},
+    )
+}
+
+@Preview(
+    name = "Landscape — Basic only",
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 360,
+)
+@Composable
+private fun PreviewLandscapeBasic() = SifrTheme {
+    CalculatorScreenLandscape(
+        state = CalculatorState(
+            expression = "100+25",
+            cursor = 6,
+            mode = CalculatorMode.Basic,
+            angleUnit = AngleUnit.Degrees,
+            livePreview = "125",
+        ),
+        onAction = {},
+    )
 }

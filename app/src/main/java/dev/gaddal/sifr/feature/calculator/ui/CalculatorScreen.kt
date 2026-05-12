@@ -27,10 +27,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import dev.gaddal.sifr.core.ui.util.UiText
+import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
@@ -180,17 +184,64 @@ fun CalculatorScreen(
     }
 }
 
-@Preview
+@Preview(name = "Empty", showBackground = true)
 @Composable
-private fun CalculatorScreenPreview() {
-    SifrTheme {
-        CalculatorScreen(
-            state = CalculatorState(
-                expression = "12+5",
-                cursor = "12+5".length,
-                livePreview = "17",
-            ),
-            onAction = {},
-        )
-    }
+private fun PreviewEmpty() = SifrTheme {
+    CalculatorScreen(state = CalculatorState(), onAction = {})
+}
+
+@PreviewLightDark
+@PreviewScreenSizes
+@Composable
+private fun PreviewMidTyping() = SifrTheme {
+    CalculatorScreen(
+        state = CalculatorState(expression = "12+5", cursor = 4, livePreview = "17"),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Result", showBackground = true)
+@Composable
+private fun PreviewResult() = SifrTheme {
+    CalculatorScreen(
+        state = CalculatorState(expression = "17", cursor = 2),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Error", showBackground = true)
+@Composable
+private fun PreviewError() = SifrTheme {
+    CalculatorScreen(
+        state = CalculatorState(
+            expression = "log(0)",
+            cursor = 6,
+            error = UiText.StringResource(R.string.calc_error_domain_error),
+        ),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Memory active", showBackground = true)
+@Composable
+private fun PreviewMemoryActive() = SifrTheme {
+    CalculatorScreen(
+        state = CalculatorState(expression = "5", cursor = 1, memoryValue = 42.0),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Scientific mode", showBackground = true)
+@Composable
+private fun PreviewScientific() = SifrTheme {
+    CalculatorScreen(
+        state = CalculatorState(
+            expression = "sin(30)",
+            cursor = 7,
+            mode = CalculatorMode.Scientific,
+            angleUnit = AngleUnit.Degrees,
+            livePreview = "0.5",
+        ),
+        onAction = {},
+    )
 }
