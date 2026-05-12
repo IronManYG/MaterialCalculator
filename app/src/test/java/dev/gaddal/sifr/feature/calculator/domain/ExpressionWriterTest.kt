@@ -607,4 +607,84 @@ class ExpressionWriterTest {
         assertThat(writer.expression).isEqualTo("(2+3")
         assertThat(writer.cursor).isEqualTo(4)
     }
+
+    // ---- Implicit multiplication for function and constant insertion ----
+
+    @Test
+    fun `Function after a digit auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        assertThat(writer.expression).isEqualTo("5xsin(")
+        assertThat(writer.cursor).isEqualTo(6)
+    }
+
+    @Test
+    fun `Function after a closing paren auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Parentheses)
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Parentheses) // ")"
+        writer.processAction(CalculatorAction.Function("cos"))
+
+        assertThat(writer.expression).isEqualTo("(2)xcos(")
+    }
+
+    @Test
+    fun `Function after a constant auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        assertThat(writer.expression).isEqualTo("πxsin(")
+    }
+
+    @Test
+    fun `Function after factorial auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Factorial)
+        writer.processAction(CalculatorAction.Function("ln"))
+
+        assertThat(writer.expression).isEqualTo("5!xln(")
+    }
+
+    @Test
+    fun `Function after an operator inserts without implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        assertThat(writer.expression).isEqualTo("5+sin(")
+    }
+
+    @Test
+    fun `Function at empty cursor inserts without implicit multiply`() {
+        writer.processAction(CalculatorAction.Function("cos"))
+
+        assertThat(writer.expression).isEqualTo("cos(")
+    }
+
+    @Test
+    fun `Function after a dangling decimal point is blocked`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Decimal)
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        // "5." expects a digit next, not a function; insert is rejected.
+        assertThat(writer.expression).isEqualTo("5.")
+    }
+
+    @Test
+    fun `Constant after a digit auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+
+        assertThat(writer.expression).isEqualTo("2xπ")
+    }
+
+    @Test
+    fun `Constant after another constant auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.E))
+
+        assertThat(writer.expression).isEqualTo("πxe")
+    }
 }

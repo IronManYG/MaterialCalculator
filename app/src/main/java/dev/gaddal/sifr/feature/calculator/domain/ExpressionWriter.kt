@@ -92,11 +92,13 @@ class ExpressionWriter {
                 Result.Success(Unit)
             }
             is CalculatorAction.Function -> {
-                if (canEnterFactor()) insertAtCursor("${action.name}(")
+                val prefix = implicitMultiplyPrefix()
+                if (prefix != null) insertAtCursor("$prefix${action.name}(")
                 Result.Success(Unit)
             }
             is CalculatorAction.Constant -> {
-                if (canEnterFactor()) insertAtCursor(action.symbol.symbol.toString())
+                val prefix = implicitMultiplyPrefix()
+                if (prefix != null) insertAtCursor("$prefix${action.symbol.symbol}")
                 Result.Success(Unit)
             }
             CalculatorAction.Factorial -> {
@@ -252,12 +254,29 @@ class ExpressionWriter {
         return prevChar != null && prevChar in "0123456789)"
     }
 
-    private fun canEnterFactor(): Boolean {
-        // A factor (function call, constant, or number) can be inserted when
-        // the cursor sits at the start, after an operator, after '(', or
-        // after a postfix '!' (which already terminates a previous factor).
-        val prev = expression.getOrNull(selectionLow - 1) ?: return true
-        return prev in "$operationSymbols(" || prev == '!'
+    /**
+     * Decides whether a factor (function call or constant) can be inserted
+     * at the current cursor position, and if so what prefix to use:
+     *
+     *   - `null` → block the insertion entirely (only happens after a
+     *     dangling decimal point, which expects a digit next).
+     *   - `""`   → insert the factor as-is. Valid when the cursor sits at
+     *     the start, after an operator, or right after '('.
+     *   - `"x"`  → insert an implicit multiply before the factor. Valid
+     *     after a value-producing token: digit, ')', constant (π / e),
+     *     or postfix '!'. Lets `5 sin(` type as `5×sin(`, and `π e` as
+     *     `π×e`, matching the parser's grammar (a factor cannot directly
+     *     follow another factor).
+     */
+    private fun implicitMultiplyPrefix(): String? {
+        val prev = expression.getOrNull(selectionLow - 1) ?: return ""
+        if (prev == '.') return null
+        val needsMultiply = prev.isDigit() ||
+            prev == ')' ||
+            prev == '!' ||
+            prev == 'π' ||
+            prev == 'e'
+        return if (needsMultiply) "x" else ""
     }
 
     private fun canEnterPostfix(): Boolean {
