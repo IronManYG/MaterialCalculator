@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -111,22 +113,51 @@ fun CalculatorScreenLandscape(
                             end = 16.dp,
                         ),
                 )
-                // Toolbar overlay forced to top-LEFT in both locales via an
-                // LTR-locked scope. The display reserves matching
-                // `start = 104.dp` content padding, so the right-aligned
-                // expression can never grow leftward into the icons.
-                // In Arabic this matches the previous TopEnd-in-RTL
-                // position; in English the icons move from right to left.
+                // Toolbar overlay anchored to the visual top-left in both
+                // locales. `AbsoluteAlignment.TopLeft` (unlike `TopStart`)
+                // does not flip under RTL — `TopStart` was being resolved
+                // against the outer Box's system layout direction and ended
+                // up at the visual top-right under Arabic, contradicting the
+                // 104.dp horizontal reservation in the display padding.
+                //
+                // The inner LTR scope still applies so the Column's children
+                // (icon Row + memory chip) lay out left-to-right regardless
+                // of locale.
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .align(Alignment.TopStart)
+                            .align(AbsoluteAlignment.TopLeft)
                             .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        Row {
+                            IconButton(
+                                onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.History,
+                                    contentDescription = stringResource(R.string.calc_open_history),
+                                )
+                            }
+                            // Mode toggle hidden in landscape: scientific
+                            // cells are always visible here, so the toggle
+                            // has no observable effect on this screen.
+                            IconButton(
+                                onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = stringResource(R.string.calc_open_settings),
+                                )
+                            }
+                        }
+                        // Memory chip sits on a second line, centered under
+                        // the icon column. Keeps the toolbar visually
+                        // anchored together while leaving the chip discoverable.
                         if (state.memoryValue != null) {
                             Box(
                                 modifier = Modifier
-                                    .padding(end = 4.dp)
+                                    .padding(top = 4.dp)
                                     .clip(RoundedCornerShape(50))
                                     .background(MaterialTheme.colorScheme.primary)
                                     .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -138,27 +169,23 @@ fun CalculatorScreenLandscape(
                                 )
                             }
                         }
-                        IconButton(
-                            onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.History,
-                                contentDescription = stringResource(R.string.calc_open_history),
-                            )
-                        }
-                        // Mode toggle hidden in landscape: scientific cells
-                        // are always visible here, so the toggle has no
-                        // observable effect on this screen.
-                        IconButton(
-                            onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = stringResource(R.string.calc_open_settings),
-                            )
-                        }
                     }
                 }
+                // Thin low-opacity vertical divider at the right edge of the
+                // toolbar's reserved 104.dp band — gives the expression a
+                // clear visual break from the icon zone without dominating
+                // the display strip. Anchored absolutely (locale-independent)
+                // so it always sits at the visual left.
+                Box(
+                    modifier = Modifier
+                        .align(AbsoluteAlignment.CenterLeft)
+                        .padding(start = 96.dp, top = 8.dp, bottom = 8.dp)
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(
+                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.12f)
+                        ),
+                )
             }
             // Body: two-column split. Weight complements the display's 0.30
             // so the keypad rows have proportional vertical room.
