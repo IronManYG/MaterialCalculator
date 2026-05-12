@@ -30,7 +30,7 @@ internal class SyntaxErrorException : RuntimeException("Syntax error")
  */
 class ExpressionEvaluator(
     private val expression: List<ExpressionPart>,
-    private val angleUnit: AngleUnit = AngleUnit.Radians,
+    private val angleUnit: AngleUnit = AngleUnit.Degrees,
 ) {
 
     fun evaluate(): Double {

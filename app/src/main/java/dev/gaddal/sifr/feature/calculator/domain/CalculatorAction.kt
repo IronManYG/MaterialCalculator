@@ -5,12 +5,12 @@ sealed interface CalculatorAction {
     data class Op(val operation: Operation) : CalculatorAction
     data class Function(val name: String) : CalculatorAction
     data class Constant(val symbol: ConstantSymbol) : CalculatorAction
-    object Factorial : CalculatorAction
-    object Clear : CalculatorAction
-    object Delete : CalculatorAction
-    object Parentheses : CalculatorAction
-    object Calculate : CalculatorAction
-    object Decimal : CalculatorAction
+    data object Factorial : CalculatorAction
+    data object Clear : CalculatorAction
+    data object Delete : CalculatorAction
+    data object Parentheses : CalculatorAction
+    data object Calculate : CalculatorAction
+    data object Decimal : CalculatorAction
     data object SettingsClicked : CalculatorAction
     data object HistoryClicked : CalculatorAction
     data class RestoreExpression(val value: String) : CalculatorAction
