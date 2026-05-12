@@ -194,4 +194,33 @@ class ExpressionEvaluatorTest {
         val ex = runCatching { evaluator.evaluate() }.exceptionOrNull()
         assertThat(ex).isInstanceOf(OverflowException::class.java)
     }
+
+    @Test
+    fun `Unary minus applies after power, not before`() {
+        // -2^2 = -(2^2) = -4, NOT (-2)^2 = 4.
+        // Matches Python, WolframAlpha, and standard math precedence.
+        evaluator = ExpressionEvaluator(
+            listOf(
+                ExpressionPart.Op(Operation.SUBTRACT),
+                ExpressionPart.Number(2.0),
+                ExpressionPart.Op(Operation.POWER),
+                ExpressionPart.Number(2.0),
+            )
+        )
+        assertThat(evaluator.evaluate()).isEqualTo(-4.0)
+    }
+
+    @Test
+    fun `Power exponent allows unary minus`() {
+        // 2^-3 = 0.125
+        evaluator = ExpressionEvaluator(
+            listOf(
+                ExpressionPart.Number(2.0),
+                ExpressionPart.Op(Operation.POWER),
+                ExpressionPart.Op(Operation.SUBTRACT),
+                ExpressionPart.Number(3.0),
+            )
+        )
+        assertThat(evaluator.evaluate()).isWithin(1e-10).of(0.125)
+    }
 }

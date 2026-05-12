@@ -22,9 +22,9 @@ internal class SyntaxErrorException : RuntimeException("Syntax error")
  * Recursive-descent evaluator. Grammar (precedence low to high):
  *
  *   expression -> term (+- term)*
- *   term       -> power (x|/|% power)*
- *   power      -> unary (^ power)?            right-associative
- *   unary      -> +-unary | postfix
+ *   term       -> unary (x|/|% unary)*
+ *   unary      -> ±unary | power            sign wraps power
+ *   power      -> postfix (^ unary)?        right-associative; exponent allows unary
  *   postfix    -> primary (!)*
  *   primary    -> number | constant | function | (expression)
  */
@@ -57,59 +57,53 @@ class ExpressionEvaluator(
     }
 
     private fun evalTerm(parts: List<ExpressionPart>): ExpressionResult {
-        val first = evalPower(parts)
+        val first = evalUnary(parts)
         var remaining = first.remainingExpression
         var sum = first.value
         while (true) {
             when (remaining.firstOrNull()) {
                 ExpressionPart.Op(Operation.MULTIPLY) -> {
-                    val p = evalPower(remaining.drop(1))
-                    sum *= p.value; remaining = p.remainingExpression
+                    val u = evalUnary(remaining.drop(1))
+                    sum *= u.value; remaining = u.remainingExpression
                 }
                 ExpressionPart.Op(Operation.DIVIDE) -> {
-                    val p = evalPower(remaining.drop(1))
-                    sum /= p.value; remaining = p.remainingExpression
+                    val u = evalUnary(remaining.drop(1))
+                    sum /= u.value; remaining = u.remainingExpression
                 }
                 ExpressionPart.Op(Operation.PERCENT) -> {
-                    val p = evalPower(remaining.drop(1))
-                    sum *= (p.value / 100.0); remaining = p.remainingExpression
+                    val u = evalUnary(remaining.drop(1))
+                    sum *= (u.value / 100.0); remaining = u.remainingExpression
                 }
                 else -> return ExpressionResult(remaining, sum)
             }
         }
     }
 
-    // Power is right-associative: a^b^c = a^(b^c). Recurse on the right.
+    private fun evalUnary(parts: List<ExpressionPart>): ExpressionResult {
+        return when (parts.firstOrNull()) {
+            ExpressionPart.Op(Operation.ADD) -> evalUnary(parts.drop(1))
+            ExpressionPart.Op(Operation.SUBTRACT) -> {
+                val r = evalUnary(parts.drop(1))
+                ExpressionResult(r.remainingExpression, -r.value)
+            }
+            else -> evalPower(parts)
+        }
+    }
+
+    // Power is right-associative: a^b^c = a^(b^c). The exponent goes through
+    // evalUnary (not evalPower) so 2^-3 = 0.125 parses cleanly.
     private fun evalPower(parts: List<ExpressionPart>): ExpressionResult {
-        val base = evalUnary(parts)
+        val base = evalPostfix(parts)
         return if (base.remainingExpression.firstOrNull() == ExpressionPart.Op(Operation.POWER)) {
-            val exponent = evalPower(base.remainingExpression.drop(1))
+            val exponent = evalUnary(base.remainingExpression.drop(1))
             ExpressionResult(exponent.remainingExpression, base.value.pow(exponent.value))
         } else {
             base
         }
     }
 
-    private fun evalUnary(parts: List<ExpressionPart>): ExpressionResult {
-        return evalPostfix(parts)
-    }
-
-    /**
-     * Handles optional leading unary sign, then a primary, then zero or more postfix ops.
-     * The sign is applied to the base value BEFORE postfix ops so that
-     * [SUBTRACT, Number(3), FACTORIAL] evaluates factorial(-3) → domain error,
-     * not -(factorial(3)) → -6.
-     */
     private fun evalPostfix(parts: List<ExpressionPart>): ExpressionResult {
-        // Consume an optional leading unary +/-
-        val (sign, rest) = when (parts.firstOrNull()) {
-            ExpressionPart.Op(Operation.ADD) -> Pair(1.0, parts.drop(1))
-            ExpressionPart.Op(Operation.SUBTRACT) -> Pair(-1.0, parts.drop(1))
-            else -> Pair(1.0, parts)
-        }
-        var inner = evalPrimary(rest)
-        val signedValue = sign * inner.value
-        inner = ExpressionResult(inner.remainingExpression, signedValue)
+        var inner = evalPrimary(parts)
         while (inner.remainingExpression.firstOrNull() == ExpressionPart.Postfix(PostfixOp.FACTORIAL)) {
             inner = ExpressionResult(inner.remainingExpression.drop(1), factorial(inner.value))
         }

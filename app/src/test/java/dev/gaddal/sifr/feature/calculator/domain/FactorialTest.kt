@@ -15,6 +15,25 @@ class FactorialTest {
 
     @Test
     fun `Negative factorial throws domain error`() {
+        // (-3)! — with explicit parens so the sign is applied BEFORE the factorial.
+        // Without parens, -3! = -(3!) = -6 by standard math precedence.
+        val e = ExpressionEvaluator(
+            listOf(
+                ExpressionPart.Parentheses(ParenthesesType.Opening),
+                ExpressionPart.Op(Operation.SUBTRACT),
+                ExpressionPart.Number(3.0),
+                ExpressionPart.Parentheses(ParenthesesType.Closing),
+                ExpressionPart.Postfix(PostfixOp.FACTORIAL),
+            )
+        )
+        val ex = runCatching { e.evaluate() }.exceptionOrNull()
+        assertThat(ex).isInstanceOf(DomainErrorException::class.java)
+    }
+
+    @Test
+    fun `Bare negative factorial follows standard math precedence`() {
+        // -3! = -(3!) = -6, NOT (-3)! which would be a domain error.
+        // This guards against regressing back to Casio-style parsing.
         val e = ExpressionEvaluator(
             listOf(
                 ExpressionPart.Op(Operation.SUBTRACT),
@@ -22,8 +41,7 @@ class FactorialTest {
                 ExpressionPart.Postfix(PostfixOp.FACTORIAL),
             )
         )
-        val ex = runCatching { e.evaluate() }.exceptionOrNull()
-        assertThat(ex).isInstanceOf(DomainErrorException::class.java)
+        assertThat(e.evaluate()).isEqualTo(-6.0)
     }
 
     @Test
