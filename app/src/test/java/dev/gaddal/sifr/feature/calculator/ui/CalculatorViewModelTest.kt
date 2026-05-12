@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -452,9 +453,11 @@ class CalculatorViewModelTest {
         val viewModel = newViewModel(settings = settings)
 
         viewModel.onAction(CalculatorAction.ToggleMode)
+        advanceUntilIdle()
         assertThat(settings.observe().first().calculatorMode).isEqualTo(CalculatorMode.Scientific)
 
         viewModel.onAction(CalculatorAction.ToggleMode)
+        advanceUntilIdle()
         assertThat(settings.observe().first().calculatorMode).isEqualTo(CalculatorMode.Basic)
     }
 

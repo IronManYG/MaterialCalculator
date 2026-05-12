@@ -26,7 +26,7 @@ class ExpressionWriter {
     // Forwarded to ExpressionEvaluator at calculate() / tryEvaluate() time so
     // degree-mode trig actually produces degree-mode results. Mutated by the
     // VM in response to SettingsRepository observations.
-    var angleUnit: AngleUnit = AngleUnit.Radians
+    var angleUnit: AngleUnit = AngleUnit.Degrees
 
     private val selectionLow get() = minOf(cursor, selectionStart)
     private val selectionHigh get() = maxOf(cursor, selectionStart)
