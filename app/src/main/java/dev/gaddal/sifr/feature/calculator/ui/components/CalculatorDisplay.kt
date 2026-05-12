@@ -44,11 +44,12 @@ import dev.gaddal.sifr.core.ui.util.UiText
 
 private const val PROMOTION_ANIMATION_MS = 340
 
-// Fixed height for the preview slot so the Column's total height — and
-// therefore the outer Box's vertical centering — never shifts when the
-// preview content appears or disappears. 32dp comfortably holds 22sp text
-// plus default line metrics on every density we ship to.
-private val PREVIEW_SLOT_HEIGHT = 32.dp
+// Default preview-slot height keeps the Column's total height — and
+// therefore the outer Box's vertical centering — stable when the preview
+// content appears / disappears. 32dp comfortably holds 22sp text plus
+// default line metrics. Landscape lowers this to fit a shorter display
+// strip without clipping.
+private val DEFAULT_PREVIEW_SLOT_HEIGHT = 32.dp
 
 @Composable
 fun CalculatorDisplay(
@@ -60,6 +61,7 @@ fun CalculatorDisplay(
     onSelectionChange: (start: Int, end: Int) -> Unit,
     modifier: Modifier = Modifier,
     maxFontSize: TextUnit = 64.sp,
+    previewSlotHeight: androidx.compose.ui.unit.Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val mainColor = if (error != null) {
@@ -232,7 +234,7 @@ fun CalculatorDisplay(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(PREVIEW_SLOT_HEIGHT)
+                        .height(previewSlotHeight)
                         .onGloballyPositioned { coords ->
                             if (!isAnimating) {
                                 previewSlotCenterYPx =

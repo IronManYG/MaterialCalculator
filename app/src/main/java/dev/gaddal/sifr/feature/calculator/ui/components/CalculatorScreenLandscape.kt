@@ -90,61 +90,73 @@ fun CalculatorScreenLandscape(
                     onSelectionChange = { start, end ->
                         onAction(CalculatorAction.SelectionChanged(start, end))
                     },
-                    // Landscape has a shorter display strip; lower the main-text
-                    // cap so the 32dp preview slot fits underneath without
-                    // getting clipped.
-                    maxFontSize = 40.sp,
+                    // Landscape display strip is short. Lower the main-text
+                    // cap and shrink the preview slot so both fit comfortably
+                    // in a ~100dp box.
+                    maxFontSize = 36.sp,
+                    previewSlotHeight = 28.dp,
                     modifier = Modifier
                         .fillMaxSize()
-                        // Reserve top room for the toolbar overlay (IconButton
-                        // ≈ 48dp + 8dp padding ≈ 56dp). The display's content
-                        // is vertically centered, so without this, long numbers
-                        // crowd the History / Settings icons sitting at TopEnd.
+                        // Reserve horizontal space on the leading edge for
+                        // the toolbar icons (forced top-left below). 104dp =
+                        // 8dp margin + 2 × 48dp IconButton. Right-aligned
+                        // expression text grows leftward and stops *before*
+                        // the icons' x-range, so they can't collide
+                        // regardless of expression length. Vertical padding
+                        // stays tight so the preview slot fits.
                         .padding(
-                            top = 56.dp,
-                            bottom = 16.dp,
-                            start = 16.dp,
+                            top = 8.dp,
+                            bottom = 8.dp,
+                            start = 104.dp,
                             end = 16.dp,
                         ),
                 )
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                ) {
-                    if (state.memoryValue != null) {
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(MaterialTheme.colorScheme.primary)
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                // Toolbar overlay forced to top-LEFT in both locales via an
+                // LTR-locked scope. The display reserves matching
+                // `start = 104.dp` content padding, so the right-aligned
+                // expression can never grow leftward into the icons.
+                // In Arabic this matches the previous TopEnd-in-RTL
+                // position; in English the icons move from right to left.
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(8.dp),
+                    ) {
+                        if (state.memoryValue != null) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 4.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(MaterialTheme.colorScheme.primary)
+                                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.calc_mode_chip_memory),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    fontSize = 12.sp,
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
                         ) {
-                            Text(
-                                text = stringResource(R.string.calc_mode_chip_memory),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontSize = 12.sp,
+                            Icon(
+                                imageVector = Icons.Outlined.History,
+                                contentDescription = stringResource(R.string.calc_open_history),
                             )
                         }
-                    }
-                    IconButton(
-                        onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.History,
-                            contentDescription = stringResource(R.string.calc_open_history),
-                        )
-                    }
-                    // Mode toggle hidden in landscape: scientific cells are
-                    // always visible here, so the toggle has no observable
-                    // effect on this screen and confuses users.
-                    IconButton(
-                        onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.calc_open_settings),
-                        )
+                        // Mode toggle hidden in landscape: scientific cells
+                        // are always visible here, so the toggle has no
+                        // observable effect on this screen.
+                        IconButton(
+                            onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = stringResource(R.string.calc_open_settings),
+                            )
+                        }
                     }
                 }
             }
