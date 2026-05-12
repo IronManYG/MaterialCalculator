@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Android calculator app (`com.gaddal.materialcalculator`, namespace `com.example.materialcalculator`). Single-module Gradle project (Groovy DSL), Kotlin 2.3.10, AGP 8.13.2, Jetpack Compose (BOM 2026.05.00) with Material 3, JVM target 17, minSdk 24 / targetSdk 36.
+Sifr (Arabic: صفر, "zero") — Android calculator app (`com.gaddal.materialcalculator`, namespace `dev.gaddal.sifr`). `applicationId` is intentionally distinct from `namespace` and stays at `com.gaddal.materialcalculator` to preserve the live Play Store listing from v1.2.0; only the Kotlin namespace was rebranded in Phase 2.1. Single-module Gradle project (Kotlin DSL with version catalog at `gradle/libs.versions.toml`), Kotlin 2.3.21, AGP 9.2.1, Gradle 9.5.0, JDK 21 toolchain (declarative via `gradle/gradle-daemon-jvm.properties`), Jetpack Compose (BOM 2026.05.00) with Material 3, JVM target 17, minSdk 24 / targetSdk 36.
 
 ## Common commands
 
@@ -15,7 +15,7 @@ Use the wrapper (`./gradlew` on bash, `.\gradlew.bat` on PowerShell). All comman
 - Install on connected device: `./gradlew :app:installDebug`
 - Unit tests (JVM, all variants): `./gradlew test`
 - Unit tests, single variant: `./gradlew :app:testDebugUnitTest`
-- Run a single unit test class: `./gradlew :app:testDebugUnitTest --tests "com.example.materialcalculator.domain.ExpressionEvaluatorTest"`
+- Run a single unit test class: `./gradlew :app:testDebugUnitTest --tests "dev.gaddal.sifr.domain.ExpressionEvaluatorTest"`
 - Run a single test method: `./gradlew :app:testDebugUnitTest --tests "*.ExpressionEvaluatorTest.Simple expression properly evaluated"`
 - Instrumented tests (needs emulator/device): `./gradlew :app:connectedDebugAndroidTest`
 - Lint: `./gradlew :app:lintDebug`
@@ -38,9 +38,9 @@ Pattern syntax is glob (`*`), not regex. Add `--beta` or `--canary` to include p
 
 Three build types: `debug`, `staging`, `release`. Staging and release both have `minifyEnabled true` with the same ProGuard rules; staging adds applicationIdSuffix `.staging` so it can be installed alongside release.
 
-Per-variant `Constants.kt` lives under `app/src/{debug,staging,release}/java/com/example/materialcalculator/Constants.kt` and currently holds a `BASE_URL`. When adding variant-specific config, follow this source-set pattern rather than build-config fields.
+Per-variant `Constants.kt` lives under `app/src/{debug,staging,release}/java/dev/gaddal/sifr/Constants.kt` and currently holds a `BASE_URL`. When adding variant-specific config, follow this source-set pattern rather than build-config fields.
 
-`local.properties` (gitignored) must define `keystore.file`, `keystore.password`, `keystore.alias`, `keystore.alias_password` — `app/build.gradle` reads these unconditionally at configuration time, so even debug-only builds will fail if the file is missing or malformed. If you only need a debug build on a fresh checkout, supply dummy values for those four keys.
+`local.properties` (gitignored) defines `keystore.file`, `keystore.password`, `keystore.alias`, `keystore.alias_password` for release signing. `app/build.gradle.kts` wraps the read in `runCatching`, so missing or malformed `local.properties` (or just missing the `keystore.*` keys) only blocks release/staging signed builds — debug builds work without the keystore lines as long as `sdk.dir` (or `ANDROID_HOME` env var) is present.
 
 ## Architecture
 
@@ -71,6 +71,7 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
 | Material 3 components, theming, lazy lists, animations, dynamic color | `android-compose-components` |
 | Generic Compose UI patterns (stability, recomposition, accessibility, design system) | `android-compose-ui` |
 | Reviewing / authoring Compose with the "what LLMs get wrong" checklist | `compose-agent` |
+| Compose `@Preview` coverage (every reachable state, modern stacked variants like `@PreviewLightDark` / `@PreviewFontScale`) | `compose-preview-coverage` |
 | Quantitative scored Compose audit → COMPOSE-AUDIT-REPORT.md | `compose-audit-tool` |
 | Compose performance (recomposition, stability, baseline profile, Macrobenchmark) | `compose-performance` |
 | Migrating XML View layouts → Compose | `compose-xml-migration` |
@@ -105,6 +106,7 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
 | AGP 9 + KMP migration (built-in Kotlin, kapt→KSP, source-set renames) | `android-agp-kmp-migration` |
 | R8 / ProGuard keep rule audit, release-size shrinking | `android-r8-analyzer` |
 | Lint + detekt + ktlint + Konsist quality bundle, CI gating | `android-code-quality` |
+| Atomic commits, Conventional Commits style, splitting unrelated changes | `git-commit` |
 
 ### Testing
 
@@ -144,7 +146,13 @@ Before working on a layer, **always load the corresponding skill(s) first** via 
 
 - **Single module, layered packages.** Use the same package structure as the `android-module-structure` skill (core, feature, etc.) but as packages within `:app`, not separate modules.
 - **Git hygiene.** `git add` every new file immediately after creating it. Create meaningful, modular commits at logical checkpoints — don't batch everything into one giant commit.
-- **Branching flow:** `feature/<name>` → `development` → `staging` → `master`. Work happens on `feature/*` branches off `development`; `development` is a destination, not a workspace. `staging` carries release candidates (uses the `staging` build variant with `.staging` applicationIdSuffix); `master` is production-only and ships to Play. **Phase 1 exception:** while clearing the 2026-06-02 dormancy deadline, `development → master` direct is allowed; full 4-branch flow kicks in once GitHub Actions CI is wired in Phase 2.
+- **Branching flow:** `feature/<name>` → `development` → `staging` → `master`. Work happens on `feature/*` branches off `development`; `development` is a destination, not a workspace. `staging` carries release candidates (uses the `staging` build variant with `.staging` applicationIdSuffix); `master` is production-only and ships to Play. **Phase 1 exception (resolved 2026-05-09 with v1.2.0):** `development → master` direct was allowed during the dormancy crunch; full 4-branch flow kicks in once GitHub Actions CI is wired in Phase 2.
+- **Document format policy (hybrid HTML + Markdown):**
+  - **HTML** for brainstorm explorations (multi-option comparisons, mockup grids, interactive design tuners), code-review explainers attached to PRs, one-shot reports / summaries, and any artifact whose primary value is visual side-by-side comparison or two-way interaction. Output to `docs/explore/<topic>.html`. Throwaway by design — not all of these belong in version control.
+  - **Markdown** for `PLAN.md`, `SPEC.md`, `CLAUDE.md`, `README.md`, PR descriptions, commit messages, and anything else that is amended during execution, diffed in PRs, or read by Claude as authoritative project context. Markdown wins where edit-ability and reviewable diffs matter.
+  - **Pipeline:** brainstorm in HTML → distill the chosen direction into Markdown PLAN/SPEC → execute against the Markdown plan. The HTML brainstorm artifact can be referenced from the Markdown plan but is not the source of truth for execution.
+- **Preview coverage.** Every Compose screen and component ships with `@Preview` coverage for every reachable state in its state machine. Use `compose-preview-coverage` to drive the audit — modern stacked annotations (`@PreviewLightDark` / `@PreviewFontScale`) sampled on the typical-success preview, `PreviewParameterProvider` for state machines with 4+ states, no Cartesian-product noise. Agents cannot see the running app; previews are the visual contract. Current baseline (2026-05-11): 5 `@Preview` across `CalculatorScreen` / `HistoryScreen` / `SettingsScreen`, zero stacked annotations — gap to close opportunistically as screens are touched.
+- **Feature polish.** Before declaring a phase done and merging to `development`, walk through every preview state and every interactive affordance once more. Fix the little things (a broken toggle, a hardcoded copy string, a missing dialog, a weird class name, an Arabic-locale glitch) while the context is still loaded — half-bugs cost 10x more to fix in the next session. Phase 2.7 was a worked example of this; treat the pattern as the default, not the exception.
 
 ## Conventions
 

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">صفر</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_back">رجوع</string>
+    <string name="settings_theme_section">المظهر</string>
+    <string name="settings_theme_system">حسب النظام</string>
+    <string name="settings_theme_light">فاتح</string>
+    <string name="settings_theme_dark">داكن</string>
+    <string name="settings_haptics">الاهتزاز</string>
+    <string name="settings_sound">أصوات الأخطاء</string>
+
+    <!-- Calculator screen -->
+    <string name="calc_open_settings">فتح الإعدادات</string>
+    <!-- Scientific mode -->
+    <string name="calc_toggle_mode">تبديل الوضع العلمي</string>
+    <string name="calc_mode_chip_memory">ذاكرة</string>
+    <string name="calc_angle_unit_degrees">درجة</string>
+    <string name="calc_angle_unit_radians">راديان</string>
+    <string name="calc_open_history">فتح السجل</string>
+    <string name="calc_error_division_by_zero">لا يمكن القسمة على صفر</string>
+    <string name="calc_error_invalid_expression">صيغة غير صالحة</string>
+    <string name="calc_error_domain_error">المدخل خارج نطاق الدالة</string>
+    <string name="calc_error_overflow">الناتج كبير جدًا</string>
+    <string name="calc_error_syntax_error">خطأ في الصيغة</string>
+
+    <!-- History screen -->
+    <string name="history_title">السجل</string>
+    <string name="history_back">رجوع</string>
+    <string name="history_clear_all">مسح الكل</string>
+    <string name="history_clear_confirm_title">مسح السجل؟</string>
+    <string name="history_clear_confirm_message">سيؤدي ذلك إلى إزالة جميع الإدخالات نهائيًا.</string>
+    <string name="history_clear_confirm_yes">مسح</string>
+    <string name="history_clear_confirm_cancel">إلغاء</string>
+    <string name="history_delete_entry">حذف الإدخال</string>
+    <string name="history_empty_title">لا يوجد سجل بعد</string>
+    <string name="history_empty_body">ستظهر هنا الحسابات التي تنهيها بـ =.</string>
+</resources>

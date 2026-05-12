@@ -25,3 +25,12 @@ local.properties
 # JVM crash dumps (pid-named — not tied to a specific run)
 hs_err_pid*.log
 replay_pid*.log
+
+# Pulsar capability-probe output (pulled via adb, not authoritative for git)
+pulsar-tree.json
+
+# Working notes, brainstorm HTML, specs/plans, screenshots, drafts. The
+# meaningful artifacts (release notes, PR descriptions, commit messages,
+# CLAUDE.md, README.md) live at the repo root or in source. Already-tracked
+# files under docs/ stay tracked; new files won't be auto-staged.
+/docs/
