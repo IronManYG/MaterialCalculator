@@ -27,8 +27,10 @@ hs_err_pid*.log
 replay_pid*.log
 
 # Pulsar capability-probe output (pulled via adb, not authoritative for git)
-docs/pulsar-probe.txt
 pulsar-tree.json
 
-# Pulsar bug-report drafts (long + short variants); kept local-only
-docs/pulsar-bug-report-*.md
+# Working notes, brainstorm HTML, specs/plans, screenshots, drafts. The
+# meaningful artifacts (release notes, PR descriptions, commit messages,
+# CLAUDE.md, README.md) live at the repo root or in source. Already-tracked
+# files under docs/ stay tracked; new files won't be auto-staged.
+/docs/
