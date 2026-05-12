@@ -8,6 +8,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
@@ -22,7 +23,7 @@ private const val FADE_IN_DURATION_MS = 300
 private const val FADE_OUT_DURATION_MS = 200
 
 @Composable
-fun NavRoot() {
+fun NavRoot(windowSizeClass: WindowSizeClass) {
     val backStack = rememberNavBackStack(CalculatorRoute)
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -64,6 +65,7 @@ fun NavRoot() {
             entryProvider = entryProvider {
                 entry<CalculatorRoute> {
                     CalculatorRoot(
+                        windowSizeClass = windowSizeClass,
                         onNavigateToSettings = { backStack.add(SettingsRoute) },
                         onNavigateToHistory = { backStack.add(HistoryRoute) },
                     )
