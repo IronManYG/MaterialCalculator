@@ -23,6 +23,11 @@ class ExpressionWriter {
     var selectionStart: Int = 0
         private set
 
+    // Forwarded to ExpressionEvaluator at calculate() / tryEvaluate() time so
+    // degree-mode trig actually produces degree-mode results. Mutated by the
+    // VM in response to SettingsRepository observations.
+    var angleUnit: AngleUnit = AngleUnit.Degrees
+
     private val selectionLow get() = minOf(cursor, selectionStart)
     private val selectionHigh get() = maxOf(cursor, selectionStart)
     private val hasRange get() = cursor != selectionStart
@@ -54,8 +59,9 @@ class ExpressionWriter {
                     cursor = selectionLow
                     selectionStart = cursor
                 } else if (cursor > 0) {
-                    expression = expression.removeRange(cursor - 1, cursor)
-                    cursor--
+                    val deleteStart = computeSmartDeleteStart()
+                    expression = expression.removeRange(deleteStart, cursor)
+                    cursor = deleteStart
                     selectionStart = cursor
                 }
                 Result.Success(Unit)
@@ -85,6 +91,30 @@ class ExpressionWriter {
                 cursor = action.end.coerceIn(0, expression.length)
                 Result.Success(Unit)
             }
+            is CalculatorAction.Function -> {
+                val prefix = implicitMultiplyPrefix()
+                if (prefix != null) insertAtCursor("$prefix${action.name}(")
+                Result.Success(Unit)
+            }
+            is CalculatorAction.Constant -> {
+                val prefix = implicitMultiplyPrefix()
+                if (prefix != null) insertAtCursor("$prefix${action.symbol.symbol}")
+                Result.Success(Unit)
+            }
+            CalculatorAction.Factorial -> {
+                if (canEnterPostfix()) insertAtCursor("!")
+                Result.Success(Unit)
+            }
+            is CalculatorAction.InsertText -> {
+                insertAtCursor(action.text)
+                Result.Success(Unit)
+            }
+            CalculatorAction.ToggleMode,
+            CalculatorAction.ToggleAngleUnit,
+            CalculatorAction.MemoryClear,
+            CalculatorAction.MemoryAdd,
+            CalculatorAction.MemorySubtract,
+            CalculatorAction.MemoryRecall -> Result.Success(Unit) // handled by VM, no writer mutation
             CalculatorAction.SettingsClicked -> Result.Success(Unit)
             CalculatorAction.HistoryClicked -> Result.Success(Unit)
             is CalculatorAction.RestoreExpression -> {
@@ -114,7 +144,7 @@ class ExpressionWriter {
         }
         return try {
             val parser = ExpressionParser(prepareForCalculation())
-            val result = ExpressionEvaluator(parser.parse()).evaluate()
+            val result = ExpressionEvaluator(parser.parse(), angleUnit).evaluate()
             if (result.isFinite()) {
                 expression = formatResult(result)
                 cursor = expression.length
@@ -124,6 +154,15 @@ class ExpressionWriter {
                 lastWasError = true
                 Result.Error(CalcError.DIVISION_BY_ZERO)
             }
+        } catch (e: DomainErrorException) {
+            lastWasError = true
+            Result.Error(CalcError.DOMAIN_ERROR)
+        } catch (e: OverflowException) {
+            lastWasError = true
+            Result.Error(CalcError.OVERFLOW)
+        } catch (e: SyntaxErrorException) {
+            lastWasError = true
+            Result.Error(CalcError.SYNTAX_ERROR)
         } catch (_: Exception) {
             lastWasError = true
             Result.Error(CalcError.INVALID_EXPRESSION)
@@ -150,9 +189,15 @@ class ExpressionWriter {
         if (lastWasError) return Result.Error(CalcError.INVALID_EXPRESSION)
         return try {
             val parser = ExpressionParser(prepareForCalculation())
-            val result = ExpressionEvaluator(parser.parse()).evaluate()
+            val result = ExpressionEvaluator(parser.parse(), angleUnit).evaluate()
             if (result.isFinite()) Result.Success(formatResult(result))
             else Result.Error(CalcError.DIVISION_BY_ZERO)
+        } catch (e: DomainErrorException) {
+            Result.Error(CalcError.DOMAIN_ERROR)
+        } catch (e: OverflowException) {
+            Result.Error(CalcError.OVERFLOW)
+        } catch (e: SyntaxErrorException) {
+            Result.Error(CalcError.SYNTAX_ERROR)
         } catch (_: Exception) {
             Result.Error(CalcError.INVALID_EXPRESSION)
         }
@@ -187,7 +232,7 @@ class ExpressionWriter {
         // up at selectionHigh to see what would remain after deletion.
         val effectiveStart = selectionLow
         val prevChar = expression.getOrNull(effectiveStart - 1) ?: return false
-        if (prevChar in "$operationSymbols.()") return false
+        if (prevChar in "$operationSymbols.()" || prevChar == 'π' || prevChar == 'e' || prevChar == '!') return false
         var i = effectiveStart - 1
         while (i >= 0 && expression[i] in "0123456789.") {
             if (expression[i] == '.') return false
@@ -209,12 +254,105 @@ class ExpressionWriter {
         return prevChar != null && prevChar in "0123456789)"
     }
 
+    /**
+     * Decides whether a factor (function call or constant) can be inserted
+     * at the current cursor position, and if so what prefix to use:
+     *
+     *   - `null` → block the insertion entirely (only happens after a
+     *     dangling decimal point, which expects a digit next).
+     *   - `""`   → insert the factor as-is. Valid when the cursor sits at
+     *     the start, after an operator, or right after '('.
+     *   - `"x"`  → insert an implicit multiply before the factor. Valid
+     *     after a value-producing token: digit, ')', constant (π / e),
+     *     or postfix '!'. Lets `5 sin(` type as `5×sin(`, and `π e` as
+     *     `π×e`, matching the parser's grammar (a factor cannot directly
+     *     follow another factor).
+     */
+    private fun implicitMultiplyPrefix(): String? {
+        val prev = expression.getOrNull(selectionLow - 1) ?: return ""
+        if (prev == '.') return null
+        val needsMultiply = prev.isDigit() ||
+            prev == ')' ||
+            prev == '!' ||
+            prev == 'π' ||
+            prev == 'e'
+        return if (needsMultiply) "x" else ""
+    }
+
+    private fun canEnterPostfix(): Boolean {
+        // '!' is postfix - only valid after something that produced a value:
+        // a digit, ')', a constant symbol (π, e), or another '!' (5!! = 120!).
+        val prev = expression.getOrNull(selectionLow - 1) ?: return false
+        return prev.isDigit() || prev == ')' || prev == 'π' || prev == 'e' || prev == '!'
+    }
+
+    /**
+     * Where the next Delete should start removing characters from.
+     *
+     * `CalculatorAction.Function` inserts `"sin("` in one shot, so Delete
+     * should peel that same token off in one shot. Only one smart case:
+     *
+     *   Cursor right after `(` preceded by function-name letters → remove
+     *   the whole `funcname(` prefix.
+     *
+     * Everything else — closing parens, digits inside args, plain parens,
+     * operators, constants, factorial — falls through to the original
+     * one-character delete. That keeps the user in control of the args
+     * and the closing `)` when they want to edit a sub-expression.
+     */
+    private fun computeSmartDeleteStart(): Int {
+        val prev = expression.getOrNull(cursor - 1) ?: return cursor
+        return when (prev) {
+            '(' -> {
+                val funcStart = findFunctionNameStart(cursor - 1)
+                if (funcStart < cursor - 1) funcStart else cursor - 1
+            }
+            else -> cursor - 1
+        }
+    }
+
+    /**
+     * Walk back from just before [openParenIndex] over every consecutive
+     * letter (we can't filter out `'x'` here — it's the multiply glyph but
+     * also the middle letter of `exp`). Then look for the longest known
+     * function-name suffix of that letter run.
+     *
+     * Examples:
+     *   "sin("   → letter run "sin", matches "sin"  → name starts at 0.
+     *   "exp("   → letter run "exp", matches "exp"  → name starts at 0.
+     *   "5xsin(" → letter run "xsin", matches "sin" → name starts at 2.
+     *   "5xexp(" → letter run "xexp", matches "exp" → name starts at 2.
+     *   "abc("   → letter run "abc", no match       → returns openParenIndex
+     *                                                  (caller falls back to
+     *                                                   one-char delete).
+     */
+    private fun findFunctionNameStart(openParenIndex: Int): Int {
+        var i = openParenIndex - 1
+        while (i >= 0 && expression[i].isLetter()) i--
+        val runStart = i + 1
+        val runLength = openParenIndex - runStart
+        if (runLength == 0) return openParenIndex
+        for (length in runLength downTo 1) {
+            val candidate = expression.substring(openParenIndex - length, openParenIndex)
+            if (candidate in FUNCTION_NAMES) return openParenIndex - length
+        }
+        return openParenIndex
+    }
+
     private fun formatResult(value: Double): String {
         // Caller already gates on isFinite; defensive in case a future path skips it.
         if (!value.isFinite()) return value.toString()
         if (value == 0.0) return "0"
 
         val absValue = abs(value)
+
+        // Computational-zero snap: trig identities like sin(π) and cos(π/2)
+        // come back as ~1e-16 because π_double ≠ π. Anything below this
+        // threshold is well past the point where any meaningful arithmetic
+        // could land — every digit is floating-point noise — so we show
+        // "0" instead of "1.224646...E-16" which reads as a precision bug.
+        if (absValue < SNAP_TO_ZERO_THRESHOLD) return "0"
+
         return if (absValue >= SCI_UPPER_THRESHOLD || absValue < SCI_LOWER_THRESHOLD) {
             formatScientific(value)
         } else {
@@ -255,9 +393,21 @@ class ExpressionWriter {
     }
 
     companion object {
-        // IEEE 754 double reliably represents ~15-17 significant decimal digits;
-        // 16 is the honest cap where every printed digit is computable.
-        private const val MAX_SIG_DIGITS = 16
+        // Keep in sync with the names handled by ExpressionEvaluator.applyFunction.
+        // Used by smart-Delete to recognise `funcname(` as a single token even
+        // when the function name contains a letter that is also an operation
+        // glyph (`'x'` in `exp`).
+        private val FUNCTION_NAMES = setOf(
+            "sin", "cos", "tan",
+            "asin", "acos", "atan",
+            "ln", "log", "exp", "sqrt",
+        )
+
+        // IEEE 754 double reliably represents 15-17 significant decimal digits.
+        // 16 prints one digit of noise on derived results like sin(30°)
+        // (0.4999999999999999 instead of 0.5); 15 is the conservative cap where
+        // every printed digit is correct after standard half-even rounding.
+        private const val MAX_SIG_DIGITS = 15
 
         // Beyond 10^16 integers stop being exactly representable in Double, so we
         // switch to scientific to avoid silently emitting garbage low-order digits.
@@ -266,5 +416,11 @@ class ExpressionWriter {
         // Below 10^-9 fixed-point gets visually unwieldy (many leading zeros) and
         // ambiguous with rounding noise; scientific is more honest.
         private const val SCI_LOWER_THRESHOLD = 1e-9
+
+        // Computational-zero floor: anything closer to zero than 10^-12 is
+        // treated as zero. Comfortably above the IEEE-754 noise band of trig
+        // identities (~1e-16) and far below anything a user could land on by
+        // honest arithmetic in a basic calculator surface.
+        private const val SNAP_TO_ZERO_THRESHOLD = 1e-12
     }
 }

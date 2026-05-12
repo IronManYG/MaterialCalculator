@@ -362,14 +362,16 @@ class ExpressionWriterTest {
     // -------- result formatting (Phase 2.9 polish) --------
 
     @Test
-    fun `One divided by three keeps 16 significant digits`() {
+    fun `One divided by three keeps 15 significant digits`() {
         writer.processAction(CalculatorAction.Number(1))
         writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
         writer.processAction(CalculatorAction.Number(3))
         writer.processAction(CalculatorAction.Calculate)
 
-        // 16 threes after the decimal point — IEEE 754 double's honest precision
-        assertThat(writer.expression).isEqualTo("0.3333333333333333")
+        // 15 threes after the decimal point. IEEE 754 doubles only guarantee
+        // ~15 digits — dropping the 16th is what lets trig results like
+        // sin(30°) round cleanly to 0.5 instead of 0.4999999999999999.
+        assertThat(writer.expression).isEqualTo("0.333333333333333")
     }
 
     @Test
@@ -470,5 +472,264 @@ class ExpressionWriterTest {
 
         assertThat(writer.expression).isEqualTo("7")
         assertThat(writer.cursor).isEqualTo(1)
+    }
+
+    // ---- Smart Delete: only the funcname-and-open-paren token chunks ----
+
+    @Test
+    fun `Delete after function open-paren removes the whole funcname-paren token`() {
+        writer.processAction(CalculatorAction.Function("sin"))
+        // Inserts "sin(" with cursor at 4.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Delete after function open-paren respects multiply operator before name`() {
+        // 5xsin( — "x" is the multiply glyph; the suffix-match must pick
+        // "sin" (3 chars) out of the letter run "xsin" so the 'x' is kept.
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+        writer.processAction(CalculatorAction.Function("sin"))
+        // Expression: "5xsin(", cursor at 6.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("5x")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete after exp open-paren removes the full token (x inside name is not multiply)`() {
+        // The 'x' in "exp" sits between letters, so it's part of the name,
+        // not a multiply operator. Suffix match must pick "exp" not "p".
+        writer.processAction(CalculatorAction.Function("exp"))
+        // Expression: "exp(", cursor at 4.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Delete after exp open-paren preceded by multiply preserves the multiplier`() {
+        // 5xexp( — letter run is "xexp", suffix "exp" matches, leading 'x'
+        // must remain as the multiply operator.
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+        writer.processAction(CalculatorAction.Function("exp"))
+        // Expression: "5xexp(", cursor at 6.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("5x")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete recognises every supported function name`() {
+        val names = listOf("sin", "cos", "tan", "asin", "acos", "atan", "ln", "log", "sqrt", "exp")
+        for (name in names) {
+            writer.processAction(CalculatorAction.Clear)
+            writer.processAction(CalculatorAction.Function(name))
+
+            writer.processAction(CalculatorAction.Delete)
+
+            assertThat(writer.expression).isEqualTo("")
+            assertThat(writer.cursor).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun `Delete after unknown identifier with open paren falls back to one-char`() {
+        // "abc(" — "abc" is not a known function, so smart-delete declines.
+        // We can't type this through the buttons, but the writer should still
+        // behave deterministically if anyone feeds it via RestoreExpression.
+        writer.processAction(CalculatorAction.RestoreExpression("abc("))
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("abc")
+        assertThat(writer.cursor).isEqualTo(3)
+    }
+
+    @Test
+    fun `Delete after closing paren of function call removes only the close paren`() {
+        writer.processAction(CalculatorAction.Function("cos"))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Parentheses) // closes with ")"
+        // Expression: "cos(30)", cursor at 7.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("cos(30")
+        assertThat(writer.cursor).isEqualTo(6)
+    }
+
+    @Test
+    fun `Delete inside function args removes just one character`() {
+        writer.processAction(CalculatorAction.Function("sin"))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(0))
+        // Expression: "sin(30", cursor at 6.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("sin(3")
+        assertThat(writer.cursor).isEqualTo(5)
+    }
+
+    @Test
+    fun `Delete after plain open paren without function removes just one character`() {
+        writer.processAction(CalculatorAction.Parentheses) // "("
+        // Expression: "(", cursor at 1.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Delete after plain closing paren without function removes just one character`() {
+        writer.processAction(CalculatorAction.Parentheses) // "("
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Parentheses) // ")"
+        // Expression: "(2+3)", cursor at 5.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("(2+3")
+        assertThat(writer.cursor).isEqualTo(4)
+    }
+
+    // ---- Implicit multiplication for function and constant insertion ----
+
+    @Test
+    fun `Function after a digit auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        assertThat(writer.expression).isEqualTo("5xsin(")
+        assertThat(writer.cursor).isEqualTo(6)
+    }
+
+    @Test
+    fun `Function after a closing paren auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Parentheses)
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Parentheses) // ")"
+        writer.processAction(CalculatorAction.Function("cos"))
+
+        assertThat(writer.expression).isEqualTo("(2)xcos(")
+    }
+
+    @Test
+    fun `Function after a constant auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        assertThat(writer.expression).isEqualTo("πxsin(")
+    }
+
+    @Test
+    fun `Function after factorial auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Factorial)
+        writer.processAction(CalculatorAction.Function("ln"))
+
+        assertThat(writer.expression).isEqualTo("5!xln(")
+    }
+
+    @Test
+    fun `Function after an operator inserts without implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        assertThat(writer.expression).isEqualTo("5+sin(")
+    }
+
+    @Test
+    fun `Function at empty cursor inserts without implicit multiply`() {
+        writer.processAction(CalculatorAction.Function("cos"))
+
+        assertThat(writer.expression).isEqualTo("cos(")
+    }
+
+    @Test
+    fun `Function after a dangling decimal point is blocked`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Decimal)
+        writer.processAction(CalculatorAction.Function("sin"))
+
+        // "5." expects a digit next, not a function; insert is rejected.
+        assertThat(writer.expression).isEqualTo("5.")
+    }
+
+    @Test
+    fun `Constant after a digit auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+
+        assertThat(writer.expression).isEqualTo("2xπ")
+    }
+
+    @Test
+    fun `Constant after another constant auto-inserts implicit multiply`() {
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.E))
+
+        assertThat(writer.expression).isEqualTo("πxe")
+    }
+
+    // ---- Floating-point precision cleanup ----
+
+    @Test
+    fun `sin(30 degrees) formats as 0_5 without trailing-9 noise`() {
+        // sin(30°) is the canonical trig precision case — Math.sin returns
+        // 0.49999999999999994 because π_double ≠ π. Formatting at 15 sig
+        // digits rounds the noise away.
+        writer.processAction(CalculatorAction.Function("sin"))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Parentheses)
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("0.5")
+    }
+
+    @Test
+    fun `Computational zero snaps to literal zero`() {
+        // sin(π) in radians is ~1.22e-16 — that's pure IEEE-754 noise, not a
+        // meaningful answer. SNAP_TO_ZERO_THRESHOLD turns it into "0".
+        writer.angleUnit = AngleUnit.Radians
+        writer.processAction(CalculatorAction.Function("sin"))
+        writer.processAction(CalculatorAction.Constant(ConstantSymbol.PI))
+        writer.processAction(CalculatorAction.Parentheses)
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("0")
+    }
+
+    @Test
+    fun `Result of 1e-10 still renders in scientific notation`() {
+        // Regression: the snap-to-zero threshold sits at 1e-12 so legitimate
+        // small results like 1e-10 must not get snapped — they still print
+        // in scientific notation per the SCI_LOWER_THRESHOLD path.
+        writer.processAction(CalculatorAction.Number(1))
+        writer.processAction(CalculatorAction.Op(Operation.DIVIDE))
+        writer.processAction(CalculatorAction.Number(1))
+        repeat(10) { writer.processAction(CalculatorAction.Number(0)) }
+        writer.processAction(CalculatorAction.Calculate)
+
+        assertThat(writer.expression).isEqualTo("1E-10")
     }
 }

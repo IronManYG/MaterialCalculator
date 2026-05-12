@@ -100,4 +100,70 @@ class ExpressionParserTest {
 
         assertThat(expected).isEqualTo(actual)
     }
+
+    @Test
+    fun `Power operator is tokenized`() {
+        parser = ExpressionParser("2^3")
+        val actual = parser.parse()
+        assertThat(actual).isEqualTo(
+            listOf(
+                ExpressionPart.Number(2.0),
+                ExpressionPart.Op(Operation.POWER),
+                ExpressionPart.Number(3.0),
+            )
+        )
+    }
+
+    @Test
+    fun `Factorial is tokenized as postfix`() {
+        parser = ExpressionParser("5!")
+        val actual = parser.parse()
+        assertThat(actual).isEqualTo(
+            listOf(
+                ExpressionPart.Number(5.0),
+                ExpressionPart.Postfix(PostfixOp.FACTORIAL),
+            )
+        )
+    }
+
+    @Test
+    fun `Pi constant is tokenized`() {
+        parser = ExpressionParser("π")
+        val actual = parser.parse()
+        assertThat(actual).isEqualTo(listOf(ExpressionPart.Constant(ConstantSymbol.PI)))
+    }
+
+    @Test
+    fun `Standalone e is tokenized as constant, not number suffix`() {
+        parser = ExpressionParser("e+1")
+        val actual = parser.parse()
+        assertThat(actual).isEqualTo(
+            listOf(
+                ExpressionPart.Constant(ConstantSymbol.E),
+                ExpressionPart.Op(Operation.ADD),
+                ExpressionPart.Number(1.0),
+            )
+        )
+    }
+
+    @Test
+    fun `Number followed by E digits stays scientific notation, not constant`() {
+        parser = ExpressionParser("1e5")
+        val actual = parser.parse()
+        assertThat(actual).isEqualTo(listOf(ExpressionPart.Number(1e5)))
+    }
+
+    @Test
+    fun `Function name with parens is tokenized as Function + opening paren`() {
+        parser = ExpressionParser("sin(0)")
+        val actual = parser.parse()
+        assertThat(actual).isEqualTo(
+            listOf(
+                ExpressionPart.Function("sin"),
+                ExpressionPart.Parentheses(ParenthesesType.Opening),
+                ExpressionPart.Number(0.0),
+                ExpressionPart.Parentheses(ParenthesesType.Closing),
+            )
+        )
+    }
 }

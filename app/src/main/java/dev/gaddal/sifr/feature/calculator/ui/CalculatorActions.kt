@@ -5,114 +5,75 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
+import dev.gaddal.sifr.feature.calculator.domain.ConstantSymbol
 import dev.gaddal.sifr.feature.calculator.domain.Operation
 
-val calculatorActions = listOf(
-    CalculatorUiAction(
-        text = "AC",
-        highlightLevel = HighlightLevel.Highlighted,
-        action = CalculatorAction.Clear
-    ),
-    CalculatorUiAction(
-        text = "()",
-        highlightLevel = HighlightLevel.SemiHighlighted,
-        action = CalculatorAction.Parentheses
-    ),
-    CalculatorUiAction(
-        text = "%",
-        highlightLevel = HighlightLevel.SemiHighlighted,
-        action = CalculatorAction.Op(Operation.PERCENT)
-    ),
-    CalculatorUiAction(
-        text = "÷",
-        highlightLevel = HighlightLevel.SemiHighlighted,
-        action = CalculatorAction.Op(Operation.DIVIDE)
-    ),
-    CalculatorUiAction(
-        text = "7",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(7)
-    ),
-    CalculatorUiAction(
-        text = "8",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(8)
-    ),
-    CalculatorUiAction(
-        text = "9",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(9)
-    ),
-    CalculatorUiAction(
-        text = "x",
-        highlightLevel = HighlightLevel.SemiHighlighted,
-        action = CalculatorAction.Op(Operation.MULTIPLY)
-    ),
-    CalculatorUiAction(
-        text = "4",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(4)
-    ),
-    CalculatorUiAction(
-        text = "5",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(5)
-    ),
-    CalculatorUiAction(
-        text = "6",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(6)
-    ),
-    CalculatorUiAction(
-        text = "-",
-        highlightLevel = HighlightLevel.SemiHighlighted,
-        action = CalculatorAction.Op(Operation.SUBTRACT)
-    ),
-    CalculatorUiAction(
-        text = "1",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(1)
-    ),
-    CalculatorUiAction(
-        text = "2",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(2)
-    ),
-    CalculatorUiAction(
-        text = "3",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(3)
-    ),
-    CalculatorUiAction(
-        text = "+",
-        highlightLevel = HighlightLevel.SemiHighlighted,
-        action = CalculatorAction.Op(Operation.ADD)
-    ),
-    CalculatorUiAction(
-        text = "0",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Number(0)
-    ),
-    CalculatorUiAction(
-        text = ".",
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Decimal
-    ),
+val memoryRow: List<CalculatorUiAction> = listOf(
+    CalculatorUiAction("MC", HighlightLevel.SemiHighlighted, CalculatorAction.MemoryClear),
+    CalculatorUiAction("M+", HighlightLevel.SemiHighlighted, CalculatorAction.MemoryAdd),
+    CalculatorUiAction("M−", HighlightLevel.SemiHighlighted, CalculatorAction.MemorySubtract),
+    CalculatorUiAction("MR", HighlightLevel.SemiHighlighted, CalculatorAction.MemoryRecall),
+)
+
+/**
+ * Scientific row cells, compact layout (a 4-column grid).
+ *
+ * The `deg`/`rad` cells are mutually exclusive — only one is rendered at a
+ * time, picked by the current angleUnit. The keypad consumer filters them
+ * before chunking.
+ */
+val scientificCells: List<CalculatorUiAction> = listOf(
+    CalculatorUiAction("sin", HighlightLevel.Neutral, CalculatorAction.Function("sin")),
+    CalculatorUiAction("cos", HighlightLevel.Neutral, CalculatorAction.Function("cos")),
+    CalculatorUiAction("tan", HighlightLevel.Neutral, CalculatorAction.Function("tan")),
+    CalculatorUiAction("ln", HighlightLevel.Neutral, CalculatorAction.Function("ln")),
+    CalculatorUiAction("log", HighlightLevel.Neutral, CalculatorAction.Function("log")),
+    CalculatorUiAction("π", HighlightLevel.Neutral, CalculatorAction.Constant(ConstantSymbol.PI)),
+    CalculatorUiAction("e", HighlightLevel.Neutral, CalculatorAction.Constant(ConstantSymbol.E)),
+    CalculatorUiAction("√", HighlightLevel.Neutral, CalculatorAction.Function("sqrt")),
+    CalculatorUiAction("x^y", HighlightLevel.Neutral, CalculatorAction.Op(Operation.POWER)),
+    CalculatorUiAction("x!", HighlightLevel.Neutral, CalculatorAction.Factorial),
+    CalculatorUiAction("asin", HighlightLevel.Neutral, CalculatorAction.Function("asin")),
+    CalculatorUiAction("acos", HighlightLevel.Neutral, CalculatorAction.Function("acos")),
+    CalculatorUiAction("atan", HighlightLevel.Neutral, CalculatorAction.Function("atan")),
+    CalculatorUiAction("exp", HighlightLevel.Neutral, CalculatorAction.Function("exp")),
+    // Angle-unit toggle — the displayed label is the CURRENT unit. The
+    // keypad consumer filters to only emit the matching cell.
+    CalculatorUiAction("deg", HighlightLevel.SemiHighlighted, CalculatorAction.ToggleAngleUnit),
+    CalculatorUiAction("rad", HighlightLevel.SemiHighlighted, CalculatorAction.ToggleAngleUnit),
+)
+
+val basicRows: List<CalculatorUiAction> = listOf(
+    CalculatorUiAction("AC", HighlightLevel.Highlighted, CalculatorAction.Clear),
+    CalculatorUiAction("()", HighlightLevel.SemiHighlighted, CalculatorAction.Parentheses),
+    CalculatorUiAction("%", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.PERCENT)),
+    CalculatorUiAction("÷", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.DIVIDE)),
+    CalculatorUiAction("7", HighlightLevel.Neutral, CalculatorAction.Number(7)),
+    CalculatorUiAction("8", HighlightLevel.Neutral, CalculatorAction.Number(8)),
+    CalculatorUiAction("9", HighlightLevel.Neutral, CalculatorAction.Number(9)),
+    CalculatorUiAction("x", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.MULTIPLY)),
+    CalculatorUiAction("4", HighlightLevel.Neutral, CalculatorAction.Number(4)),
+    CalculatorUiAction("5", HighlightLevel.Neutral, CalculatorAction.Number(5)),
+    CalculatorUiAction("6", HighlightLevel.Neutral, CalculatorAction.Number(6)),
+    CalculatorUiAction("-", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.SUBTRACT)),
+    CalculatorUiAction("1", HighlightLevel.Neutral, CalculatorAction.Number(1)),
+    CalculatorUiAction("2", HighlightLevel.Neutral, CalculatorAction.Number(2)),
+    CalculatorUiAction("3", HighlightLevel.Neutral, CalculatorAction.Number(3)),
+    CalculatorUiAction("+", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.ADD)),
+    CalculatorUiAction("0", HighlightLevel.Neutral, CalculatorAction.Number(0)),
+    CalculatorUiAction(".", HighlightLevel.Neutral, CalculatorAction.Decimal),
     CalculatorUiAction(
         text = null,
         content = {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
         highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Delete
+        action = CalculatorAction.Delete,
     ),
-    CalculatorUiAction(
-        text = "=",
-        highlightLevel = HighlightLevel.StronglyHighlighted,
-        action = CalculatorAction.Calculate
-    ),
+    CalculatorUiAction("=", HighlightLevel.StronglyHighlighted, CalculatorAction.Calculate),
 )
+

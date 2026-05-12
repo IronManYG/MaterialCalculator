@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -28,6 +30,8 @@ class SettingsRepositoryImpl(
             prefs[KEY_THEME_MODE] = updated.themeMode.name
             prefs[KEY_HAPTICS] = updated.hapticsEnabled
             prefs[KEY_SOUND] = updated.soundEnabled
+            prefs[KEY_CALC_MODE] = updated.calculatorMode.name
+            prefs[KEY_ANGLE_UNIT] = updated.angleUnit.name
         }
     }
 
@@ -37,11 +41,19 @@ class SettingsRepositoryImpl(
             ?: ThemeMode.System,
         hapticsEnabled = this[KEY_HAPTICS] ?: true,
         soundEnabled = this[KEY_SOUND] ?: false,
+        calculatorMode = this[KEY_CALC_MODE]
+            ?.let { runCatching { CalculatorMode.valueOf(it) }.getOrNull() }
+            ?: CalculatorMode.Basic,
+        angleUnit = this[KEY_ANGLE_UNIT]
+            ?.let { runCatching { AngleUnit.valueOf(it) }.getOrNull() }
+            ?: AngleUnit.Degrees,
     )
 
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_HAPTICS = booleanPreferencesKey("haptics_enabled")
         val KEY_SOUND = booleanPreferencesKey("sound_enabled")
+        val KEY_CALC_MODE = stringPreferencesKey("calculator_mode")
+        val KEY_ANGLE_UNIT = stringPreferencesKey("angle_unit")
     }
 }

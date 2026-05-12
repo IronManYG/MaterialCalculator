@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -43,11 +44,12 @@ import dev.gaddal.sifr.core.ui.util.UiText
 
 private const val PROMOTION_ANIMATION_MS = 340
 
-// Fixed height for the preview slot so the Column's total height — and
-// therefore the outer Box's vertical centering — never shifts when the
-// preview content appears or disappears. 32dp comfortably holds 22sp text
-// plus default line metrics on every density we ship to.
-private val PREVIEW_SLOT_HEIGHT = 32.dp
+// Default preview-slot height keeps the Column's total height — and
+// therefore the outer Box's vertical centering — stable when the preview
+// content appears / disappears. 32dp comfortably holds 22sp text plus
+// default line metrics. Landscape lowers this to fit a shorter display
+// strip without clipping.
+private val DEFAULT_PREVIEW_SLOT_HEIGHT = 32.dp
 
 @Composable
 fun CalculatorDisplay(
@@ -58,6 +60,8 @@ fun CalculatorDisplay(
     error: UiText?,
     onSelectionChange: (start: Int, end: Int) -> Unit,
     modifier: Modifier = Modifier,
+    maxFontSize: TextUnit = 64.sp,
+    previewSlotHeight: androidx.compose.ui.unit.Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val mainColor = if (error != null) {
@@ -144,12 +148,23 @@ fun CalculatorDisplay(
                 horizontalAlignment = Alignment.End,
             ) {
                 if (error != null) {
+                    // Error strings range from "Syntax error" (12 chars) to
+                    // "Input outside function domain" (29 chars, English) and
+                    // "المدخل خارج نطاق الدالة" (Arabic). At a fixed 56sp,
+                    // single-line, the longer ones got clipped on phones —
+                    // QA on Honor 400 Pro saw the overflow result text run
+                    // off-screen. Wrap up to two lines at a smaller size so
+                    // every string fits without sacrificing readability.
                     BasicText(
                         text = error.asString(),
-                        style = mainStyle.copy(fontSize = 56.sp),
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.StartEllipsis,
+                        style = mainStyle.copy(
+                            fontSize = 28.sp,
+                            textAlign = TextAlign.End,
+                            lineHeight = 32.sp,
+                        ),
+                        maxLines = 2,
+                        softWrap = true,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
@@ -181,6 +196,10 @@ fun CalculatorDisplay(
                             }
                         },
                         style = mainStyle,
+                        // Cap configurable by caller: portrait uses the 64sp
+                        // default; landscape lowers it to ~40sp so the preview
+                        // slot still fits in the shorter display strip.
+                        maxFontSize = maxFontSize,
                         onFontSizePicked = { mainFontSizeSp = it.value },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -226,7 +245,7 @@ fun CalculatorDisplay(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(PREVIEW_SLOT_HEIGHT)
+                        .height(previewSlotHeight)
                         .onGloballyPositioned { coords ->
                             if (!isAnimating) {
                                 previewSlotCenterYPx =

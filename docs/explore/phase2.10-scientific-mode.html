@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 2.10 — Scientific Mode &amp; Memory Functions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #fafaf9;
+      --surface:   #ffffff;
+      --ink:       #1a1a1a;
+      --ink-soft:  #5a5a5a;
+      --line:      #e5e5e5;
+      --accent:    #2563eb;
+      --pro:    #16a34a;
+      --con:    #dc2626;
+      --warn:   #d97706;
+      --rec-bg: #ecfdf5;
+      --rec-border: #10b981;
+
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #0f0f10;
+        --surface:  #1a1a1c;
+        --ink:      #f5f5f4;
+        --ink-soft: #a1a1aa;
+        --line:     #2a2a2e;
+        --accent:   #60a5fa;
+        --rec-bg:   #052e1f;
+        --rec-border: #10b981;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+    h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; }
+    h2 { font-size: 18px; font-weight: 600; margin: 36px 0 12px; letter-spacing: -0.01em; }
+    h3 { font-size: 13px; font-weight: 600; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+    p  { margin: 0 0 12px; color: var(--ink-soft); }
+    code, pre { font-family: var(--mono); font-size: 12.5px; }
+    .lede { font-size: 15px; color: var(--ink-soft); max-width: 820px; }
+    .meta { font-size: 12px; color: var(--ink-soft); font-family: var(--mono); margin-top: 8px; }
+
+    .scope {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 24px 0 32px;
+      padding: 16px 20px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+    .scope h3 { margin-bottom: 8px; }
+    .scope ul { margin: 0; padding-left: 18px; }
+    .scope li { color: var(--ink-soft); font-size: 14px; padding: 1px 0; }
+    .scope .col.out h3 { color: var(--con); }
+    .scope .col.in  h3 { color: var(--pro); }
+
+    .grid-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin: 0 0 28px;
+    }
+    .option {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .option.rec {
+      border: 2px solid var(--rec-border);
+      background: var(--rec-bg);
+    }
+    .option h4 { margin: 0; font-size: 15px; font-weight: 600; }
+    .option .tag {
+      display: inline-block;
+      font-size: 10.5px;
+      font-family: var(--mono);
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--rec-border);
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .mock {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.35;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      white-space: pre;
+      overflow-x: auto;
+      color: var(--ink);
+    }
+    .pro, .con {
+      font-size: 12.5px;
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+    }
+    .pro::before { content: "+"; color: var(--pro); font-weight: 700; font-family: var(--mono); }
+    .con::before { content: "−"; color: var(--con); font-weight: 700; font-family: var(--mono); }
+    .pros-cons { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 0 0 20px; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); font-weight: 600; }
+    td.mono { font-family: var(--mono); font-size: 12px; }
+    .yes { color: var(--pro); font-weight: 600; }
+    .no  { color: var(--con); }
+    .maybe { color: var(--warn); }
+
+    .rec-banner {
+      margin: 24px 0;
+      padding: 16px 20px;
+      border: 2px solid var(--rec-border);
+      background: var(--rec-bg);
+      border-radius: 10px;
+    }
+    .rec-banner h3 { color: var(--rec-border); }
+    .rec-banner p:last-child { margin-bottom: 0; }
+
+    .questions {
+      margin: 24px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--warn);
+      background: var(--surface);
+      border-radius: 4px;
+    }
+    .questions ol { margin: 8px 0 0; padding-left: 20px; }
+    .questions li { color: var(--ink); font-size: 14px; padding: 3px 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Phase 2.10 — Scientific Mode &amp; Memory Functions</h1>
+<p class="lede">Add an advanced/scientific calculator mode alongside the existing basic mode, plus the four classic memory keys (MC, M+, M−, MR). This is a feature push that builds on the parser/evaluator/MVI foundation hardened in Phases 2.8–2.9.</p>
+<p class="meta">Draft 2026-05-12 · Branch <code>feature/phase2.10-scientific-mode</code> · Hussain G.</p>
+
+<!-- Scope -->
+<div class="scope">
+  <div class="col in">
+    <h3>In scope</h3>
+    <ul>
+      <li>Mode toggle (basic ↔ scientific) with persisted preference</li>
+      <li>Scientific ops: sin/cos/tan + inverses, log, ln, e^x, π, e, x², √, x^y, x!, deg/rad toggle</li>
+      <li>Memory: MC, M+, M−, MR with persistence across process death</li>
+      <li>Parser/evaluator extension (additive — no rewrite)</li>
+      <li>Arabic copy + RTL preview for new buttons</li>
+      <li>@Preview coverage for both modes</li>
+      <li>Tests for every new operation + memory flow</li>
+    </ul>
+  </div>
+  <div class="col out">
+    <h3>Out of scope</h3>
+    <ul>
+      <li>Tip calc, unit conversions, NL parsing, custom formulas (separate phases)</li>
+      <li>Tablet/large-screen adaptive layout (deferred to future)</li>
+      <li>Graph plotting, symbolic math, complex numbers</li>
+      <li>History entries showing the scientific function names (basic display still wins; revisit later)</li>
+      <li>New theme picker (separate phase)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Operations matrix -->
+<h2>1 · Operations matrix</h2>
+<p>What the new mode needs to support, grouped by parser concern.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Operation</th>
+      <th>Syntax in expression</th>
+      <th>Parser change</th>
+      <th>Evaluator change</th>
+      <th>Risk</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>sin, cos, tan</td><td class="mono">sin(x)</td><td>New token: function name + open paren</td><td>New ExpressionPart.Function</td><td class="yes">Low</td></tr>
+    <tr><td>asin, acos, atan</td><td class="mono">asin(x)</td><td>Same as trig</td><td>Same</td><td class="yes">Low</td></tr>
+    <tr><td>log (base 10)</td><td class="mono">log(x)</td><td>Same</td><td>Same</td><td class="yes">Low</td></tr>
+    <tr><td>ln (natural log)</td><td class="mono">ln(x)</td><td>Same</td><td>Same</td><td class="yes">Low</td></tr>
+    <tr><td>e^x (exp)</td><td class="mono">exp(x) or e^x</td><td>Same (prefer <code>exp</code> for parser symmetry)</td><td>Same</td><td class="yes">Low</td></tr>
+    <tr><td>π, e (constants)</td><td class="mono">π, e</td><td>New token: constant</td><td>New ExpressionPart.Constant</td><td class="yes">Low</td></tr>
+    <tr><td>x² (square)</td><td class="mono">x²  or  x^2</td><td>Reuse x^y</td><td>Reuse x^y</td><td class="yes">Low</td></tr>
+    <tr><td>√ (square root)</td><td class="mono">√(x) or sqrt(x)</td><td>Treat as function</td><td>Same as functions</td><td class="yes">Low</td></tr>
+    <tr><td>x^y (power)</td><td class="mono">x^y</td><td>New right-associative operator</td><td>New <code>power</code> tier above term</td><td class="maybe">Med — precedence</td></tr>
+    <tr><td>x! (factorial)</td><td class="mono">x!</td><td>Postfix unary</td><td>New ExpressionPart.Postfix</td><td class="maybe">Med — postfix</td></tr>
+    <tr><td>deg/rad toggle</td><td>— (mode state)</td><td>None</td><td>Wrap trig args in conversion</td><td class="yes">Low</td></tr>
+  </tbody>
+</table>
+
+<p>The two non-trivial changes are <code>x^y</code> (right-associative, precedence above <code>×÷%</code>) and <code>x!</code> (postfix unary, highest precedence after grouping). Everything else fits the existing recursive-descent grammar by adding a <code>function</code> production and a <code>constant</code> production.</p>
+
+<h2>2 · Layout options for the mode toggle</h2>
+<p>How does the user switch between basic and scientific, and where do the new buttons live?</p>
+
+<div class="grid-options">
+
+  <div class="option rec">
+    <h4>A · Toggle in toolbar + expand keypad <span class="tag">REC</span></h4>
+    <div class="mock">┌─ Sifr ──────── [⚙] [📜] [🧪]┐
+│                            │
+│       12 × sin(45) + π     │
+│              = 12.500…     │
+│                            │
+├────────────────────────────┤
+│ sin  cos  tan  ln   log    │  ← scientific row (visible)
+│ x²   √    x^y  x!   π/e    │  ← scientific row (visible)
+│ MC   M+   M−   MR   ()     │  ← memory row (visible)
+├────────────────────────────┤
+│ AC   ⌫    %    ÷           │
+│ 7    8    9    ×           │
+│ 4    5    6    −           │
+│ 1    2    3    +           │
+│ +/−  0    .    =           │
+└────────────────────────────┘</div>
+    <div class="pros-cons">
+      <div class="pro">All keys reachable without a swipe; matches the iOS calculator landscape model</div>
+      <div class="pro">Toggle is a single tap in the toolbar; quick to discover</div>
+      <div class="pro">Memory row sits between scientific + basic so it serves both modes</div>
+      <div class="con">Vertical density is high — smaller touch targets on short phones</div>
+      <div class="con">Basic users see scientific buttons until they hide the panel</div>
+    </div>
+  </div>
+
+  <div class="option">
+    <h4>B · Swipe between two pages</h4>
+    <div class="mock">┌─ Sifr ──────── [⚙] [📜]    ┐
+│                            │
+│       12 × sin(45) + π     │
+│              = 12.500…     │
+│                            │
+├──────── ◀ basic │ sci ▶ ───┤
+│ sin  cos  tan  ln    log   │
+│ x²   √    x^y  x!    π     │
+│ asin acos atan exp   e     │
+│ MC   M+   M−   MR    deg   │
+│ AC   ⌫    (    )           │
+└────────────────────────────┘
+       (basic page on left)</div>
+    <div class="pros-cons">
+      <div class="pro">Each page is uncluttered; scientific gets full real estate</div>
+      <div class="pro">Idiomatic gesture; no extra chrome</div>
+      <div class="con">Hidden affordance — users may never discover scientific page</div>
+      <div class="con">Swipe conflicts with text-selection drag on the display</div>
+      <div class="con">Memory row has to duplicate or live on only one page</div>
+    </div>
+  </div>
+
+  <div class="option">
+    <h4>C · Settings switch (whole-app mode)</h4>
+    <div class="mock">Settings:
+  ☐ Show scientific keys
+  ☐ Show memory keys
+
+         (calculator screen
+          gains rows only if
+          toggles are on)</div>
+    <div class="pros-cons">
+      <div class="pro">Simplest implementation; no in-screen chrome</div>
+      <div class="pro">Power users opt in once and forget</div>
+      <div class="con">Mode-switching is high-friction (3 taps to reach Settings)</div>
+      <div class="con">Casual users who want sin once won't bother</div>
+      <div class="con">We just added scientific notation in 2.9 — visibility wins here</div>
+    </div>
+  </div>
+
+  <div class="option">
+    <h4>D · Long-press expansion</h4>
+    <div class="mock">┌─ Sifr ──────── [⚙] [📜]    ┐
+│ ...display...              │
+├────────────────────────────┤
+│ AC   ⌫    %    ÷           │
+│ 7    8    9    ×           │   long-press 7
+│ 4    5    6    −           │   → reveals sin/cos popover
+│ 1    2    3    +           │
+│ +/−  0    .    =           │
+└────────────────────────────┘</div>
+    <div class="pros-cons">
+      <div class="pro">Zero visual clutter for basic users</div>
+      <div class="con">Completely hidden — undiscoverable</div>
+      <div class="con">Long-press conflicts with our range-selection toolbar on display</div>
+      <div class="con">Doesn't match any common calculator convention</div>
+    </div>
+  </div>
+
+</div>
+
+<h2>2b · Landscape addendum to Layout A</h2>
+<p>The chosen layout (A) should adapt to landscape — not by rotating the portrait stack, but by <em>restructuring</em> so horizontal real estate is used. iOS calculator is the canonical reference: display along the top, scientific block on the left, basic block on the right.</p>
+
+<div class="grid-options">
+
+  <div class="option rec">
+    <h4>A-Land · Restructured landscape <span class="tag">REC</span></h4>
+    <div class="mock">┌─ Sifr ─────────────────────────────────────── [⚙] [📜] [🧪] ─┐
+│                                                              │
+│              12 × sin(45) + π        = 12.500…               │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│ sin  cos  tan  asin acos atan  │  MC  M+  M−  MR             │
+│ ln   log  exp  x²   √    x^y   │  AC  ⌫   %    ÷             │
+│ π    e    x!   (    )    deg   │  7   8   9    ×             │
+│                                │  4   5   6    −             │
+│                                │  1   2   3    +             │
+│                                │  +/− 0   .    =             │
+└──────────────────────────────────────────────────────────────┘
+                ◀── scientific block ──▶  ◀── basic block ──▶</div>
+    <div class="pros-cons">
+      <div class="pro">Display spans full width; auto-shrink from 2.8 keeps long expressions legible</div>
+      <div class="pro">Both blocks visible simultaneously — scientific mode in landscape is essentially "free"</div>
+      <div class="pro">Memory row sits at the top of basic block; symmetric with portrait M1</div>
+      <div class="pro">Toolbar toggle still works; rotation just exposes more space, doesn't override mode</div>
+      <div class="con">Adds a real adaptive-layout pass — needs WindowSizeClass plumbing</div>
+      <div class="con">Doubles preview surface — handled via <code>@PreviewScreenSizes</code> on typical states only, not Cartesian product</div>
+    </div>
+  </div>
+
+</div>
+
+<table>
+  <thead><tr><th>Decision</th><th>Choice</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Adaptive driver</td>
+      <td><code>WindowSizeClass</code> (compact / medium / expanded widths)</td>
+      <td>Future-proofs for tablets (deferred open question) and foldables; orientation is a poor proxy for "do I have horizontal space?"</td>
+    </tr>
+    <tr>
+      <td>Mode authority on rotation</td>
+      <td>Toolbar toggle stays authoritative</td>
+      <td>Don't surface scientific keys someone deliberately hid; rotation is opportunistic, not declarative</td>
+    </tr>
+    <tr>
+      <td>Activity recreation</td>
+      <td>Let the default behavior run; <code>SavedStateHandle</code> already preserves state (from 2.9)</td>
+      <td>Avoids adding <code>android:configChanges</code> manifest hacks. If rotation feels janky later, revisit.</td>
+    </tr>
+    <tr>
+      <td>Preview coverage</td>
+      <td>One landscape preview per <em>state machine state</em>, not per theme/font-scale combination</td>
+      <td>Stacked <code>@PreviewScreenSizes</code> on the typical-success preview only; matches CLAUDE.md "no Cartesian-product noise" rule</td>
+    </tr>
+    <tr>
+      <td>RTL in landscape</td>
+      <td>Mirror block order: basic on left, scientific on right under <code>LayoutDirection.Rtl</code></td>
+      <td>Matches reading direction; numbers in basic block still LTR-anchored per 2.8</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3 · Memory function placement</h2>
+<p>The four memory keys are tiny (4 buttons) but always-on. Three placement candidates.</p>
+
+<div class="grid-options">
+
+  <div class="option rec">
+    <h4>M1 · Dedicated 5th-from-bottom row <span class="tag">REC</span></h4>
+    <div class="mock">│ MC   M+   M−   MR          │
+│ AC   ⌫    %    ÷           │</div>
+    <div class="pros-cons">
+      <div class="pro">Visible in both modes; persistent affordance</div>
+      <div class="pro">Sits naturally adjacent to AC/⌫ — matches mental model of "stored vs current"</div>
+      <div class="pro">No conflict with existing keys</div>
+      <div class="con">One extra row reduces vertical room for the display</div>
+    </div>
+  </div>
+
+  <div class="option">
+    <h4>M2 · Strip under the display</h4>
+    <div class="mock">│       12 × sin(45) + π     │
+│              = 12.500…     │
+│ [MC] [M+] [M−] [MR]   M=42 │  ← memory chip strip
+├────────────────────────────┤
+│ AC   ⌫    %    ÷           │</div>
+    <div class="pros-cons">
+      <div class="pro">Memory value is visible inline — strong feedback</div>
+      <div class="pro">Strip becomes a slot for the future (last-result chip, etc.)</div>
+      <div class="con">Steals vertical space from the calculator keypad zone</div>
+      <div class="con">M= chip can collide with the live-preview row from 2.8</div>
+    </div>
+  </div>
+
+  <div class="option">
+    <h4>M3 · Only in scientific mode</h4>
+    <div class="mock">basic mode → no memory keys
+sci mode   → memory row appears</div>
+    <div class="pros-cons">
+      <div class="pro">Saves space in basic mode</div>
+      <div class="con">Memory is orthogonal to scientific — basic users want it too</div>
+      <div class="con">Forces mode switch to recall a stored value</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Architecture -->
+<h2>4 · Architecture decisions</h2>
+
+<h3>Parser / evaluator</h3>
+<p>Extend, don't rewrite. The current grammar:</p>
+<pre class="mock">expression → term (± term)*
+term       → factor (×|÷|% factor)*
+factor     → number | (expression) | ±factor</pre>
+<p>Becomes:</p>
+<pre class="mock">expression → term (± term)*
+term       → power (×|÷|% power)*
+power      → unary (^ power)?          ← new, right-associative
+unary      → ±unary | postfix
+postfix    → primary (!)*              ← new, factorial
+primary    → number | constant | function | (expression)
+function   → name "(" expression ")"   ← sin, cos, ln, log, sqrt, exp, …
+constant   → "π" | "e"</pre>
+<p>New <code>ExpressionPart</code> variants: <code>Function(name)</code>, <code>Constant(name)</code>, <code>Postfix(op)</code>. Existing <code>Number</code>, <code>Op</code>, <code>Parentheses</code> stay.</p>
+
+<h3>State model</h3>
+<pre class="mock">CalculatorState(
+    expression: String,
+    cursor:     Int,
+    livePreview: String?,
+    mode:        CalculatorMode = Basic,    ← new
+    angleUnit:   AngleUnit      = Radians,  ← new
+    memoryValue: Double?         = null,    ← new
+)</pre>
+<p><code>CalculatorMode</code> ∈ { Basic, Scientific }. <code>AngleUnit</code> ∈ { Degrees, Radians }. Memory is null when cleared.</p>
+
+<h3>Persistence</h3>
+<table>
+  <thead><tr><th>Value</th><th>Where</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td><code>mode</code></td><td>DataStore (settings)</td><td>User preference; survives uninstall? No — DataStore wipes on uninstall, which is fine.</td></tr>
+    <tr><td><code>angleUnit</code></td><td>DataStore (settings)</td><td>Same; long-lived preference.</td></tr>
+    <tr><td><code>memoryValue</code></td><td>SavedStateHandle</td><td>Survives process death but not app uninstall; matches the live calculator session.</td></tr>
+    <tr><td><code>expression</code>, <code>cursor</code></td><td>SavedStateHandle (already there from 2.9)</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h3>Error handling</h3>
+<p>New error cases for the typed <code>CalcError</code> from Phase 2.5:</p>
+<ul style="margin: 0 0 12px 18px; color: var(--ink-soft); font-size: 14px;">
+  <li><code>CalcError.DomainError</code> — <code>log(0)</code>, <code>sqrt(-1)</code>, <code>asin(2)</code>, <code>1/0</code></li>
+  <li><code>CalcError.Overflow</code> — already exists from 2.9; <code>200!</code> overflows</li>
+  <li><code>CalcError.SyntaxError</code> — unbalanced function parens, <code>sin)</code></li>
+</ul>
+
+<!-- Recommendation -->
+<div class="rec-banner">
+  <h3>Recommended path</h3>
+  <p><strong>Layout A (portrait) + A-Land (landscape) + Memory M1</strong> — toggle in toolbar; scientific rows visible in scientific mode; landscape exposes both blocks side-by-side; memory row always visible. Closest analogue to the iOS/Samsung scientific calculator, surfaces every key without a hidden gesture, keeps basic-mode UI close to today's, and earns "free" scientific mode in landscape via <code>WindowSizeClass</code>.</p>
+  <p>Phase ordering inside 2.10 (atomic commits, each shippable on its own):</p>
+  <ol style="margin: 8px 0 0 18px; color: var(--ink-soft); font-size: 14px;">
+    <li>Extend <code>ExpressionPart</code> + parser grammar (no UI change)</li>
+    <li>Extend <code>ExpressionEvaluator</code> with new ops + <code>AngleUnit</code> wiring</li>
+    <li>Wire <code>CalculatorMode</code> + <code>angleUnit</code> through state &amp; settings</li>
+    <li>Add scientific rows to <code>CalculatorActions</code>; toggle button in toolbar (portrait only at this point)</li>
+    <li>Memory row + <code>memoryValue</code> in <code>CalculatorState</code> + SavedStateHandle</li>
+    <li>Adaptive landscape layout via <code>WindowSizeClass</code> — restructured A-Land block</li>
+    <li>Arabic strings + RTL previews + stacked <code>@PreviewLightDark</code> + <code>@PreviewScreenSizes</code> sweep</li>
+    <li>Test additions (parser, evaluator, ViewModel for memory, config-change preservation) + lint clean</li>
+  </ol>
+</div>
+
+<!-- Open questions -->
+<div class="questions">
+  <h3>Open questions before plan-mode</h3>
+  <ol>
+    <li><strong>Default angle unit</strong> — degrees or radians? Most consumer calculators default to degrees (Samsung, iOS). Academic / engineering use radians. <em>Recommend: degrees, override via toggle.</em></li>
+    <li><strong>Constants display</strong> — when user presses π, do we write <code>π</code> into the expression and evaluate symbolically, or substitute <code>3.14159…</code> at press time? <em>Recommend: keep the symbol; evaluate at <code>=</code>. Cleaner display.</em></li>
+    <li><strong>Implicit multiplication</strong> — should <code>2π</code> work, or require <code>2×π</code>? <em>Recommend: require explicit ×, like today's parser. Matches existing behavior, no parser ambiguity.</em></li>
+    <li><strong>Factorial domain</strong> — integers only, or extend to <code>Γ(n+1)</code> for non-integers? <em>Recommend: integers ≥ 0, domain error otherwise. Keeps evaluator simple.</em></li>
+    <li><strong>Memory display</strong> — show an <code>M</code> chip in the toolbar when memory is non-null? <em>Recommend: yes. Tiny, useful, costs nothing.</em></li>
+  </ol>
+</div>
+
+<p class="meta">Next: distill chosen direction into <code>docs/superpowers/specs/2026-05-12-phase2.10-scientific-mode.md</code> and <code>plans/…-phase2.10-scientific-mode.md</code> after Hussain picks A/B/C/D + M1/M2/M3.</p>
+
+</div>
+</body>
+</html>
