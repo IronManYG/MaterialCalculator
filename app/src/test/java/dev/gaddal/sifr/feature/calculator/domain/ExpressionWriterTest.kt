@@ -472,7 +472,7 @@ class ExpressionWriterTest {
         assertThat(writer.cursor).isEqualTo(1)
     }
 
-    // ---- Smart Delete for scientific function calls ----
+    // ---- Smart Delete: only the funcname-and-open-paren token chunks ----
 
     @Test
     fun `Delete after function open-paren removes the whole funcname-paren token`() {
@@ -486,7 +486,22 @@ class ExpressionWriterTest {
     }
 
     @Test
-    fun `Delete after closing paren of function call removes whole call`() {
+    fun `Delete after function open-paren respects multiply operator before name`() {
+        // 5xsin( — "x" is the multiply glyph; the walk-back must stop at it
+        // instead of dragging "xsin" into the function-name span.
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+        writer.processAction(CalculatorAction.Function("sin"))
+        // Expression: "5xsin(", cursor at 6.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("5x")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete after closing paren of function call removes only the close paren`() {
         writer.processAction(CalculatorAction.Function("cos"))
         writer.processAction(CalculatorAction.Number(3))
         writer.processAction(CalculatorAction.Number(0))
@@ -495,24 +510,8 @@ class ExpressionWriterTest {
 
         writer.processAction(CalculatorAction.Delete)
 
-        assertThat(writer.expression).isEqualTo("")
-        assertThat(writer.cursor).isEqualTo(0)
-    }
-
-    @Test
-    fun `Delete after function call leaves preceding content intact`() {
-        writer.processAction(CalculatorAction.Number(5))
-        writer.processAction(CalculatorAction.Op(Operation.ADD))
-        writer.processAction(CalculatorAction.Function("tan"))
-        writer.processAction(CalculatorAction.Number(4))
-        writer.processAction(CalculatorAction.Number(5))
-        writer.processAction(CalculatorAction.Parentheses)
-        // Expression: "5+tan(45)", cursor at 9.
-
-        writer.processAction(CalculatorAction.Delete)
-
-        assertThat(writer.expression).isEqualTo("5+")
-        assertThat(writer.cursor).isEqualTo(2)
+        assertThat(writer.expression).isEqualTo("cos(30")
+        assertThat(writer.cursor).isEqualTo(6)
     }
 
     @Test
@@ -552,23 +551,5 @@ class ExpressionWriterTest {
 
         assertThat(writer.expression).isEqualTo("(2+3")
         assertThat(writer.cursor).isEqualTo(4)
-    }
-
-    @Test
-    fun `Delete after multiplied function call leaves the multiplier intact`() {
-        // 5xsin(30) — "x" is the multiply char; the smart-delete walk must
-        // stop at it instead of treating "xsin" as one identifier.
-        writer.processAction(CalculatorAction.Number(5))
-        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
-        writer.processAction(CalculatorAction.Function("sin"))
-        writer.processAction(CalculatorAction.Number(3))
-        writer.processAction(CalculatorAction.Number(0))
-        writer.processAction(CalculatorAction.Parentheses)
-        // Expression: "5xsin(30)", cursor at 9.
-
-        writer.processAction(CalculatorAction.Delete)
-
-        assertThat(writer.expression).isEqualTo("5x")
-        assertThat(writer.cursor).isEqualTo(2)
     }
 }

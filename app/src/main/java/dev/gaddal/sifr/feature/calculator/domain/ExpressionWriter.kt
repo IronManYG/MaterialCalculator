@@ -270,17 +270,16 @@ class ExpressionWriter {
     /**
      * Where the next Delete should start removing characters from.
      *
-     * Functions and their parens are inserted as a single token
-     * (`CalculatorAction.Function` writes `"sin("` in one shot), so Delete
-     * should peel them off as one too. Two smart cases:
+     * `CalculatorAction.Function` inserts `"sin("` in one shot, so Delete
+     * should peel that same token off in one shot. Only one smart case:
      *
-     * 1. Cursor right after `(` preceded by function-name letters → remove
-     *    the whole `funcname(` prefix.
-     * 2. Cursor right after `)` whose matching `(` is preceded by a function
-     *    name → remove the whole `funcname(...)` sub-expression.
+     *   Cursor right after `(` preceded by function-name letters → remove
+     *   the whole `funcname(` prefix.
      *
-     * Everything else (digits, operators, plain parens, constants, factorial)
-     * falls through to the original one-character delete.
+     * Everything else — closing parens, digits inside args, plain parens,
+     * operators, constants, factorial — falls through to the original
+     * one-character delete. That keeps the user in control of the args
+     * and the closing `)` when they want to edit a sub-expression.
      */
     private fun computeSmartDeleteStart(): Int {
         val prev = expression.getOrNull(cursor - 1) ?: return cursor
@@ -288,15 +287,6 @@ class ExpressionWriter {
             '(' -> {
                 val funcStart = findFunctionNameStart(cursor - 1)
                 if (funcStart < cursor - 1) funcStart else cursor - 1
-            }
-            ')' -> {
-                val openParen = findMatchingOpenParen(cursor - 1)
-                if (openParen != null) {
-                    val funcStart = findFunctionNameStart(openParen)
-                    if (funcStart < openParen) funcStart else cursor - 1
-                } else {
-                    cursor - 1
-                }
             }
             else -> cursor - 1
         }
@@ -315,27 +305,6 @@ class ExpressionWriter {
             i--
         }
         return i + 1
-    }
-
-    /**
-     * Depth-counted scan from [closeParenIndex] backward to find the matching
-     * `(`. Returns null if the parens are unbalanced — caller falls back to
-     * one-character delete.
-     */
-    private fun findMatchingOpenParen(closeParenIndex: Int): Int? {
-        var depth = 1
-        var i = closeParenIndex - 1
-        while (i >= 0) {
-            when (expression[i]) {
-                ')' -> depth++
-                '(' -> {
-                    depth--
-                    if (depth == 0) return i
-                }
-            }
-            i--
-        }
-        return null
     }
 
     private fun formatResult(value: Double): String {
