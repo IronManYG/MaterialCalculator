@@ -20,12 +20,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import android.app.Activity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
@@ -73,10 +78,39 @@ fun CalculatorRoot(
             is CalculatorEvent.PlayFeedback -> feedback.play(event.intent)
         }
     }
-    if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact) {
-        CalculatorScreen(state = state, onAction = viewModel::onAction)
-    } else {
+    val isLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+    // Hide the status bar in landscape so the keypad gets that vertical
+    // strip back. enableEdgeToEdge() in MainActivity already makes the
+    // window draw under the bars; here we just toggle visibility.
+    // Behavior = SHOW_TRANSIENT_BARS_BY_SWIPE lets users swipe from the
+    // top to peek the status bar if they need it.
+    val view = LocalView.current
+    DisposableEffect(isLandscape) {
+        val window = (view.context as? Activity)?.window
+        if (window != null) {
+            val controller = WindowInsetsControllerCompat(window, view)
+            if (isLandscape) {
+                controller.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.hide(WindowInsetsCompat.Type.statusBars())
+            } else {
+                controller.show(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+        onDispose {
+            // Always restore on leaving the calculator screen so Settings /
+            // History inherit a normal status-bar window.
+            val w = (view.context as? Activity)?.window
+            if (w != null) {
+                WindowInsetsControllerCompat(w, view)
+                    .show(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+    }
+    if (isLandscape) {
         CalculatorScreenLandscape(state = state, onAction = viewModel::onAction)
+    } else {
+        CalculatorScreen(state = state, onAction = viewModel::onAction)
     }
 }
 

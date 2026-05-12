@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -58,6 +59,7 @@ fun CalculatorDisplay(
     error: UiText?,
     onSelectionChange: (start: Int, end: Int) -> Unit,
     modifier: Modifier = Modifier,
+    maxFontSize: TextUnit = 64.sp,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val mainColor = if (error != null) {
@@ -181,10 +183,10 @@ fun CalculatorDisplay(
                             }
                         },
                         style = mainStyle,
-                        // Cap at 64sp so short expressions ("7410") stay visually
-                        // proportional to the bounded display box; auto-shrink
-                        // still kicks in once content exceeds available width.
-                        maxFontSize = 64.sp,
+                        // Cap configurable by caller: portrait uses the 64sp
+                        // default; landscape lowers it to ~40sp so the preview
+                        // slot still fits in the shorter display strip.
+                        maxFontSize = maxFontSize,
                         onFontSizePicked = { mainFontSizeSp = it.value },
                         modifier = Modifier
                             .fillMaxWidth()

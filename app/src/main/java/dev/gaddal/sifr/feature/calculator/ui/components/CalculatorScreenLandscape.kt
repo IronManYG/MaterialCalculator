@@ -90,6 +90,10 @@ fun CalculatorScreenLandscape(
                     onSelectionChange = { start, end ->
                         onAction(CalculatorAction.SelectionChanged(start, end))
                     },
+                    // Landscape has a shorter display strip; lower the main-text
+                    // cap so the 32dp preview slot fits underneath without
+                    // getting clipped.
+                    maxFontSize = 40.sp,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(vertical = 16.dp, horizontal = 16.dp),
