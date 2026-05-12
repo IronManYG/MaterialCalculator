@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
 import dev.gaddal.sifr.core.data.history.HistoryRepository
+import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.util.Result
 import dev.gaddal.sifr.core.domain.util.onFailure
 import dev.gaddal.sifr.core.domain.util.onSuccess
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
+import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
 import dev.gaddal.sifr.feature.calculator.domain.operationSymbols
 import kotlinx.coroutines.channels.Channel
@@ -25,6 +28,7 @@ class CalculatorViewModel(
     private val historyRepository: HistoryRepository,
     private val inputBus: CalculatorInputBus,
     private val savedStateHandle: SavedStateHandle,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val _state: MutableStateFlow<CalculatorState>
@@ -34,11 +38,9 @@ class CalculatorViewModel(
     val events = _events.receiveAsFlow()
 
     init {
-        // Re-hydrate any state preserved across process death. Cursor is clamped
-        // to the expression's bounds defensively in case the saved pair is out
-        // of sync (e.g. a bundle from a different app version).
         val restoredExpression: String = savedStateHandle[KEY_EXPRESSION] ?: ""
         val restoredCursor: Int = savedStateHandle[KEY_CURSOR] ?: 0
+        val restoredMemory: Double? = savedStateHandle[KEY_MEMORY]
         if (restoredExpression.isNotEmpty()) {
             writer.restoreState(restoredExpression, restoredCursor)
         }
@@ -48,6 +50,7 @@ class CalculatorViewModel(
                 cursor = writer.cursor,
                 selectionStart = writer.selectionStart,
                 livePreview = computePreview(),
+                memoryValue = restoredMemory,
             )
         )
         state = _state.asStateFlow()
@@ -57,14 +60,73 @@ class CalculatorViewModel(
                 onAction(CalculatorAction.RestoreExpression(expression))
             }
         }
+        viewModelScope.launch {
+            settingsRepository.observe().collect { settings ->
+                writer.angleUnit = settings.angleUnit
+                _state.update {
+                    it.copy(
+                        mode = settings.calculatorMode,
+                        angleUnit = settings.angleUnit,
+                        livePreview = computePreview(),
+                    )
+                }
+            }
+        }
     }
 
     fun onAction(action: CalculatorAction) {
         when (action) {
             CalculatorAction.SettingsClicked -> emit(CalculatorEvent.NavigateToSettings)
             CalculatorAction.HistoryClicked -> emit(CalculatorEvent.NavigateToHistory)
+            CalculatorAction.ToggleMode -> viewModelScope.launch {
+                settingsRepository.update {
+                    copy(
+                        calculatorMode = if (calculatorMode == CalculatorMode.Basic)
+                            CalculatorMode.Scientific else CalculatorMode.Basic
+                    )
+                }
+            }
+            CalculatorAction.ToggleAngleUnit -> viewModelScope.launch {
+                settingsRepository.update {
+                    copy(
+                        angleUnit = if (angleUnit == AngleUnit.Degrees)
+                            AngleUnit.Radians else AngleUnit.Degrees
+                    )
+                }
+            }
+            CalculatorAction.MemoryClear -> updateMemory(null)
+            CalculatorAction.MemoryAdd -> applyMemoryOp { current, value -> (current ?: 0.0) + value }
+            CalculatorAction.MemorySubtract -> applyMemoryOp { current, value -> (current ?: 0.0) - value }
+            CalculatorAction.MemoryRecall -> {
+                val v = _state.value.memoryValue ?: return
+                applyToWriter(CalculatorAction.InsertText(numberToInsert(v)))
+            }
             else -> applyToWriter(action)
         }
+    }
+
+    private fun applyMemoryOp(combine: (Double?, Double) -> Double) {
+        when (val r = writer.tryEvaluate()) {
+            is Result.Success -> {
+                val parsed = r.data.toDoubleOrNull()
+                if (parsed != null) {
+                    updateMemory(combine(_state.value.memoryValue, parsed))
+                }
+            }
+            is Result.Error -> emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
+        }
+    }
+
+    private fun updateMemory(newValue: Double?) {
+        _state.update { it.copy(memoryValue = newValue) }
+        savedStateHandle[KEY_MEMORY] = newValue
+    }
+
+    private fun numberToInsert(v: Double): String {
+        // Render with the same formatter the display uses so MR -> AC -> MR
+        // round-trips cleanly. For now, defer to Double.toString — the parser
+        // already handles scientific notation as a single Number token (2.9).
+        return if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
     }
 
     private fun applyToWriter(action: CalculatorAction) {
@@ -90,11 +152,6 @@ class CalculatorViewModel(
             }
     }
 
-    // Mirror the latest expression+cursor into SavedStateHandle so a process
-    // kill (e.g. backgrounded calculator evicted under memory pressure)
-    // doesn't lose the user's in-flight input. The error flag is intentionally
-    // not persisted — if the expression genuinely re-evaluates to an error,
-    // pressing `=` will surface it again on the next session.
     private fun persistForRestore(expression: String, cursor: Int) {
         savedStateHandle[KEY_EXPRESSION] = expression
         savedStateHandle[KEY_CURSOR] = cursor
@@ -103,12 +160,11 @@ class CalculatorViewModel(
     private fun computePreview(): String? {
         val expr = writer.expression
         if (expr.isBlank()) return null
-        // Suppress preview while mid-token: trailing operator, opening paren, or unfinished decimal
+        // Suppress preview while mid-token: trailing operator, opening paren,
+        // or unfinished decimal. `!`, `)`, constants, and digits are valid
+        // expression terminators and CAN preview.
         if (expr.last() in "$operationSymbols(.") return null
-        // Nothing to evaluate when the expression is a single literal number.
-        // Without this gate, 16+ digit entries hit Double precision and the
-        // formatted result echoes back a rounded variant of the input.
-        if (expr.none { it in "$operationSymbols()" }) return null
+        if (expr.none { it in "$operationSymbols()!πe" || it.isLetter() }) return null
         return when (val preview = writer.tryEvaluate()) {
             is Result.Success -> preview.data.takeIf { it != expr }
             is Result.Error -> null
@@ -139,5 +195,6 @@ class CalculatorViewModel(
     companion object {
         private const val KEY_EXPRESSION = "expression"
         private const val KEY_CURSOR = "cursor"
+        private const val KEY_MEMORY = "memory"
     }
 }

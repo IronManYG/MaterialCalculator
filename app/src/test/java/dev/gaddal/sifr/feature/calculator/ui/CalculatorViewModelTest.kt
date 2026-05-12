@@ -6,15 +6,19 @@ import com.google.common.truth.Truth.assertThat
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.data.calculator.CalculatorInputBus
 import dev.gaddal.sifr.core.data.history.HistoryRepository
+import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.history.HistoryEntry
+import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.util.MainDispatcherRule
 import dev.gaddal.sifr.core.ui.util.UiText
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.feature.calculator.domain.ExpressionWriter
 import dev.gaddal.sifr.feature.calculator.domain.Operation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -30,11 +34,13 @@ class CalculatorViewModelTest {
         bus: CalculatorInputBus = CalculatorInputBus(),
         savedState: SavedStateHandle = SavedStateHandle(),
         writer: ExpressionWriter = ExpressionWriter(),
+        settings: SettingsRepository = FakeSettingsRepository(),
     ) = CalculatorViewModel(
         writer = writer,
         historyRepository = history,
         inputBus = bus,
         savedStateHandle = savedState,
+        settingsRepository = settings,
     )
 
     @Test
@@ -438,6 +444,77 @@ class CalculatorViewModelTest {
         val s = viewModel.state.value
         assertThat(s.expression).isEqualTo("5")
         assertThat(s.cursor).isEqualTo(1)
+    }
+
+    @Test
+    fun `ToggleMode flips settings between Basic and Scientific`() = runTest {
+        val settings = FakeSettingsRepository()
+        val viewModel = newViewModel(settings = settings)
+
+        viewModel.onAction(CalculatorAction.ToggleMode)
+        assertThat(settings.observe().first().calculatorMode).isEqualTo(CalculatorMode.Scientific)
+
+        viewModel.onAction(CalculatorAction.ToggleMode)
+        assertThat(settings.observe().first().calculatorMode).isEqualTo(CalculatorMode.Basic)
+    }
+
+    @Test
+    fun `M plus stores current evaluated value in memory`() = runTest {
+        val viewModel = newViewModel()
+        viewModel.onAction(CalculatorAction.Number(5))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+
+        viewModel.onAction(CalculatorAction.MemoryAdd)
+
+        assertThat(viewModel.state.value.memoryValue).isEqualTo(8.0)
+    }
+
+    @Test
+    fun `MR inserts memory value at cursor`() = runTest {
+        val viewModel = newViewModel()
+        // seed memory via M+
+        viewModel.onAction(CalculatorAction.Number(7))
+        viewModel.onAction(CalculatorAction.MemoryAdd)
+        viewModel.onAction(CalculatorAction.Clear)
+
+        viewModel.onAction(CalculatorAction.MemoryRecall)
+
+        assertThat(viewModel.state.value.expression).isEqualTo("7")
+    }
+
+    @Test
+    fun `MC clears memory to null`() = runTest {
+        val viewModel = newViewModel()
+        viewModel.onAction(CalculatorAction.Number(4))
+        viewModel.onAction(CalculatorAction.MemoryAdd)
+        assertThat(viewModel.state.value.memoryValue).isEqualTo(4.0)
+
+        viewModel.onAction(CalculatorAction.MemoryClear)
+
+        assertThat(viewModel.state.value.memoryValue).isNull()
+    }
+
+    @Test
+    fun `Memory value survives process death via SavedStateHandle`() = runTest {
+        val handle = SavedStateHandle()
+        val first = newViewModel(savedState = handle)
+        first.onAction(CalculatorAction.Number(9))
+        first.onAction(CalculatorAction.MemoryAdd)
+
+        // Simulate process death — create a fresh ViewModel with the same handle.
+        val restored = newViewModel(savedState = handle)
+        assertThat(restored.state.value.memoryValue).isEqualTo(9.0)
+    }
+}
+
+private class FakeSettingsRepository(
+    initial: AppSettings = AppSettings(),
+) : SettingsRepository {
+    private val flow = MutableStateFlow(initial)
+    override fun observe(): Flow<AppSettings> = flow
+    override suspend fun update(transform: AppSettings.() -> AppSettings) {
+        flow.update { it.transform() }
     }
 }
 

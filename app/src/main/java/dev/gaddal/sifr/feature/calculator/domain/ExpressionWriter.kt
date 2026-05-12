@@ -23,6 +23,11 @@ class ExpressionWriter {
     var selectionStart: Int = 0
         private set
 
+    // Forwarded to ExpressionEvaluator at calculate() / tryEvaluate() time so
+    // degree-mode trig actually produces degree-mode results. Mutated by the
+    // VM in response to SettingsRepository observations.
+    var angleUnit: AngleUnit = AngleUnit.Radians
+
     private val selectionLow get() = minOf(cursor, selectionStart)
     private val selectionHigh get() = maxOf(cursor, selectionStart)
     private val hasRange get() = cursor != selectionStart
@@ -85,6 +90,28 @@ class ExpressionWriter {
                 cursor = action.end.coerceIn(0, expression.length)
                 Result.Success(Unit)
             }
+            is CalculatorAction.Function -> {
+                if (canEnterFactor()) insertAtCursor("${action.name}(")
+                Result.Success(Unit)
+            }
+            is CalculatorAction.Constant -> {
+                if (canEnterFactor()) insertAtCursor(action.symbol.symbol.toString())
+                Result.Success(Unit)
+            }
+            CalculatorAction.Factorial -> {
+                if (canEnterPostfix()) insertAtCursor("!")
+                Result.Success(Unit)
+            }
+            is CalculatorAction.InsertText -> {
+                insertAtCursor(action.text)
+                Result.Success(Unit)
+            }
+            CalculatorAction.ToggleMode,
+            CalculatorAction.ToggleAngleUnit,
+            CalculatorAction.MemoryClear,
+            CalculatorAction.MemoryAdd,
+            CalculatorAction.MemorySubtract,
+            CalculatorAction.MemoryRecall -> Result.Success(Unit) // handled by VM, no writer mutation
             CalculatorAction.SettingsClicked -> Result.Success(Unit)
             CalculatorAction.HistoryClicked -> Result.Success(Unit)
             is CalculatorAction.RestoreExpression -> {
@@ -114,7 +141,7 @@ class ExpressionWriter {
         }
         return try {
             val parser = ExpressionParser(prepareForCalculation())
-            val result = ExpressionEvaluator(parser.parse()).evaluate()
+            val result = ExpressionEvaluator(parser.parse(), angleUnit).evaluate()
             if (result.isFinite()) {
                 expression = formatResult(result)
                 cursor = expression.length
@@ -124,6 +151,15 @@ class ExpressionWriter {
                 lastWasError = true
                 Result.Error(CalcError.DIVISION_BY_ZERO)
             }
+        } catch (e: DomainErrorException) {
+            lastWasError = true
+            Result.Error(CalcError.DOMAIN_ERROR)
+        } catch (e: OverflowException) {
+            lastWasError = true
+            Result.Error(CalcError.OVERFLOW)
+        } catch (e: SyntaxErrorException) {
+            lastWasError = true
+            Result.Error(CalcError.SYNTAX_ERROR)
         } catch (_: Exception) {
             lastWasError = true
             Result.Error(CalcError.INVALID_EXPRESSION)
@@ -150,9 +186,15 @@ class ExpressionWriter {
         if (lastWasError) return Result.Error(CalcError.INVALID_EXPRESSION)
         return try {
             val parser = ExpressionParser(prepareForCalculation())
-            val result = ExpressionEvaluator(parser.parse()).evaluate()
+            val result = ExpressionEvaluator(parser.parse(), angleUnit).evaluate()
             if (result.isFinite()) Result.Success(formatResult(result))
             else Result.Error(CalcError.DIVISION_BY_ZERO)
+        } catch (e: DomainErrorException) {
+            Result.Error(CalcError.DOMAIN_ERROR)
+        } catch (e: OverflowException) {
+            Result.Error(CalcError.OVERFLOW)
+        } catch (e: SyntaxErrorException) {
+            Result.Error(CalcError.SYNTAX_ERROR)
         } catch (_: Exception) {
             Result.Error(CalcError.INVALID_EXPRESSION)
         }
@@ -187,7 +229,7 @@ class ExpressionWriter {
         // up at selectionHigh to see what would remain after deletion.
         val effectiveStart = selectionLow
         val prevChar = expression.getOrNull(effectiveStart - 1) ?: return false
-        if (prevChar in "$operationSymbols.()") return false
+        if (prevChar in "$operationSymbols.()" || prevChar == 'π' || prevChar == 'e' || prevChar == '!') return false
         var i = effectiveStart - 1
         while (i >= 0 && expression[i] in "0123456789.") {
             if (expression[i] == '.') return false
@@ -207,6 +249,21 @@ class ExpressionWriter {
             return prevChar == null || prevChar in "$operationSymbols()0123456789"
         }
         return prevChar != null && prevChar in "0123456789)"
+    }
+
+    private fun canEnterFactor(): Boolean {
+        // A factor (function call, constant, or number) can be inserted when
+        // the cursor sits at the start, after an operator, after '(', or
+        // after a postfix '!' (which already terminates a previous factor).
+        val prev = expression.getOrNull(selectionLow - 1) ?: return true
+        return prev in "$operationSymbols(" || prev == '!'
+    }
+
+    private fun canEnterPostfix(): Boolean {
+        // '!' is postfix - only valid after something that produced a value:
+        // a digit, ')', a constant symbol (π, e), or another '!' (5!! = 120!).
+        val prev = expression.getOrNull(selectionLow - 1) ?: return false
+        return prev.isDigit() || prev == ')' || prev == 'π' || prev == 'e' || prev == '!'
     }
 
     private fun formatResult(value: Double): String {
