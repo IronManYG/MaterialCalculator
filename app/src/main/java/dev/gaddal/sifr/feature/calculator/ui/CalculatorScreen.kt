@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,6 +28,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
@@ -115,12 +119,39 @@ fun CalculatorScreen(
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
                 ) {
+                    if (state.memoryValue != null) {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(MaterialTheme.colorScheme.primary)
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.calc_mode_chip_memory),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 12.sp,
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.History,
                             contentDescription = stringResource(R.string.calc_open_history),
+                        )
+                    }
+                    IconButton(
+                        onClick = dropUnlessResumed { onAction(CalculatorAction.ToggleMode) },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Science,
+                            contentDescription = stringResource(R.string.calc_toggle_mode),
+                            tint = if (state.mode == CalculatorMode.Scientific)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     IconButton(
@@ -135,9 +166,10 @@ fun CalculatorScreen(
             }
             Spacer(modifier = Modifier.height(8.dp))
             CalculatorButtonGrid(
-                actions = calculatorActions,
+                mode = state.mode,
+                angleUnit = state.angleUnit,
                 onAction = onAction,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(8.dp),
             )
         }
     }
