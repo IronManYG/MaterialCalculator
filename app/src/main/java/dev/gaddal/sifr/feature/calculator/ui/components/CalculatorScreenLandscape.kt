@@ -5,14 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -24,14 +21,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
-import androidx.compose.ui.tooling.preview.Preview
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
@@ -164,32 +162,28 @@ fun CalculatorScreenLandscape(
     }
 }
 
+private const val SCIENTIFIC_COLUMNS = 3
+private const val BASIC_COLUMNS = 4
+
 @Composable
 private fun ScientificBlockLandscape(
     angleUnit: AngleUnit,
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val actions: List<CalculatorUiAction> = scientificCells.filterNot { cell ->
-        val text = cell.text
-        (text == "deg" && angleUnit == AngleUnit.Radians) ||
-            (text == "rad" && angleUnit == AngleUnit.Degrees)
-    }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        userScrollEnabled = false,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier,
-    ) {
-        items(actions) { action ->
-            CalculatorButton(
-                action = action,
-                modifier = Modifier.aspectRatio(1f),
-                onClick = { onAction(action.action) },
-            )
+    val actions = remember(angleUnit) {
+        scientificCells.filterNot { cell ->
+            val text = cell.text
+            (text == "deg" && angleUnit == AngleUnit.Radians) ||
+                (text == "rad" && angleUnit == AngleUnit.Degrees)
         }
     }
+    WeightedButtonGrid(
+        actions = actions,
+        columns = SCIENTIFIC_COLUMNS,
+        onAction = onAction,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -198,23 +192,54 @@ private fun BasicBlockLandscape(
     modifier: Modifier = Modifier,
 ) {
     // Memory row at TOP of the basic block; then the standard basic grid below.
-    val actions: List<CalculatorUiAction> = buildList {
-        addAll(memoryRow)
-        addAll(basicRows)
-    }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(4),
-        userScrollEnabled = false,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    val actions = remember { memoryRow + basicRows }
+    WeightedButtonGrid(
+        actions = actions,
+        columns = BASIC_COLUMNS,
+        onAction = onAction,
         modifier = modifier,
+    )
+}
+
+// Weighted rows + weighted cells so each panel's cells share the panel
+// height evenly. Replaces LazyVerticalGrid + aspectRatio(1f), which sized
+// itself by content and overflowed the panel when the row count was tall.
+@Composable
+private fun WeightedButtonGrid(
+    actions: List<CalculatorUiAction>,
+    columns: Int,
+    onAction: (CalculatorAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val rows = remember(actions, columns) { actions.chunked(columns) }
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(actions) { action ->
-            CalculatorButton(
-                action = action,
-                modifier = Modifier.aspectRatio(1f),
-                onClick = { onAction(action.action) },
-            )
+        rows.forEach { rowActions ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                rowActions.forEach { action ->
+                    CalculatorButton(
+                        action = action,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        onClick = { onAction(action.action) },
+                    )
+                }
+                repeat(columns - rowActions.size) {
+                    Spacer(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                    )
+                }
+            }
         }
     }
 }

@@ -1,13 +1,13 @@
 package dev.gaddal.sifr.feature.calculator.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
@@ -93,12 +93,17 @@ fun CalculatorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
+            // Display gets a bounded share of the column height with a floor
+            // so it never collapses; the keypad below takes the remaining
+            // space and its cells shrink to fit when scientific mode adds
+            // more rows. Previously the keypad's intrinsic height grew with
+            // row count and pushed the display off-screen in scientific mode.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .heightIn(min = 200.dp)
+                    .weight(0.35f)
                     .clip(
                         RoundedCornerShape(
                             bottomStart = 25.dp,
@@ -119,7 +124,7 @@ fun CalculatorScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
-                            vertical = 64.dp,
+                            vertical = 24.dp,
                             horizontal = 16.dp
                         )
                 )
@@ -178,7 +183,9 @@ fun CalculatorScreen(
                 mode = state.mode,
                 angleUnit = state.angleUnit,
                 onAction = onAction,
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp),
             )
         }
     }
