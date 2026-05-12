@@ -471,4 +471,104 @@ class ExpressionWriterTest {
         assertThat(writer.expression).isEqualTo("7")
         assertThat(writer.cursor).isEqualTo(1)
     }
+
+    // ---- Smart Delete for scientific function calls ----
+
+    @Test
+    fun `Delete after function open-paren removes the whole funcname-paren token`() {
+        writer.processAction(CalculatorAction.Function("sin"))
+        // Inserts "sin(" with cursor at 4.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Delete after closing paren of function call removes whole call`() {
+        writer.processAction(CalculatorAction.Function("cos"))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Parentheses) // closes with ")"
+        // Expression: "cos(30)", cursor at 7.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Delete after function call leaves preceding content intact`() {
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Function("tan"))
+        writer.processAction(CalculatorAction.Number(4))
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Parentheses)
+        // Expression: "5+tan(45)", cursor at 9.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("5+")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete inside function args removes just one character`() {
+        writer.processAction(CalculatorAction.Function("sin"))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(0))
+        // Expression: "sin(30", cursor at 6.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("sin(3")
+        assertThat(writer.cursor).isEqualTo(5)
+    }
+
+    @Test
+    fun `Delete after plain open paren without function removes just one character`() {
+        writer.processAction(CalculatorAction.Parentheses) // "("
+        // Expression: "(", cursor at 1.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Delete after plain closing paren without function removes just one character`() {
+        writer.processAction(CalculatorAction.Parentheses) // "("
+        writer.processAction(CalculatorAction.Number(2))
+        writer.processAction(CalculatorAction.Op(Operation.ADD))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Parentheses) // ")"
+        // Expression: "(2+3)", cursor at 5.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("(2+3")
+        assertThat(writer.cursor).isEqualTo(4)
+    }
+
+    @Test
+    fun `Delete after multiplied function call leaves the multiplier intact`() {
+        // 5xsin(30) — "x" is the multiply char; the smart-delete walk must
+        // stop at it instead of treating "xsin" as one identifier.
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+        writer.processAction(CalculatorAction.Function("sin"))
+        writer.processAction(CalculatorAction.Number(3))
+        writer.processAction(CalculatorAction.Number(0))
+        writer.processAction(CalculatorAction.Parentheses)
+        // Expression: "5xsin(30)", cursor at 9.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("5x")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
 }

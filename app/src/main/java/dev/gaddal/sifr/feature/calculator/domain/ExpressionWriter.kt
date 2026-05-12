@@ -59,8 +59,9 @@ class ExpressionWriter {
                     cursor = selectionLow
                     selectionStart = cursor
                 } else if (cursor > 0) {
-                    expression = expression.removeRange(cursor - 1, cursor)
-                    cursor--
+                    val deleteStart = computeSmartDeleteStart()
+                    expression = expression.removeRange(deleteStart, cursor)
+                    cursor = deleteStart
                     selectionStart = cursor
                 }
                 Result.Success(Unit)
@@ -264,6 +265,77 @@ class ExpressionWriter {
         // a digit, ')', a constant symbol (π, e), or another '!' (5!! = 120!).
         val prev = expression.getOrNull(selectionLow - 1) ?: return false
         return prev.isDigit() || prev == ')' || prev == 'π' || prev == 'e' || prev == '!'
+    }
+
+    /**
+     * Where the next Delete should start removing characters from.
+     *
+     * Functions and their parens are inserted as a single token
+     * (`CalculatorAction.Function` writes `"sin("` in one shot), so Delete
+     * should peel them off as one too. Two smart cases:
+     *
+     * 1. Cursor right after `(` preceded by function-name letters → remove
+     *    the whole `funcname(` prefix.
+     * 2. Cursor right after `)` whose matching `(` is preceded by a function
+     *    name → remove the whole `funcname(...)` sub-expression.
+     *
+     * Everything else (digits, operators, plain parens, constants, factorial)
+     * falls through to the original one-character delete.
+     */
+    private fun computeSmartDeleteStart(): Int {
+        val prev = expression.getOrNull(cursor - 1) ?: return cursor
+        return when (prev) {
+            '(' -> {
+                val funcStart = findFunctionNameStart(cursor - 1)
+                if (funcStart < cursor - 1) funcStart else cursor - 1
+            }
+            ')' -> {
+                val openParen = findMatchingOpenParen(cursor - 1)
+                if (openParen != null) {
+                    val funcStart = findFunctionNameStart(openParen)
+                    if (funcStart < openParen) funcStart else cursor - 1
+                } else {
+                    cursor - 1
+                }
+            }
+            else -> cursor - 1
+        }
+    }
+
+    /**
+     * Walk back from just before [openParenIndex] over identifier letters
+     * (a-z A-Z, excluding operation glyphs like `'x'` for multiply that
+     * `Char.isLetter()` would otherwise consume). Returns the index where
+     * the function name starts; if no letters precede `(`, returns
+     * [openParenIndex] (meaning "no function name here").
+     */
+    private fun findFunctionNameStart(openParenIndex: Int): Int {
+        var i = openParenIndex - 1
+        while (i >= 0 && expression[i].isLetter() && expression[i] !in operationSymbols) {
+            i--
+        }
+        return i + 1
+    }
+
+    /**
+     * Depth-counted scan from [closeParenIndex] backward to find the matching
+     * `(`. Returns null if the parens are unbalanced — caller falls back to
+     * one-character delete.
+     */
+    private fun findMatchingOpenParen(closeParenIndex: Int): Int? {
+        var depth = 1
+        var i = closeParenIndex - 1
+        while (i >= 0) {
+            when (expression[i]) {
+                ')' -> depth++
+                '(' -> {
+                    depth--
+                    if (depth == 0) return i
+                }
+            }
+            i--
+        }
+        return null
     }
 
     private fun formatResult(value: Double): String {
