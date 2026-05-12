@@ -20,12 +20,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,10 +70,14 @@ fun CalculatorScreenLandscape(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // Top: display strip, full-width
+            // Top: display strip, weight-bound so the body has room for the
+            // 10 keypad rows. Without a weight, the Box took its intrinsic
+            // content height and grew to ~50% of the landscape height in
+            // testing, squashing the keypad.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(0.30f)
                     .clip(RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp))
                     .background(MaterialTheme.colorScheme.secondaryContainer),
             ) {
@@ -84,8 +91,8 @@ fun CalculatorScreenLandscape(
                         onAction(CalculatorAction.SelectionChanged(start, end))
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp, horizontal = 16.dp),
+                        .fillMaxSize()
+                        .padding(vertical = 16.dp, horizontal = 16.dp),
                 )
                 Row(
                     modifier = Modifier
@@ -128,10 +135,12 @@ fun CalculatorScreenLandscape(
                     }
                 }
             }
-            // Body: two-column split
+            // Body: two-column split. Weight complements the display's 0.30
+            // so the keypad rows have proportional vertical room.
             Row(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .weight(0.70f)
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -166,15 +175,17 @@ private fun ScientificBlockLandscape(
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val actions = remember(angleUnit) {
-        scientificCells.filterNot { cell ->
-            val text = cell.text
-            (text == "deg" && angleUnit == AngleUnit.Radians) ||
-                (text == "rad" && angleUnit == AngleUnit.Degrees)
-        }
+    val rows = remember(angleUnit) {
+        scientificCells
+            .filterNot { cell ->
+                val text = cell.text
+                (text == "deg" && angleUnit == AngleUnit.Radians) ||
+                    (text == "rad" && angleUnit == AngleUnit.Degrees)
+            }
+            .chunked(SCIENTIFIC_COLUMNS)
     }
     WeightedButtonGrid(
-        actions = actions,
+        rows = rows,
         columns = SCIENTIFIC_COLUMNS,
         onAction = onAction,
         fontSize = LANDSCAPE_KEY_FONT_SIZE,
@@ -188,9 +199,16 @@ private fun BasicBlockLandscape(
     modifier: Modifier = Modifier,
 ) {
     // Memory row at TOP of the basic block; then the standard basic grid below.
-    val actions = remember { memoryRow + basicRows }
+    // Chunk per section so the memory row stays its own row and never bleeds
+    // into the basic rows.
+    val rows = remember {
+        buildList {
+            add(memoryRow)
+            addAll(basicRows.chunked(BASIC_COLUMNS))
+        }
+    }
     WeightedButtonGrid(
-        actions = actions,
+        rows = rows,
         columns = BASIC_COLUMNS,
         onAction = onAction,
         fontSize = LANDSCAPE_KEY_FONT_SIZE,
@@ -199,44 +217,47 @@ private fun BasicBlockLandscape(
 }
 
 // Weighted rows + weighted cells so each panel's cells share the panel
-// height evenly. Replaces LazyVerticalGrid + aspectRatio(1f), which sized
-// itself by content and overflowed the panel when the row count was tall.
+// height evenly. LTR is forced so Compose doesn't mirror the cells inside
+// a panel under Arabic locale — the *block order* still flips at the outer
+// landscape Row (SPEC: basic left, scientific right in RTL), but cells
+// inside each block stay LTR.
 @Composable
 private fun WeightedButtonGrid(
-    actions: List<CalculatorUiAction>,
+    rows: List<List<CalculatorUiAction>>,
     columns: Int,
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 32.sp,
 ) {
-    val rows = remember(actions, columns) { actions.chunked(columns) }
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        rows.forEach { rowActions ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                rowActions.forEach { action ->
-                    CalculatorButton(
-                        action = action,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        fontSize = fontSize,
-                        onClick = { onAction(action.action) },
-                    )
-                }
-                repeat(columns - rowActions.size) {
-                    Spacer(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    )
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            rows.forEach { rowActions ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    rowActions.forEach { action ->
+                        CalculatorButton(
+                            action = action,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            fontSize = fontSize,
+                            onClick = { onAction(action.action) },
+                        )
+                    }
+                    repeat(columns - rowActions.size) {
+                        Spacer(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        )
+                    }
                 }
             }
         }

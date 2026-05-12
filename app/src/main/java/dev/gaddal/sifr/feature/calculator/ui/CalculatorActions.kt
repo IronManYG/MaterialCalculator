@@ -4,9 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
-import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.feature.calculator.domain.ConstantSymbol
 import dev.gaddal.sifr.feature.calculator.domain.Operation
 
@@ -21,7 +19,8 @@ val memoryRow: List<CalculatorUiAction> = listOf(
  * Scientific row cells, compact layout (a 4-column grid).
  *
  * The `deg`/`rad` cells are mutually exclusive — only one is rendered at a
- * time, picked by the current angleUnit. See [buildCalculatorActions].
+ * time, picked by the current angleUnit. The keypad consumer filters them
+ * before chunking.
  */
 val scientificCells: List<CalculatorUiAction> = listOf(
     CalculatorUiAction("sin", HighlightLevel.Neutral, CalculatorAction.Function("sin")),
@@ -38,8 +37,8 @@ val scientificCells: List<CalculatorUiAction> = listOf(
     CalculatorUiAction("acos", HighlightLevel.Neutral, CalculatorAction.Function("acos")),
     CalculatorUiAction("atan", HighlightLevel.Neutral, CalculatorAction.Function("atan")),
     CalculatorUiAction("exp", HighlightLevel.Neutral, CalculatorAction.Function("exp")),
-    // Angle-unit toggle — the displayed label is the CURRENT unit. Filter
-    // in buildCalculatorActions to only emit the matching cell.
+    // Angle-unit toggle — the displayed label is the CURRENT unit. The
+    // keypad consumer filters to only emit the matching cell.
     CalculatorUiAction("deg", HighlightLevel.SemiHighlighted, CalculatorAction.ToggleAngleUnit),
     CalculatorUiAction("rad", HighlightLevel.SemiHighlighted, CalculatorAction.ToggleAngleUnit),
 )
@@ -78,28 +77,3 @@ val basicRows: List<CalculatorUiAction> = listOf(
     CalculatorUiAction("=", HighlightLevel.StronglyHighlighted, CalculatorAction.Calculate),
 )
 
-/**
- * Assemble the visible button list for the current mode + angle unit.
- *
- * Layout (top-to-bottom):
- * 1. Scientific cells (Scientific mode only) — filtered to drop the inactive
- *    deg/rad cell so only the cell matching the current angleUnit appears.
- * 2. Memory row (always — both modes).
- * 3. Basic rows (always).
- */
-fun buildCalculatorActions(
-    mode: CalculatorMode,
-    angleUnit: AngleUnit,
-): List<CalculatorUiAction> = buildList {
-    if (mode == CalculatorMode.Scientific) {
-        addAll(
-            scientificCells.filterNot { cell ->
-                val text = cell.text
-                (text == "deg" && angleUnit == AngleUnit.Radians) ||
-                    (text == "rad" && angleUnit == AngleUnit.Degrees)
-            }
-        )
-    }
-    addAll(memoryRow)
-    addAll(basicRows)
-}
