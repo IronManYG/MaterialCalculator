@@ -17,6 +17,9 @@
     <string name="calc_open_history">فتح السجل</string>
     <string name="calc_error_division_by_zero">لا يمكن القسمة على صفر</string>
     <string name="calc_error_invalid_expression">صيغة غير صالحة</string>
+    <string name="calc_error_domain_error">المدخل خارج نطاق الدالة</string>
+    <string name="calc_error_overflow">الناتج كبير جدًا</string>
+    <string name="calc_error_syntax_error">خطأ في الصيغة</string>
 
     <!-- History screen -->
     <string name="history_title">السجل</string>

@@ -16,6 +16,9 @@
     <string name="calc_open_history">Open history</string>
     <string name="calc_error_division_by_zero">Can\'t divide by zero</string>
     <string name="calc_error_invalid_expression">Invalid expression</string>
+    <string name="calc_error_domain_error">Input outside function domain</string>
+    <string name="calc_error_overflow">Result too large</string>
+    <string name="calc_error_syntax_error">Syntax error</string>
 
     <!-- History screen -->
     <string name="history_title">History</string>
