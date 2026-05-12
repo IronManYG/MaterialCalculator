@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -174,12 +175,14 @@ fun CalculatorScreenLandscape(
                 // Thin low-opacity vertical divider at the right edge of the
                 // toolbar's reserved 104.dp band — gives the expression a
                 // clear visual break from the icon zone without dominating
-                // the display strip. Anchored absolutely (locale-independent)
-                // so it always sits at the visual left.
+                // the display strip. `absolutePadding(left = ...)` is
+                // direction-independent (regular `padding(start = ...)` flips
+                // to the right edge under Arabic RTL), so the divider lines
+                // up with the visual top-left toolbar in both locales.
                 Box(
                     modifier = Modifier
                         .align(AbsoluteAlignment.CenterLeft)
-                        .padding(start = 96.dp, top = 8.dp, bottom = 8.dp)
+                        .absolutePadding(left = 96.dp, top = 8.dp, bottom = 8.dp)
                         .width(1.dp)
                         .fillMaxHeight()
                         .background(
