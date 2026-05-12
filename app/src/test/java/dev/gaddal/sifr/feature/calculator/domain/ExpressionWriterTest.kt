@@ -487,8 +487,8 @@ class ExpressionWriterTest {
 
     @Test
     fun `Delete after function open-paren respects multiply operator before name`() {
-        // 5xsin( — "x" is the multiply glyph; the walk-back must stop at it
-        // instead of dragging "xsin" into the function-name span.
+        // 5xsin( — "x" is the multiply glyph; the suffix-match must pick
+        // "sin" (3 chars) out of the letter run "xsin" so the 'x' is kept.
         writer.processAction(CalculatorAction.Number(5))
         writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
         writer.processAction(CalculatorAction.Function("sin"))
@@ -498,6 +498,61 @@ class ExpressionWriterTest {
 
         assertThat(writer.expression).isEqualTo("5x")
         assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete after exp open-paren removes the full token (x inside name is not multiply)`() {
+        // The 'x' in "exp" sits between letters, so it's part of the name,
+        // not a multiply operator. Suffix match must pick "exp" not "p".
+        writer.processAction(CalculatorAction.Function("exp"))
+        // Expression: "exp(", cursor at 4.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("")
+        assertThat(writer.cursor).isEqualTo(0)
+    }
+
+    @Test
+    fun `Delete after exp open-paren preceded by multiply preserves the multiplier`() {
+        // 5xexp( — letter run is "xexp", suffix "exp" matches, leading 'x'
+        // must remain as the multiply operator.
+        writer.processAction(CalculatorAction.Number(5))
+        writer.processAction(CalculatorAction.Op(Operation.MULTIPLY))
+        writer.processAction(CalculatorAction.Function("exp"))
+        // Expression: "5xexp(", cursor at 6.
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("5x")
+        assertThat(writer.cursor).isEqualTo(2)
+    }
+
+    @Test
+    fun `Delete recognises every supported function name`() {
+        val names = listOf("sin", "cos", "tan", "asin", "acos", "atan", "ln", "log", "sqrt", "exp")
+        for (name in names) {
+            writer.processAction(CalculatorAction.Clear)
+            writer.processAction(CalculatorAction.Function(name))
+
+            writer.processAction(CalculatorAction.Delete)
+
+            assertThat(writer.expression).isEqualTo("")
+            assertThat(writer.cursor).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun `Delete after unknown identifier with open paren falls back to one-char`() {
+        // "abc(" — "abc" is not a known function, so smart-delete declines.
+        // We can't type this through the buttons, but the writer should still
+        // behave deterministically if anyone feeds it via RestoreExpression.
+        writer.processAction(CalculatorAction.RestoreExpression("abc("))
+
+        writer.processAction(CalculatorAction.Delete)
+
+        assertThat(writer.expression).isEqualTo("abc")
+        assertThat(writer.cursor).isEqualTo(3)
     }
 
     @Test

@@ -293,18 +293,31 @@ class ExpressionWriter {
     }
 
     /**
-     * Walk back from just before [openParenIndex] over identifier letters
-     * (a-z A-Z, excluding operation glyphs like `'x'` for multiply that
-     * `Char.isLetter()` would otherwise consume). Returns the index where
-     * the function name starts; if no letters precede `(`, returns
-     * [openParenIndex] (meaning "no function name here").
+     * Walk back from just before [openParenIndex] over every consecutive
+     * letter (we can't filter out `'x'` here — it's the multiply glyph but
+     * also the middle letter of `exp`). Then look for the longest known
+     * function-name suffix of that letter run.
+     *
+     * Examples:
+     *   "sin("   → letter run "sin", matches "sin"  → name starts at 0.
+     *   "exp("   → letter run "exp", matches "exp"  → name starts at 0.
+     *   "5xsin(" → letter run "xsin", matches "sin" → name starts at 2.
+     *   "5xexp(" → letter run "xexp", matches "exp" → name starts at 2.
+     *   "abc("   → letter run "abc", no match       → returns openParenIndex
+     *                                                  (caller falls back to
+     *                                                   one-char delete).
      */
     private fun findFunctionNameStart(openParenIndex: Int): Int {
         var i = openParenIndex - 1
-        while (i >= 0 && expression[i].isLetter() && expression[i] !in operationSymbols) {
-            i--
+        while (i >= 0 && expression[i].isLetter()) i--
+        val runStart = i + 1
+        val runLength = openParenIndex - runStart
+        if (runLength == 0) return openParenIndex
+        for (length in runLength downTo 1) {
+            val candidate = expression.substring(openParenIndex - length, openParenIndex)
+            if (candidate in FUNCTION_NAMES) return openParenIndex - length
         }
-        return i + 1
+        return openParenIndex
     }
 
     private fun formatResult(value: Double): String {
@@ -353,6 +366,16 @@ class ExpressionWriter {
     }
 
     companion object {
+        // Keep in sync with the names handled by ExpressionEvaluator.applyFunction.
+        // Used by smart-Delete to recognise `funcname(` as a single token even
+        // when the function name contains a letter that is also an operation
+        // glyph (`'x'` in `exp`).
+        private val FUNCTION_NAMES = setOf(
+            "sin", "cos", "tan",
+            "asin", "acos", "atan",
+            "ln", "log", "exp", "sqrt",
+        )
+
         // IEEE 754 double reliably represents ~15-17 significant decimal digits;
         // 16 is the honest cap where every printed digit is computable.
         private const val MAX_SIG_DIGITS = 16
