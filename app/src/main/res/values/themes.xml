@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Sifr" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        Theme parent must be a Material Components / Material 3 theme,
+        not the legacy `android:Theme.Material.*`. Compose preview's
+        resource-resolver inflates the activity theme to look up attrs
+        that the Compose Material 3 components reference; under the
+        legacy theme parent the chain breaks mid-inflate and every
+        `stringResource()` call in the preview renders as the last
+        unresolved attribute name (e.g. `Window_backgroundDimAmount`)
+        instead of the actual string. `Theme.Material3.DayNight.NoActionBar`
+        provides all the attributes Compose's preview tooling expects
+        and handles light/dark via the day-night attribute so a
+        separate `values-night/themes.xml` isn't needed.
+
+        The `com.google.android.material:material` dependency (line 125
+        of app/build.gradle.kts) ships these theme parents — already
+        wired in v1.3.0, just unused by themes.xml until this change.
+    -->
+    <style name="Theme.Sifr" parent="Theme.Material3.DayNight.NoActionBar" />
 </resources>
