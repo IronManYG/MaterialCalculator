@@ -31,19 +31,6 @@ import dev.gaddal.sifr.feature.settings.ui.SettingsState
  *   - both **English** and **Arabic** locales (separate Play locale
  *     listings can carry their own screenshot set).
  *
- * **dynamicColor = false on every preview.** Compose preview's
- * `LocalContext.current` is not a real Activity, so
- * `dynamicLightColorScheme(context)` can't resolve `R.color.system_*`
- * dynamic-color resources. When that path breaks at preview time,
- * `stringResource()` calls inside the same composition start returning
- * the unresolved attribute name (e.g. `Window_backgroundDimAmount`)
- * instead of the actual string — first observable when the M chip
- * appears or when the Settings screen renders. Forcing the static
- * Purple-based brand palette skips the broken path. It's also the
- * right call for marketing screenshots: every screenshot in the
- * listing should look like the same app, not change with the user's
- * wallpaper.
- *
  * **Cursor field intentionally omitted on most previews.** A visible
  * editable cursor in a marketing shot reads as "screenshot of an
  * editor", not "calculator at rest". One Basic-mode preview keeps
@@ -58,23 +45,23 @@ import dev.gaddal.sifr.feature.settings.ui.SettingsState
  *   4. PNGs land at the rendered density (1080-wide for 360 dp portrait,
  *      2400-wide for 800 dp landscape) — ready for Play Console upload.
  *
- * These previews live in `app/src/main/` next to the screens they
- * preview. They're annotated with `@Preview` only — no runtime code
- * path reaches them — so R8 strips the entire `marketing` package
- * from the release APK/AAB.
+ * These previews live in `app/src/debug/` — they're annotated with
+ * `@Preview` only and have no runtime call path, so they're dead
+ * code in any non-debug build. Debug-only also keeps the `marketing`
+ * package out of the release APK/AAB regardless of R8 settings.
  */
 
 // ---- Portrait: Basic mode ----
 
 @Preview(
-    name = "Marketing - Basic, EN, Light",
+    name = "Marketing —Basic, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
 )
 @Composable
 private fun MarketingBasicEnLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "12+5",
@@ -86,7 +73,7 @@ private fun MarketingBasicEnLight() {
 }
 
 @Preview(
-    name = "Marketing - Basic, EN, Dark",
+    name = "Marketing —Basic, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -94,7 +81,7 @@ private fun MarketingBasicEnLight() {
 )
 @Composable
 private fun MarketingBasicEnDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "12+5",
@@ -106,7 +93,7 @@ private fun MarketingBasicEnDark() {
 }
 
 @Preview(
-    name = "Marketing - Basic, AR, Light",
+    name = "Marketing —Basic, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -114,7 +101,7 @@ private fun MarketingBasicEnDark() {
 )
 @Composable
 private fun MarketingBasicArLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "12+5",
@@ -126,7 +113,7 @@ private fun MarketingBasicArLight() {
 }
 
 @Preview(
-    name = "Marketing - Basic, AR, Dark",
+    name = "Marketing —Basic, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -135,7 +122,7 @@ private fun MarketingBasicArLight() {
 )
 @Composable
 private fun MarketingBasicArDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "12+5",
@@ -150,14 +137,14 @@ private fun MarketingBasicArDark() {
 // Demonstrates the editable-cursor feature shipped in Phase 2.9: tap anywhere
 // in the expression to position the cursor and type/delete at that position.
 @Preview(
-    name = "Marketing - Editable cursor showcase",
+    name = "Marketing —Editable cursor showcase",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
 )
 @Composable
 private fun MarketingCursorShowcase() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "12+5",
@@ -173,14 +160,14 @@ private fun MarketingCursorShowcase() {
 // ---- Portrait: Scientific mode with M chip lit ----
 
 @Preview(
-    name = "Marketing - Scientific, EN, Light",
+    name = "Marketing —Scientific, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
 )
 @Composable
 private fun MarketingScientificEnLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "sin(30)+cos(60)",
@@ -195,7 +182,7 @@ private fun MarketingScientificEnLight() {
 }
 
 @Preview(
-    name = "Marketing - Scientific, EN, Dark",
+    name = "Marketing —Scientific, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -203,7 +190,7 @@ private fun MarketingScientificEnLight() {
 )
 @Composable
 private fun MarketingScientificEnDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "sin(30)+cos(60)",
@@ -218,7 +205,7 @@ private fun MarketingScientificEnDark() {
 }
 
 @Preview(
-    name = "Marketing - Scientific, AR, Light",
+    name = "Marketing —Scientific, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -226,7 +213,7 @@ private fun MarketingScientificEnDark() {
 )
 @Composable
 private fun MarketingScientificArLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "sin(30)+cos(60)",
@@ -241,7 +228,7 @@ private fun MarketingScientificArLight() {
 }
 
 @Preview(
-    name = "Marketing - Scientific, AR, Dark",
+    name = "Marketing —Scientific, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -250,7 +237,7 @@ private fun MarketingScientificArLight() {
 )
 @Composable
 private fun MarketingScientificArDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreen(
             state = CalculatorState(
                 expression = "sin(30)+cos(60)",
@@ -267,14 +254,14 @@ private fun MarketingScientificArDark() {
 // ---- Landscape: Scientific + basic side-by-side ----
 
 @Preview(
-    name = "Marketing - Landscape, EN, Light",
+    name = "Marketing —Landscape, EN, Light",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
 )
 @Composable
 private fun MarketingLandscapeEnLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreenLandscape(
             state = CalculatorState(
                 expression = "12xsin(45)",
@@ -289,7 +276,7 @@ private fun MarketingLandscapeEnLight() {
 }
 
 @Preview(
-    name = "Marketing - Landscape, EN, Dark",
+    name = "Marketing —Landscape, EN, Dark",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
@@ -297,7 +284,7 @@ private fun MarketingLandscapeEnLight() {
 )
 @Composable
 private fun MarketingLandscapeEnDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreenLandscape(
             state = CalculatorState(
                 expression = "12xsin(45)",
@@ -312,7 +299,7 @@ private fun MarketingLandscapeEnDark() {
 }
 
 @Preview(
-    name = "Marketing - Landscape, AR, Light",
+    name = "Marketing —Landscape, AR, Light",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
@@ -320,7 +307,7 @@ private fun MarketingLandscapeEnDark() {
 )
 @Composable
 private fun MarketingLandscapeArLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreenLandscape(
             state = CalculatorState(
                 expression = "12xsin(45)",
@@ -335,7 +322,7 @@ private fun MarketingLandscapeArLight() {
 }
 
 @Preview(
-    name = "Marketing - Landscape, AR, Dark",
+    name = "Marketing —Landscape, AR, Dark",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
@@ -344,7 +331,7 @@ private fun MarketingLandscapeArLight() {
 )
 @Composable
 private fun MarketingLandscapeArDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         CalculatorScreenLandscape(
             state = CalculatorState(
                 expression = "12xsin(45)",
@@ -369,14 +356,14 @@ private val historyMarketingEntries = listOf(
 )
 
 @Preview(
-    name = "Marketing - History, EN, Light",
+    name = "Marketing —History, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
 )
 @Composable
 private fun MarketingHistoryEnLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         HistoryScreen(
             state = HistoryState(isLoading = false, entries = historyMarketingEntries),
             onAction = {},
@@ -385,7 +372,7 @@ private fun MarketingHistoryEnLight() {
 }
 
 @Preview(
-    name = "Marketing - History, EN, Dark",
+    name = "Marketing —History, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -393,7 +380,7 @@ private fun MarketingHistoryEnLight() {
 )
 @Composable
 private fun MarketingHistoryEnDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         HistoryScreen(
             state = HistoryState(isLoading = false, entries = historyMarketingEntries),
             onAction = {},
@@ -402,7 +389,7 @@ private fun MarketingHistoryEnDark() {
 }
 
 @Preview(
-    name = "Marketing - History, AR, Light",
+    name = "Marketing —History, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -410,7 +397,7 @@ private fun MarketingHistoryEnDark() {
 )
 @Composable
 private fun MarketingHistoryArLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         HistoryScreen(
             state = HistoryState(isLoading = false, entries = historyMarketingEntries),
             onAction = {},
@@ -419,7 +406,7 @@ private fun MarketingHistoryArLight() {
 }
 
 @Preview(
-    name = "Marketing - History, AR, Dark",
+    name = "Marketing —History, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -428,7 +415,7 @@ private fun MarketingHistoryArLight() {
 )
 @Composable
 private fun MarketingHistoryArDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         HistoryScreen(
             state = HistoryState(isLoading = false, entries = historyMarketingEntries),
             onAction = {},
@@ -439,20 +426,20 @@ private fun MarketingHistoryArDark() {
 // ---- Settings ----
 
 @Preview(
-    name = "Marketing - Settings, EN, Light",
+    name = "Marketing —Settings, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
 )
 @Composable
 private fun MarketingSettingsEnLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         SettingsScreen(state = SettingsState(isLoading = false), onAction = {})
     }
 }
 
 @Preview(
-    name = "Marketing - Settings, EN, Dark",
+    name = "Marketing —Settings, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -460,13 +447,13 @@ private fun MarketingSettingsEnLight() {
 )
 @Composable
 private fun MarketingSettingsEnDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         SettingsScreen(state = SettingsState(isLoading = false), onAction = {})
     }
 }
 
 @Preview(
-    name = "Marketing - Settings, AR, Light",
+    name = "Marketing —Settings, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -474,13 +461,13 @@ private fun MarketingSettingsEnDark() {
 )
 @Composable
 private fun MarketingSettingsArLight() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         SettingsScreen(state = SettingsState(isLoading = false), onAction = {})
     }
 }
 
 @Preview(
-    name = "Marketing - Settings, AR, Dark",
+    name = "Marketing —Settings, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -489,7 +476,7 @@ private fun MarketingSettingsArLight() {
 )
 @Composable
 private fun MarketingSettingsArDark() {
-    SifrTheme(dynamicColor = false) {
+    SifrTheme {
         SettingsScreen(state = SettingsState(isLoading = false), onAction = {})
     }
 }
