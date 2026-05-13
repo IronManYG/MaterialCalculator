@@ -58,14 +58,16 @@ import dev.gaddal.sifr.feature.settings.ui.SettingsState
  *   4. PNGs land at the rendered density (1080-wide for 360 dp portrait,
  *      2400-wide for 800 dp landscape) — ready for Play Console upload.
  *
- * These previews live in `app/src/debug/` so they ship with debug
- * variants only; the release APK/AAB never sees this code.
+ * These previews live in `app/src/main/` next to the screens they
+ * preview. They're annotated with `@Preview` only — no runtime code
+ * path reaches them — so R8 strips the entire `marketing` package
+ * from the release APK/AAB.
  */
 
 // ---- Portrait: Basic mode ----
 
 @Preview(
-    name = "Marketing — Basic, EN, Light",
+    name = "Marketing - Basic, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -84,7 +86,7 @@ private fun MarketingBasicEnLight() {
 }
 
 @Preview(
-    name = "Marketing — Basic, EN, Dark",
+    name = "Marketing - Basic, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -104,7 +106,7 @@ private fun MarketingBasicEnDark() {
 }
 
 @Preview(
-    name = "Marketing — Basic, AR, Light",
+    name = "Marketing - Basic, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -124,7 +126,7 @@ private fun MarketingBasicArLight() {
 }
 
 @Preview(
-    name = "Marketing — Basic, AR, Dark",
+    name = "Marketing - Basic, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -148,7 +150,7 @@ private fun MarketingBasicArDark() {
 // Demonstrates the editable-cursor feature shipped in Phase 2.9: tap anywhere
 // in the expression to position the cursor and type/delete at that position.
 @Preview(
-    name = "Marketing — Editable cursor showcase",
+    name = "Marketing - Editable cursor showcase",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -171,7 +173,7 @@ private fun MarketingCursorShowcase() {
 // ---- Portrait: Scientific mode with M chip lit ----
 
 @Preview(
-    name = "Marketing — Scientific, EN, Light",
+    name = "Marketing - Scientific, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -193,7 +195,7 @@ private fun MarketingScientificEnLight() {
 }
 
 @Preview(
-    name = "Marketing — Scientific, EN, Dark",
+    name = "Marketing - Scientific, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -216,7 +218,7 @@ private fun MarketingScientificEnDark() {
 }
 
 @Preview(
-    name = "Marketing — Scientific, AR, Light",
+    name = "Marketing - Scientific, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -239,7 +241,7 @@ private fun MarketingScientificArLight() {
 }
 
 @Preview(
-    name = "Marketing — Scientific, AR, Dark",
+    name = "Marketing - Scientific, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -265,7 +267,7 @@ private fun MarketingScientificArDark() {
 // ---- Landscape: Scientific + basic side-by-side ----
 
 @Preview(
-    name = "Marketing — Landscape, EN, Light",
+    name = "Marketing - Landscape, EN, Light",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
@@ -287,7 +289,7 @@ private fun MarketingLandscapeEnLight() {
 }
 
 @Preview(
-    name = "Marketing — Landscape, EN, Dark",
+    name = "Marketing - Landscape, EN, Dark",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
@@ -310,7 +312,7 @@ private fun MarketingLandscapeEnDark() {
 }
 
 @Preview(
-    name = "Marketing — Landscape, AR, Light",
+    name = "Marketing - Landscape, AR, Light",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
@@ -333,7 +335,7 @@ private fun MarketingLandscapeArLight() {
 }
 
 @Preview(
-    name = "Marketing — Landscape, AR, Dark",
+    name = "Marketing - Landscape, AR, Dark",
     widthDp = 800,
     heightDp = 360,
     showBackground = true,
@@ -367,7 +369,7 @@ private val historyMarketingEntries = listOf(
 )
 
 @Preview(
-    name = "Marketing — History, EN, Light",
+    name = "Marketing - History, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -383,7 +385,7 @@ private fun MarketingHistoryEnLight() {
 }
 
 @Preview(
-    name = "Marketing — History, EN, Dark",
+    name = "Marketing - History, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -400,7 +402,7 @@ private fun MarketingHistoryEnDark() {
 }
 
 @Preview(
-    name = "Marketing — History, AR, Light",
+    name = "Marketing - History, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -417,7 +419,7 @@ private fun MarketingHistoryArLight() {
 }
 
 @Preview(
-    name = "Marketing — History, AR, Dark",
+    name = "Marketing - History, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -437,7 +439,7 @@ private fun MarketingHistoryArDark() {
 // ---- Settings ----
 
 @Preview(
-    name = "Marketing — Settings, EN, Light",
+    name = "Marketing - Settings, EN, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -450,7 +452,7 @@ private fun MarketingSettingsEnLight() {
 }
 
 @Preview(
-    name = "Marketing — Settings, EN, Dark",
+    name = "Marketing - Settings, EN, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -464,7 +466,7 @@ private fun MarketingSettingsEnDark() {
 }
 
 @Preview(
-    name = "Marketing — Settings, AR, Light",
+    name = "Marketing - Settings, AR, Light",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
@@ -478,7 +480,7 @@ private fun MarketingSettingsArLight() {
 }
 
 @Preview(
-    name = "Marketing — Settings, AR, Dark",
+    name = "Marketing - Settings, AR, Dark",
     widthDp = 360,
     heightDp = 800,
     showBackground = true,
