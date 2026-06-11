@@ -33,6 +33,7 @@ class SettingsViewModel(
     fun onAction(action: SettingsAction) {
         when (action) {
             is SettingsAction.SetThemeMode -> updateSettings { copy(themeMode = action.mode) }
+            is SettingsAction.SetPalette -> updateSettings { copy(palette = action.palette) }
             SettingsAction.ToggleHaptics -> {
                 val wasEnabled = _state.value.settings.hapticsEnabled
                 updateSettings { copy(hapticsEnabled = !hapticsEnabled) }

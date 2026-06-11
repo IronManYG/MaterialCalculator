@@ -25,6 +25,16 @@
     <string name="calc_error_overflow">Result too large</string>
     <string name="calc_error_syntax_error">Syntax error</string>
 
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_appearance_section">APPEARANCE</string>
+    <string name="settings_palette_section">Theme</string>
+    <string name="settings_palette_layl">Layl</string>
+    <string name="settings_palette_bayan">Bayan</string>
+    <string name="settings_palette_raqim">Raqim</string>
+    <string name="settings_palette_farah">Farah</string>
+    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_dynamic">Dynamic</string>
+
     <!-- History screen -->
     <string name="history_title">History</string>
     <string name="history_back">Back</string>
