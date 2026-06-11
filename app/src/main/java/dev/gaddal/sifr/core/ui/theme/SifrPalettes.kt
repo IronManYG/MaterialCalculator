@@ -86,3 +86,99 @@ internal fun bayanDark(accent: Color = Color(0xFF5B6CFF)): SifrColors = SifrColo
     mosaic = true, mosaicLine = Color(0xFFF2EDE0).copy(0.35f),
     displayFamily = Archivo, keyFamily = Archivo, uiFamily = Archivo,
 )
+
+// ---------- RAQIM (editorial serif, hairline grid) ----------
+
+internal fun raqimLight(accent: Color = Color(0xFF6B7A4F)): SifrColors = SifrColors(
+    background = SolidColor(Color(0xFFFAF6EE)), backgroundFlat = Color(0xFFFAF6EE),
+    statusBarLightIcons = false,
+    text = Color(0xFF2A2520), dim = Color(0xFF9A8F7C), accent = accent, accentInk = Color(0xFFFAF6EE),
+    hairline = Color(0xFFE3DACA), surface = Color(0xFFFFFDF7), surfaceBorder = Color(0xFFE3DACA),
+    displayExpression = Color(0xFF2A2520), displayResult = accent, displayError = Color(0xFFC94040),
+    resultItalic = true,
+    keyNum = SifrKeyStyle(SolidColor(Color(0xFFFAF6EE)), Color(0xFF2A2520)),
+    keyOp = SifrKeyStyle(SolidColor(Color(0xFFFAF6EE)), accent, italic = true),
+    keyEq = SifrKeyStyle(SolidColor(Color(0xFF2A2520)), Color(0xFFFAF6EE)),
+    keyFn = SifrKeyStyle(SolidColor(Color(0xFFFAF6EE)), Color(0xFF9A8F7C)),
+    keyRadius = 0.dp, keyGap = 1.dp, hairlineGrid = true, gridLine = Color(0xFFE3DACA),
+    displayFamily = Cormorant, keyFamily = Cormorant, uiFamily = SpaceGrotesk,
+)
+
+internal fun raqimDark(accent: Color = Color(0xFF99A877)): SifrColors = SifrColors(
+    background = SolidColor(Color(0xFF211D18)), backgroundFlat = Color(0xFF211D18),
+    statusBarLightIcons = true,
+    text = Color(0xFFEFE7D8), dim = Color(0xFF9C9079), accent = accent, accentInk = Color(0xFF211D18),
+    hairline = Color(0xFFEFE7D8).copy(0.13f), surface = Color(0xFF28231D), surfaceBorder = Color(0xFFEFE7D8).copy(0.12f),
+    displayExpression = Color(0xFFEFE7D8), displayResult = accent, displayError = Color(0xFFFF8080),
+    resultItalic = true,
+    keyNum = SifrKeyStyle(SolidColor(Color(0xFF211D18)), Color(0xFFEFE7D8)),
+    keyOp = SifrKeyStyle(SolidColor(Color(0xFF211D18)), accent, italic = true),
+    keyEq = SifrKeyStyle(SolidColor(Color(0xFFEFE7D8)), Color(0xFF211D18)),
+    keyFn = SifrKeyStyle(SolidColor(Color(0xFF211D18)), Color(0xFF9C9079)),
+    keyRadius = 0.dp, keyGap = 1.dp, hairlineGrid = true, gridLine = Color(0xFFEFE7D8).copy(0.13f),
+    displayFamily = Cormorant, keyFamily = Cormorant, uiFamily = SpaceGrotesk,
+)
+
+// ---------- FARAH (playful pills, soft 3D) ----------
+
+internal fun farahLight(accent: Color = Color(0xFFF2683C)): SifrColors = SifrColors(
+    background = SolidColor(Color(0xFFFFF4E4)), backgroundFlat = Color(0xFFFFF4E4),
+    statusBarLightIcons = false,
+    text = Color(0xFF4A3326), dim = Color(0xFFB08A62), accent = accent, accentInk = Color(0xFFFFF6EC),
+    hairline = Color(0xFFF0DFC8), surface = Color(0xFFFFFDF8), surfaceBorder = Color(0xFFF4E3CC),
+    displayExpression = Color(0xFF4A3326), displayResult = accent, displayError = Color(0xFFC94040),
+    displayCard = Color(0xFFFFFDF8),
+    keyNum = SifrKeyStyle(SolidColor(Color(0xFFF7E3C8)), Color(0xFF4A3326), dropShadow = Color(0xFFE8CFA9)),
+    keyOp = SifrKeyStyle(SolidColor(accent), Color(0xFFFFF6EC), dropShadow = accent.copy(0.55f)),
+    keyEq = SifrKeyStyle(SolidColor(Color(0xFF4A3326)), Color(0xFFFFE9CF), dropShadow = Color(0xFF2E1E14)),
+    keyFn = SifrKeyStyle(SolidColor(Color(0xFFFFD66B)), Color(0xFF4A3326), dropShadow = Color(0xFFE3B945)),
+    keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true, ghostNumeral = accent.copy(0.75f),
+    displayFamily = Baloo2, keyFamily = Baloo2, uiFamily = Baloo2,
+)
+
+internal fun farahDark(accent: Color = Color(0xFFFF7A4D)): SifrColors = SifrColors(
+    background = SolidColor(Color(0xFF2A1D13)), backgroundFlat = Color(0xFF2A1D13),
+    statusBarLightIcons = true,
+    text = Color(0xFFFFE9CF), dim = Color(0xFFC49A6C), accent = accent, accentInk = Color(0xFF2A1D13),
+    hairline = Color(0xFFFFE9CF).copy(0.12f), surface = Color(0xFF352617), surfaceBorder = Color(0xFFFFE9CF).copy(0.10f),
+    displayExpression = Color(0xFFFFE9CF), displayResult = accent, displayError = Color(0xFFFF8080),
+    displayCard = Color(0xFF352617),
+    keyNum = SifrKeyStyle(SolidColor(Color(0xFF3E2D1C)), Color(0xFFFFE9CF), dropShadow = Color(0xFF271A0E)),
+    keyOp = SifrKeyStyle(SolidColor(accent), Color(0xFF2A1D13), dropShadow = Color(0xFF000000).copy(0.40f)),
+    keyEq = SifrKeyStyle(SolidColor(Color(0xFFFFE9CF)), Color(0xFF4A3326), dropShadow = Color(0xFFC9A87E)),
+    keyFn = SifrKeyStyle(SolidColor(Color(0xFFE8B84B)), Color(0xFF3A2914), dropShadow = Color(0xFFA87F26)),
+    keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true, ghostNumeral = accent.copy(0.8f),
+    displayFamily = Baloo2, keyFamily = Baloo2, uiFamily = Baloo2,
+)
+
+// ---------- MIZAN (machined, recessed gradient keys) ----------
+
+internal fun mizanDark(accent: Color = Color(0xFFE2772E)): SifrColors = SifrColors(
+    background = SolidColor(Color(0xFF1B1B19)), backgroundFlat = Color(0xFF1B1B19),
+    statusBarLightIcons = true,
+    text = Color(0xFFF4F1E8), dim = Color(0xFF8E8A80), accent = accent, accentInk = Color(0xFF1B1108),
+    hairline = Color.White.copy(0.08f), surface = Color(0xFF222220), surfaceBorder = Color.White.copy(0.07f),
+    displayExpression = Color(0xFFF4F1E8), displayResult = accent, displayError = Color(0xFFFF8080),
+    displayInset = Color(0xFF111110),
+    keyNum = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFF272725), Color(0xFF1F1F1D))), Color(0xFFDBD7CE), dropShadow = Color.Black.copy(0.55f), innerTopHighlight = Color.White.copy(0.07f)),
+    keyOp = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFF272725), Color(0xFF1F1F1D))), accent, dropShadow = Color.Black.copy(0.55f), innerTopHighlight = Color.White.copy(0.07f)),
+    keyEq = SifrKeyStyle(Brush.verticalGradient(listOf(accent.copy(0.9f), accent)), Color(0xFF1B1108), dropShadow = Color.Black.copy(0.6f), innerTopHighlight = Color.White.copy(0.25f)),
+    keyFn = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFF252523), Color(0xFF1E1E1C))), Color(0xFF8E8A80), dropShadow = Color.Black.copy(0.55f), innerTopHighlight = Color.White.copy(0.06f)),
+    keyRadius = 16.dp, keyGap = 11.dp, raisedKeys = true,
+    displayFamily = PlexMono, keyFamily = PlexMono, uiFamily = PlexMono,
+)
+
+internal fun mizanLight(accent: Color = Color(0xFFD96A20)): SifrColors = SifrColors(
+    background = SolidColor(Color(0xFFD8D7D2)), backgroundFlat = Color(0xFFD8D7D2),
+    statusBarLightIcons = false,
+    text = Color(0xFF23221F), dim = Color(0xFF75736C), accent = accent, accentInk = Color(0xFFFFF8EE),
+    hairline = Color(0xFF23221F).copy(0.12f), surface = Color(0xFFE6E5E1), surfaceBorder = Color(0xFF23221F).copy(0.10f),
+    displayExpression = Color(0xFF23221F), displayResult = accent, displayError = Color(0xFFC94040),
+    displayInset = Color(0xFFC8C7C1),
+    keyNum = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFFFCFCFA), Color(0xFFEDECE8))), Color(0xFF2E2D2A), dropShadow = Color(0xFFB4B3AE), innerTopHighlight = Color.White.copy(0.9f)),
+    keyOp = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFFFCFCFA), Color(0xFFEDECE8))), accent, dropShadow = Color(0xFFB4B3AE), innerTopHighlight = Color.White.copy(0.9f)),
+    keyEq = SifrKeyStyle(Brush.verticalGradient(listOf(accent, accent.copy(0.85f))), Color(0xFFFFF8EE), dropShadow = Color(0xFF8C4513), innerTopHighlight = Color.White.copy(0.3f)),
+    keyFn = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFFF2F1ED), Color(0xFFE2E1DC))), Color(0xFF75736C), dropShadow = Color(0xFFB0AFAA), innerTopHighlight = Color.White.copy(0.8f)),
+    keyRadius = 16.dp, keyGap = 11.dp, raisedKeys = true,
+    displayFamily = PlexMono, keyFamily = PlexMono, uiFamily = PlexMono,
+)
