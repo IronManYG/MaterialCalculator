@@ -1,6 +1,7 @@
 package dev.gaddal.sifr.feature.settings.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,11 +35,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
+import dev.gaddal.sifr.feature.settings.ui.components.ThemePicker
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -82,6 +86,11 @@ fun SettingsScreen(
             )
         },
     ) { padding ->
+        val dark = when (state.settings.themeMode) {
+            ThemeMode.System -> isSystemInDarkTheme()
+            ThemeMode.Light -> false
+            ThemeMode.Dark -> true
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -96,6 +105,16 @@ fun SettingsScreen(
             ThemeSection(
                 selected = state.settings.themeMode,
                 onSelect = { onAction(SettingsAction.SetThemeMode(it)) },
+            )
+            Text(
+                text = stringResource(R.string.settings_palette_section),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            ThemePicker(
+                selected = state.settings.palette,
+                dark = dark,
+                onSelect = { onAction(SettingsAction.SetPalette(it)) },
             )
             HorizontalDivider()
             SwitchRow(
@@ -165,21 +184,20 @@ private fun ThemeMode.labelRes(): Int = when (this) {
     ThemeMode.Dark -> R.string.settings_theme_dark
 }
 
-@Preview
+@Preview(name = "Settings — Layl dark", showBackground = true)
 @Composable
-private fun SettingsScreenPreview() {
-    SifrTheme {
-        SettingsScreen(
-            state = SettingsState(isLoading = false),
-            onAction = {},
-        )
-    }
+private fun SettingsPreviewLayl() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+    SettingsScreen(
+        state = SettingsState(settings = AppSettings(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark), isLoading = false),
+        onAction = {},
+    )
 }
 
-@Preview
+@Preview(name = "Settings — Bayan light", showBackground = true)
 @Composable
-private fun SettingsRootPreview() {
-    SifrTheme {
-        SettingsScreen(state = SettingsState(isLoading = false), onAction = {})
-    }
+private fun SettingsPreviewBayan() = SifrTheme(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light) {
+    SettingsScreen(
+        state = SettingsState(settings = AppSettings(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light), isLoading = false),
+        onAction = {},
+    )
 }

@@ -5,7 +5,7 @@
     <!-- Settings screen -->
     <string name="settings_title">الإعدادات</string>
     <string name="settings_back">رجوع</string>
-    <string name="settings_theme_section">المظهر</string>
+    <string name="settings_theme_section">الوضع</string>
     <string name="settings_theme_system">حسب النظام</string>
     <string name="settings_theme_light">فاتح</string>
     <string name="settings_theme_dark">داكن</string>
@@ -27,7 +27,6 @@
     <string name="calc_error_syntax_error">خطأ في الصيغة</string>
 
     <!-- Settings screen — appearance/palette -->
-    <string name="settings_appearance_section">المظهر</string>
     <string name="settings_palette_section">السمة</string>
     <string name="settings_palette_layl">Layl</string>
     <string name="settings_palette_bayan">Bayan</string>

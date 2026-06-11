@@ -4,7 +4,7 @@
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_back">Back</string>
-    <string name="settings_theme_section">Theme</string>
+    <string name="settings_theme_section">Mode</string>
     <string name="settings_theme_system">Follow system</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
@@ -26,7 +26,6 @@
     <string name="calc_error_syntax_error">Syntax error</string>
 
     <!-- Settings screen — appearance/palette -->
-    <string name="settings_appearance_section">APPEARANCE</string>
     <string name="settings_palette_section">Theme</string>
     <string name="settings_palette_layl">Layl</string>
     <string name="settings_palette_bayan">Bayan</string>
