@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.contextmenu.data.TextContextMenuKeys
 import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +39,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.UiText
 
 private const val PROMOTION_ANIMATION_MS = 340
@@ -64,13 +64,14 @@ fun CalculatorDisplay(
     previewSlotHeight: androidx.compose.ui.unit.Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val mainColor = if (error != null) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.onSecondaryContainer
-    }
-    val previewColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
-    val mainStyle = TextStyle(color = mainColor, textAlign = TextAlign.End)
+    val sifr = SifrTokens.colors
+    val mainColor = if (error != null) sifr.displayError else sifr.displayExpression
+    val previewColor = sifr.displayResult.copy(alpha = 0.85f)
+    val mainStyle = TextStyle(
+        color = mainColor,
+        textAlign = TextAlign.End,
+        fontFamily = sifr.displayFamily,
+    )
     val previewFontSizeSp = 22f
 
     // Detect a calculate-promotion transition: the expression that just landed
