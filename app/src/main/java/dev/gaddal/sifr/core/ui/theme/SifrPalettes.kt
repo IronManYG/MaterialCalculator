@@ -1,9 +1,11 @@
 package dev.gaddal.sifr.core.ui.theme
 
+import androidx.compose.material3.ColorScheme as M3ColorScheme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
 
 // ---------- LAYL (dark glass, neon-teal glow) ----------
 
@@ -182,3 +184,35 @@ internal fun mizanLight(accent: Color = Color(0xFFD96A20)): SifrColors = SifrCol
     keyRadius = 16.dp, keyGap = 11.dp, raisedKeys = true,
     displayFamily = PlexMono, keyFamily = PlexMono, uiFamily = PlexMono,
 )
+
+// ---------- SELECTORS ----------
+
+/** Pure (Context-free) palette resolver. Dynamic falls back to Layl here;
+ *  the SifrTheme wrapper substitutes the real dynamic scheme when available. */
+fun sifrColorsFor(palette: SifrPalette, dark: Boolean): SifrColors = when (palette) {
+    SifrPalette.Layl -> if (dark) laylDark() else laylLight()
+    SifrPalette.Bayan -> if (dark) bayanDark() else bayanLight()
+    SifrPalette.Raqim -> if (dark) raqimDark() else raqimLight()
+    SifrPalette.Farah -> if (dark) farahDark() else farahLight()
+    SifrPalette.Mizan -> if (dark) mizanDark() else mizanLight()
+    SifrPalette.Dynamic -> if (dark) laylDark() else laylLight()
+}
+
+/** Maps an Android-12+ dynamic ColorScheme into SifrColors (flat keys, no bespoke construction). */
+fun dynamicToSifrColors(scheme: M3ColorScheme, dark: Boolean): SifrColors {
+    val accent = scheme.primary
+    return SifrColors(
+        background = SolidColor(scheme.background), backgroundFlat = scheme.background,
+        statusBarLightIcons = dark,
+        text = scheme.onBackground, dim = scheme.onSurfaceVariant,
+        accent = accent, accentInk = scheme.onPrimary,
+        hairline = scheme.outlineVariant, surface = scheme.surfaceVariant, surfaceBorder = scheme.outlineVariant,
+        displayExpression = scheme.onSurface, displayResult = accent, displayError = scheme.error,
+        keyNum = SifrKeyStyle(SolidColor(scheme.surfaceVariant), scheme.onSurfaceVariant),
+        keyOp = SifrKeyStyle(SolidColor(scheme.secondaryContainer), scheme.onSecondaryContainer),
+        keyEq = SifrKeyStyle(SolidColor(accent), scheme.onPrimary),
+        keyFn = SifrKeyStyle(SolidColor(scheme.surface), scheme.onSurfaceVariant),
+        keyRadius = 24.dp, keyGap = 8.dp,
+        displayFamily = SpaceGrotesk, keyFamily = SpaceGrotesk, uiFamily = SpaceGrotesk,
+    )
+}
