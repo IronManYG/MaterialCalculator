@@ -76,8 +76,10 @@ internal fun bayanDark(accent: Color = Color(0xFF5B6CFF)): SifrColors = SifrColo
     hairline = Color(0xFFF2EDE0).copy(0.30f), surface = Color(0xFF1E1A12), surfaceBorder = Color(0xFFF2EDE0).copy(0.30f),
     // v1.4 renders the display flat on the dark surface, so the expression must be light
     // (= text). The dark #16140F is the v1.5 on-cream-ink-block value; restore it when
-    // displayBlock renders (v1.5). displayResult contrast on flat dark is tuned at C5/preview.
-    displayExpression = Color(0xFFF2EDE0), displayResult = Color(0xFF2C3FE3),
+    // displayBlock renders (v1.5). displayResult uses accent (#5B6CFF, ~3.8:1 on the flat
+    // dark surface) — the light-mode brand indigo #2C3FE3 is only ~1.8:1 here and fails the
+    // 3:1 large-text bar; #2C3FE3 returns with displayBlock in v1.5.
+    displayExpression = Color(0xFFF2EDE0), displayResult = accent,
     displayError = Color(0xFFFF8080),
     displayBlock = Color(0xFFF2EDE0),
     keyNum = SifrKeyStyle(SolidColor(Color(0xFF211D14)), Color(0xFFF2EDE0)),
