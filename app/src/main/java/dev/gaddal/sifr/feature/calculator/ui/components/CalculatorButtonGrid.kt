@@ -1,11 +1,13 @@
 package dev.gaddal.sifr.feature.calculator.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -13,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
@@ -34,21 +36,29 @@ fun CalculatorButtonGrid(
     fontSize: TextUnit = 32.sp,
 ) {
     val rows = remember(mode, angleUnit) { buildKeypadRows(mode, angleUnit, GRID_COLUMNS) }
+    val sifr = SifrTokens.colors
+    val gridLineColor = when {
+        sifr.mosaic -> sifr.mosaicLine
+        sifr.hairlineGrid -> sifr.gridLine
+        else -> null
+    }
     // Calculator keypad is conventionally LTR even in Arabic locale (iOS,
     // Google Calc all do this and the SPEC says so). Force LTR so Compose
     // doesn't mirror each Row's children — otherwise "7 8 9 x" becomes
     // "x 9 8 7" and the digit column ends up on the wrong side.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Column(
-            modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = modifier.then(
+                if (gridLineColor != null) Modifier.background(gridLineColor).padding(sifr.keyGap) else Modifier,
+            ),
+            verticalArrangement = Arrangement.spacedBy(sifr.keyGap),
         ) {
             rows.forEach { rowActions ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(sifr.keyGap),
                 ) {
                     rowActions.forEach { action ->
                         CalculatorButton(
