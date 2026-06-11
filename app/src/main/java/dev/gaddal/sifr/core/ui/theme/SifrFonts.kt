@@ -1,5 +1,7 @@
 package dev.gaddal.sifr.core.ui.theme
 
+import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
@@ -22,19 +24,26 @@ val Baloo2 = family("Baloo 2", 500, 600, 700)
 val PlexMono = family("IBM Plex Mono", 400, 500)
 val Amiri = family("Amiri", 400, 700) // Arabic wordmark صفر (used from v1.5+)
 
-// TODO(A3): restore sifrTypography once SifrColors is introduced in Task A3.
-// At that point, un-comment the block below, add the @Composable import,
-// and add the androidx.compose.material3.Typography import.
-//
-// @Composable
-// fun sifrTypography(sifr: SifrColors): Typography {
-//     val base = Typography()
-//     fun androidx.compose.ui.text.TextStyle.f() = copy(fontFamily = sifr.uiFamily)
-//     return Typography(
-//         displayLarge  = base.displayLarge.f(),  displayMedium = base.displayMedium.f(),  displaySmall  = base.displaySmall.f(),
-//         headlineLarge = base.headlineLarge.f(), headlineMedium = base.headlineMedium.f(), headlineSmall = base.headlineSmall.f(),
-//         titleLarge    = base.titleLarge.f(),    titleMedium   = base.titleMedium.f(),    titleSmall    = base.titleSmall.f(),
-//         bodyLarge     = base.bodyLarge.f(),     bodyMedium    = base.bodyMedium.f(),     bodySmall     = base.bodySmall.f(),
-//         labelLarge    = base.labelLarge.f(),    labelMedium   = base.labelMedium.f(),    labelSmall    = base.labelSmall.f(),
-//     )
-// }
+/** Material Typography keyed to the active palette's UI font family. */
+@Composable
+fun sifrTypography(sifr: SifrColors): Typography {
+    val base = Typography()
+    fun androidx.compose.ui.text.TextStyle.f() = copy(fontFamily = sifr.uiFamily)
+    return Typography(
+        displayLarge = base.displayLarge.f(),
+        displayMedium = base.displayMedium.f(),
+        displaySmall = base.displaySmall.f(),
+        headlineLarge = base.headlineLarge.f(),
+        headlineMedium = base.headlineMedium.f(),
+        headlineSmall = base.headlineSmall.f(),
+        titleLarge = base.titleLarge.f(),
+        titleMedium = base.titleMedium.f(),
+        titleSmall = base.titleSmall.f(),
+        bodyLarge = base.bodyLarge.f(),
+        bodyMedium = base.bodyMedium.f(),
+        bodySmall = base.bodySmall.f(),
+        labelLarge = base.labelLarge.f(),
+        labelMedium = base.labelMedium.f(),
+        labelSmall = base.labelSmall.f(),
+    )
+}
