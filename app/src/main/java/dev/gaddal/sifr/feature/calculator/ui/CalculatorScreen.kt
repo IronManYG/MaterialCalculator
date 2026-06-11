@@ -33,6 +33,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +50,7 @@ import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
+import dev.gaddal.sifr.core.ui.theme.PalettePreviewProvider
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
@@ -304,6 +306,17 @@ private fun PreviewScientific() = SifrTheme(palette = SifrPalette.Farah) {
             angleUnit = AngleUnit.Degrees,
             livePreview = "0.5",
         ),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Palette sweep", showBackground = true)
+@Composable
+private fun PreviewAllPalettes(
+    @PreviewParameter(PalettePreviewProvider::class) palette: SifrPalette,
+) = SifrTheme(palette = palette) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "12+5", cursor = 4, livePreview = "17"),
         onAction = {},
     )
 }
