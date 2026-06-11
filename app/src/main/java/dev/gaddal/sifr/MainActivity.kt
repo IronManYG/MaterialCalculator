@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
             val settings by settingsRepo.observe()
                 .collectAsStateWithLifecycle(initialValue = AppSettings())
             val windowSizeClass = calculateWindowSizeClass(this)
-            SifrTheme(themeMode = settings.themeMode) {
+            SifrTheme(palette = settings.palette, themeMode = settings.themeMode) {
                 NavRoot(windowSizeClass = windowSizeClass)
             }
         }
