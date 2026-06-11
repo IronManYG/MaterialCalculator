@@ -5,6 +5,7 @@ import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.System,
+    val palette: SifrPalette = SifrPalette.Layl,
     val hapticsEnabled: Boolean = true,
     val soundEnabled: Boolean = false,
     val calculatorMode: CalculatorMode = CalculatorMode.Basic,
