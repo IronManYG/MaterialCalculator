@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
@@ -36,6 +37,8 @@ class SettingsRepositoryImpl(
             prefs[KEY_CALC_MODE] = updated.calculatorMode.name
             prefs[KEY_ANGLE_UNIT] = updated.angleUnit.name
             prefs[KEY_FRACTION_RESULTS] = updated.fractionResults
+            prefs[KEY_KEYPAD_LAYOUT] = updated.keypadLayout.name
+            prefs[KEY_MEMORY_KEYS] = updated.memoryKeysVisible
             val memory = updated.memoryValue
             if (memory != null) prefs[KEY_MEMORY_VALUE] = memory
             else prefs.remove(KEY_MEMORY_VALUE)
@@ -58,6 +61,10 @@ class SettingsRepositoryImpl(
             ?.let { runCatching { AngleUnit.valueOf(it) }.getOrNull() }
             ?: AngleUnit.Degrees,
         fractionResults = this[KEY_FRACTION_RESULTS] ?: false,
+        keypadLayout = this[KEY_KEYPAD_LAYOUT]
+            ?.let { runCatching { KeypadLayout.valueOf(it) }.getOrNull() }
+            ?: KeypadLayout.Classic,
+        memoryKeysVisible = this[KEY_MEMORY_KEYS] ?: true,
         memoryValue = this[KEY_MEMORY_VALUE],
     )
 
@@ -69,6 +76,8 @@ class SettingsRepositoryImpl(
         val KEY_CALC_MODE = stringPreferencesKey("calculator_mode")
         val KEY_ANGLE_UNIT = stringPreferencesKey("angle_unit")
         val KEY_FRACTION_RESULTS = booleanPreferencesKey("fraction_results")
+        val KEY_KEYPAD_LAYOUT = stringPreferencesKey("keypad_layout")
+        val KEY_MEMORY_KEYS = booleanPreferencesKey("memory_keys_visible")
         val KEY_MEMORY_VALUE = doublePreferencesKey("memory_value")
     }
 }

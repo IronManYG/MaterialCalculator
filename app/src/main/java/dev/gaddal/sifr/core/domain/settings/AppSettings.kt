@@ -12,4 +12,6 @@ data class AppSettings(
     val angleUnit: AngleUnit = AngleUnit.Degrees,
     val fractionResults: Boolean = false,   // v1.5 — DISPLAY toggle, default off
     val memoryValue: Double? = null,        // v1.5 — persisted M register (survives force-stop)
+    val keypadLayout: KeypadLayout = KeypadLayout.Classic,   // v1.6
+    val memoryKeysVisible: Boolean = true,                   // v1.6 — Memory-keys toggle, default ON
 )
