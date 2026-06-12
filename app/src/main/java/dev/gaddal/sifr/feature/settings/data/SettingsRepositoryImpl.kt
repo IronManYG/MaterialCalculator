@@ -3,6 +3,7 @@ package dev.gaddal.sifr.feature.settings.data
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -34,6 +35,10 @@ class SettingsRepositoryImpl(
             prefs[KEY_SOUND] = updated.soundEnabled
             prefs[KEY_CALC_MODE] = updated.calculatorMode.name
             prefs[KEY_ANGLE_UNIT] = updated.angleUnit.name
+            prefs[KEY_FRACTION_RESULTS] = updated.fractionResults
+            val memory = updated.memoryValue
+            if (memory != null) prefs[KEY_MEMORY_VALUE] = memory
+            else prefs.remove(KEY_MEMORY_VALUE)
         }
     }
 
@@ -52,6 +57,8 @@ class SettingsRepositoryImpl(
         angleUnit = this[KEY_ANGLE_UNIT]
             ?.let { runCatching { AngleUnit.valueOf(it) }.getOrNull() }
             ?: AngleUnit.Degrees,
+        fractionResults = this[KEY_FRACTION_RESULTS] ?: false,
+        memoryValue = this[KEY_MEMORY_VALUE],
     )
 
     private companion object {
@@ -61,5 +68,7 @@ class SettingsRepositoryImpl(
         val KEY_SOUND = booleanPreferencesKey("sound_enabled")
         val KEY_CALC_MODE = stringPreferencesKey("calculator_mode")
         val KEY_ANGLE_UNIT = stringPreferencesKey("angle_unit")
+        val KEY_FRACTION_RESULTS = booleanPreferencesKey("fraction_results")
+        val KEY_MEMORY_VALUE = doublePreferencesKey("memory_value")
     }
 }
