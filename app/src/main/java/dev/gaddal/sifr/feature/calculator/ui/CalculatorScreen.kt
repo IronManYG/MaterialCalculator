@@ -1,5 +1,10 @@
 package dev.gaddal.sifr.feature.calculator.ui
 
+import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,23 +14,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Science
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Intent
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,23 +31,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import dev.gaddal.sifr.core.ui.util.UiText
-import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
-import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.ui.components.SifrCalcTopBar
+import dev.gaddal.sifr.core.ui.util.UiText
+import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
+import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.KeypadLayout
@@ -134,10 +131,30 @@ fun CalculatorRoot(
             }
         }
     }
+    val activity = view.context as? Activity
+    // Manual orientation only (spec §4.9 / D1): lock to portrait on entry so the
+    // OS never sensor-rotates; the Rotate top-bar action toggles. configChanges in
+    // the manifest keeps this composition alive across the orientation change, so
+    // this default does not fight a user-requested landscape.
+    LaunchedEffect(Unit) {
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+    val onRotate = remember(isLandscape, activity) {
+        {
+            activity?.requestedOrientation =
+                if (isLandscape) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+    }
     if (isLandscape) {
         CalculatorScreenLandscape(state = state, onAction = viewModel::onAction)
     } else {
-        CalculatorScreen(state = state, onAction = viewModel::onAction)
+        CalculatorScreen(
+            state = state,
+            onAction = viewModel::onAction,
+            onRotate = onRotate,
+            rotateActive = isLandscape,   // always false in portrait branch; Phase C wires landscape→true
+        )
     }
 }
 
@@ -145,6 +162,8 @@ fun CalculatorRoot(
 fun CalculatorScreen(
     state: CalculatorState,
     onAction: (CalculatorAction) -> Unit,
+    onRotate: () -> Unit = {},
+    rotateActive: Boolean = false,
 ) {
     // Mode-aware ratios: in scientific mode the keypad has many more rows so
     // it needs the lion's share; in basic mode the keypad has only 6 rows so
@@ -160,6 +179,23 @@ fun CalculatorScreen(
             .fillMaxSize()
             .background(sifr.background),
         containerColor = Color.Transparent,
+        topBar = {
+            SifrCalcTopBar(
+                onHistory = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
+                onTools = {},                              // gated: Tools screen ships in a later milestone
+                onScientific = dropUnlessResumed { onAction(CalculatorAction.ToggleMode) },
+                scientificActive = state.mode == CalculatorMode.Scientific,
+                onRotate = onRotate,
+                rotateActive = rotateActive,
+                onSettings = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
+                modifier = Modifier.statusBarsPadding(),
+                historyCd = stringResource(R.string.calc_open_history),
+                toolsCd = stringResource(R.string.calc_open_tools),
+                scientificCd = stringResource(R.string.calc_toggle_mode),
+                rotateCd = stringResource(R.string.calc_rotate_orientation),
+                settingsCd = stringResource(R.string.calc_open_settings),
+            )
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -206,57 +242,6 @@ fun CalculatorScreen(
                             .align(Alignment.BottomEnd)
                             .padding(12.dp),
                     )
-                }
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                ) {
-                    if (state.memoryValue != null) {
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(sifr.accent)
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.calc_mode_chip_memory),
-                                color = sifr.accentInk,
-                                fontSize = 12.sp,
-                            )
-                        }
-                    }
-                    IconButton(
-                        onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.History,
-                            contentDescription = stringResource(R.string.calc_open_history),
-                            tint = sifr.dim,
-                        )
-                    }
-                    IconButton(
-                        onClick = dropUnlessResumed { onAction(CalculatorAction.ToggleMode) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Science,
-                            contentDescription = stringResource(R.string.calc_toggle_mode),
-                            tint = if (state.mode == CalculatorMode.Scientific)
-                                sifr.accent
-                            else
-                                sifr.dim,
-                        )
-                    }
-                    IconButton(
-                        onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.calc_open_settings),
-                            tint = sifr.dim,
-                        )
-                    }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

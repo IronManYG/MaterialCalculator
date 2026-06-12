@@ -51,6 +51,11 @@ fun SifrCalcTopBar(
     onSettings: () -> Unit,
     modifier: Modifier = Modifier,
     showScientific: Boolean = true,
+    historyCd: String = "History",
+    toolsCd: String = "Tools",
+    scientificCd: String = "Scientific",
+    rotateCd: String = "Rotate",
+    settingsCd: String = "Settings",
 ) {
     val sifr = SifrTokens.colors
     Row(
@@ -62,13 +67,13 @@ fun SifrCalcTopBar(
     ) {
         SifrBrand()
         Spacer(Modifier.weight(1f))
-        BarIcon(Icons.Outlined.History, "History", sifr.dim, onHistory)
-        BarIcon(Icons.Outlined.GridView, "Tools", sifr.dim, onTools)
+        BarIcon(Icons.Outlined.History, historyCd, sifr.dim, onHistory)
+        BarIcon(Icons.Outlined.GridView, toolsCd, sifr.dim, onTools)
         if (showScientific) {
             // ƒ glyph (italic) — accent when scientific mode is on
             IconButton(
                 onClick = onScientific,
-                modifier = Modifier.semantics { contentDescription = "Scientific" },
+                modifier = Modifier.semantics { contentDescription = scientificCd },
             ) {
                 Text(
                     text = "ƒ",   // ƒ
@@ -79,8 +84,8 @@ fun SifrCalcTopBar(
                 )
             }
         }
-        BarIcon(Icons.Outlined.ScreenRotation, "Rotate", if (rotateActive) sifr.accent else sifr.dim, onRotate)
-        BarIcon(Icons.Outlined.Settings, "Settings", sifr.dim, onSettings)
+        BarIcon(Icons.Outlined.ScreenRotation, rotateCd, if (rotateActive) sifr.accent else sifr.dim, onRotate)
+        BarIcon(Icons.Outlined.Settings, settingsCd, sifr.dim, onSettings)
     }
 }
 

@@ -24,6 +24,9 @@
     <string name="calc_error_domain_error">Input outside function domain</string>
     <string name="calc_error_overflow">Result too large</string>
     <string name="calc_error_syntax_error">Syntax error</string>
+    <string name="calc_open_tools">Open tools</string>
+    <string name="calc_rotate_orientation">Rotate screen</string>
+
     <!-- v1.5 result actions -->
     <string name="calc_action_copy">COPY</string>
     <string name="calc_action_share">SHARE</string>
