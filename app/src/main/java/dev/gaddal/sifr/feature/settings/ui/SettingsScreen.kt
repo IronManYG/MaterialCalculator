@@ -22,6 +22,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,6 +41,7 @@ import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
@@ -106,17 +110,26 @@ fun SettingsScreen(
                 selected = state.settings.themeMode,
                 onSelect = { onAction(SettingsAction.SetThemeMode(it)) },
             )
-            Text(
-                text = stringResource(R.string.settings_palette_section),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            SectionLabel(stringResource(R.string.settings_palette_section))
             ThemePicker(
                 selected = state.settings.palette,
                 dark = dark,
                 onSelect = { onAction(SettingsAction.SetPalette(it)) },
             )
             HorizontalDivider()
+            SectionLabel(stringResource(R.string.settings_display_section))
+            SwitchRow(
+                label = stringResource(R.string.settings_fraction_results),
+                checked = state.settings.fractionResults,
+                onCheckedChange = { onAction(SettingsAction.ToggleFractionResults) },
+            )
+            AngleUnitRow(
+                selected = state.settings.angleUnit,
+                onSelect = { onAction(SettingsAction.SetAngleUnit(it)) },
+            )
+
+            HorizontalDivider()
+            SectionLabel(stringResource(R.string.settings_feedback_section))
             SwitchRow(
                 label = stringResource(R.string.settings_haptics),
                 checked = state.settings.hapticsEnabled,
@@ -127,6 +140,15 @@ fun SettingsScreen(
                 checked = state.settings.soundEnabled,
                 onCheckedChange = { onAction(SettingsAction.ToggleSound) },
             )
+
+            HorizontalDivider()
+            SectionLabel(stringResource(R.string.settings_about_section))
+            Text(
+                text = stringResource(R.string.settings_about_tagline),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
         }
     }
 }
@@ -136,11 +158,7 @@ private fun ThemeSection(
     selected: ThemeMode,
     onSelect: (ThemeMode) -> Unit,
 ) {
-    Text(
-        text = stringResource(R.string.settings_theme_section),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-    )
+    SectionLabel(stringResource(R.string.settings_theme_section))
     ThemeMode.entries.forEach { mode ->
         Row(
             modifier = Modifier
@@ -156,6 +174,39 @@ private fun ThemeSection(
             RadioButton(selected = mode == selected, onClick = null)
             Spacer(modifier = Modifier.width(12.dp))
             Text(text = stringResource(mode.labelRes()))
+        }
+    }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AngleUnitRow(selected: AngleUnit, onSelect: (AngleUnit) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = stringResource(R.string.settings_angle_unit), modifier = Modifier.weight(1f))
+        SingleChoiceSegmentedButtonRow {
+            AngleUnit.entries.forEachIndexed { index, unit ->
+                SegmentedButton(
+                    selected = unit == selected,
+                    onClick = { onSelect(unit) },
+                    shape = SegmentedButtonDefaults.itemShape(index, AngleUnit.entries.size),
+                ) {
+                    Text(stringResource(if (unit == AngleUnit.Degrees) R.string.settings_angle_deg else R.string.settings_angle_rad))
+                }
+            }
         }
     }
 }
@@ -198,6 +249,15 @@ private fun SettingsPreviewLayl() = SifrTheme(palette = SifrPalette.Layl, themeM
 private fun SettingsPreviewBayan() = SifrTheme(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light) {
     SettingsScreen(
         state = SettingsState(settings = AppSettings(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light), isLoading = false),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Settings — DISPLAY on / RAD", showBackground = true)
+@Composable
+private fun SettingsPreviewDisplayVariant() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Light) {
+    SettingsScreen(
+        state = SettingsState(settings = AppSettings(fractionResults = true, angleUnit = AngleUnit.Radians), isLoading = false),
         onAction = {},
     )
 }

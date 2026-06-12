@@ -29,6 +29,16 @@
     <string name="calc_action_copy">نسخ</string>
     <string name="calc_action_share">مشاركة</string>
 
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">العرض</string>
+    <string name="settings_fraction_results">عرض الكسور</string>
+    <string name="settings_angle_unit">وحدة الزاوية</string>
+    <string name="settings_angle_deg">درجة</string>
+    <string name="settings_angle_rad">راديان</string>
+    <string name="settings_feedback_section">التفاعل</string>
+    <string name="settings_about_section">حول التطبيق</string>
+    <string name="settings_about_tagline">صفر · حاسبة أكثر هدوءًا.</string>
+
     <!-- Settings screen — appearance/palette -->
     <string name="settings_palette_section">السمة</string>
     <string name="settings_palette_layl">Layl</string>
