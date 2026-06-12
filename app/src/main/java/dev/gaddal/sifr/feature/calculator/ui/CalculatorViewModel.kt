@@ -72,6 +72,7 @@ class CalculatorViewModel(
                         memoryKeysVisible = settings.memoryKeysVisible,
                         livePreview = computePreview(),
                         justEvaluated = false,
+                        evaluatedInput = null,
                     )
                 }
             }
@@ -130,7 +131,7 @@ class CalculatorViewModel(
     }
 
     private fun updateMemory(newValue: Double?) {
-        _state.update { it.copy(memoryValue = newValue, justEvaluated = false) }
+        _state.update { it.copy(memoryValue = newValue, justEvaluated = false, evaluatedInput = null) }
         viewModelScope.launch { settingsRepository.update { copy(memoryValue = newValue) } }
     }
 
@@ -146,6 +147,10 @@ class CalculatorViewModel(
         writer.processAction(action)
             .onSuccess {
                 val post = writer.expression
+                // Same "a real calc happened" guard drives history/feedback in
+                // onSuccessSideEffects — keep the two in sync if it changes.
+                val justEvaluatedNow =
+                    action == CalculatorAction.Calculate && pre.isNotBlank() && pre != post
                 _state.update {
                     it.copy(
                         expression = post,
@@ -153,14 +158,17 @@ class CalculatorViewModel(
                         selectionStart = writer.selectionStart,
                         livePreview = computePreview(),
                         error = null,
-                        justEvaluated = action == CalculatorAction.Calculate && pre.isNotBlank() && pre != post,
+                        justEvaluated = justEvaluatedNow,
+                        evaluatedInput = if (justEvaluatedNow) pre else null,
                     )
                 }
                 persistForRestore(post, writer.cursor)
                 onSuccessSideEffects(action, pre, post)
             }
             .onFailure { error ->
-                _state.update { it.copy(livePreview = null, error = error.toUiText(), justEvaluated = false) }
+                _state.update {
+                    it.copy(livePreview = null, error = error.toUiText(), justEvaluated = false, evaluatedInput = null)
+                }
                 emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
             }
     }
