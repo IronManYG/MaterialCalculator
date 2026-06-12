@@ -26,8 +26,9 @@ import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.feature.calculator.ui.KeypadCell
+import dev.gaddal.sifr.feature.calculator.ui.KeypadRowSpec
 import dev.gaddal.sifr.feature.calculator.ui.arcEquals
-import dev.gaddal.sifr.feature.calculator.ui.arcNumberPadRows
+import dev.gaddal.sifr.feature.calculator.ui.arcNumberPadRowSpecs
 import dev.gaddal.sifr.feature.calculator.ui.arcOperators
 import dev.gaddal.sifr.feature.calculator.ui.memoryRow
 import dev.gaddal.sifr.feature.calculator.ui.scientificCells
@@ -62,7 +63,7 @@ fun ArcKeypad(
                             (text == "rad" && angleUnit == AngleUnit.Degrees)
                     }
                     .chunked(4)
-                    .map { row -> row.map { KeypadCell(it) } }
+                    .map { row -> KeypadRowSpec(row.map { KeypadCell(it) }) }
             }
             WeightedCellGrid(
                 rows = sci,
@@ -74,7 +75,7 @@ fun ArcKeypad(
         }
         if (memoryKeysVisible) {
             WeightedCellGrid(
-                rows = remember { listOf(memoryRow.map { KeypadCell(it) }) },
+                rows = remember { listOf(KeypadRowSpec(memoryRow.map { KeypadCell(it) })) },
                 columns = 4,
                 onAction = onAction,
                 fontSize = fontSize,
@@ -123,7 +124,7 @@ private fun ArcBasicBlock(
 
         // 3-col number pad on the leading 63%.
         WeightedCellGrid(
-            rows = arcNumberPadRows,
+            rows = arcNumberPadRowSpecs,
             columns = 3,
             onAction = onAction,
             fontSize = fontSize,

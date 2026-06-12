@@ -15,6 +15,15 @@ data class KeypadCell(
     val span: Int = 1,
 )
 
+/**
+ * A keypad row plus its height scale relative to the base key-row height
+ * (spec §4.6): basic rows 1.0, scientific rows 0.62, memory row 0.58.
+ */
+data class KeypadRowSpec(
+    val cells: List<KeypadCell>,
+    val heightScale: Float = 1f,
+)
+
 // ---- Shared basic-key descriptors (one source of truth for every layout) ----
 private fun digitKey(n: Int) =
     CalculatorUiAction(n.toString(), SifrKeyRole.Num, CalculatorAction.Number(n))
@@ -86,6 +95,9 @@ val arcNumberPadRows: List<List<KeypadCell>> = listOf(
     listOf(KeypadCell(key0), KeypadCell(keyDecimal), KeypadCell(keyDelete)),
     listOf(KeypadCell(keyClear, span = 2), KeypadCell(keyPercent)),
 )
+
+/** Arc number-pad rows pre-wrapped as [KeypadRowSpec] (static — built once). */
+val arcNumberPadRowSpecs: List<KeypadRowSpec> = arcNumberPadRows.map { KeypadRowSpec(it) }
 
 /** Arc operators (bottom-end circles) + the oversized `=` circle. */
 val arcOperators: List<CalculatorUiAction> = listOf(keyDivide, keyMultiply, keySubtract, keyAdd)
