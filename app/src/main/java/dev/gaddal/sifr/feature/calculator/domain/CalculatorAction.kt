@@ -26,4 +26,7 @@ sealed interface CalculatorAction {
     // resolves the stored value into a printable string. The writer
     // inserts at the cursor and respects the current selection (range-replace).
     data class InsertText(val text: String) : CalculatorAction
+    // v1.5 result actions — shown in the ResultActionsRow right after '='
+    data object CopyResult : CalculatorAction
+    data object ShareResult : CalculatorAction
 }

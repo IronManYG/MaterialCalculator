@@ -117,6 +117,8 @@ class ExpressionWriter {
             CalculatorAction.MemoryRecall -> Result.Success(Unit) // handled by VM, no writer mutation
             CalculatorAction.SettingsClicked -> Result.Success(Unit)
             CalculatorAction.HistoryClicked -> Result.Success(Unit)
+            CalculatorAction.CopyResult,
+            CalculatorAction.ShareResult -> Result.Success(Unit) // handled by VM via events
             is CalculatorAction.RestoreExpression -> {
                 expression = action.value
                 cursor = expression.length

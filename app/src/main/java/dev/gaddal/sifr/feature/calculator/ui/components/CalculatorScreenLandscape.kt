@@ -198,6 +198,15 @@ fun CalculatorScreenLandscape(
                         .fillMaxHeight()
                         .background(sifr.hairline),
                 )
+                if (state.justEvaluated && state.error == null) {
+                    ResultActionsRow(
+                        onCopy = { onAction(CalculatorAction.CopyResult) },
+                        onShare = { onAction(CalculatorAction.ShareResult) },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(8.dp),
+                    )
+                }
             }
             // Body: two-column split. Weight complements the display's 0.30
             // so the keypad rows have proportional vertical room.

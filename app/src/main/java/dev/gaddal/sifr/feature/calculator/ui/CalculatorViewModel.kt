@@ -103,6 +103,14 @@ class CalculatorViewModel(
                 val v = _state.value.memoryValue ?: return
                 applyToWriter(CalculatorAction.InsertText(numberToInsert(v)))
             }
+            CalculatorAction.CopyResult -> {
+                val text = _state.value.expression
+                if (text.isNotBlank()) emit(CalculatorEvent.CopyToClipboard(text))
+            }
+            CalculatorAction.ShareResult -> {
+                val text = _state.value.expression
+                if (text.isNotBlank()) emit(CalculatorEvent.ShareText(text))
+            }
             else -> applyToWriter(action)
         }
     }

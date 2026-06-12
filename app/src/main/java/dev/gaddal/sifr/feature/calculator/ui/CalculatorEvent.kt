@@ -6,4 +6,7 @@ sealed interface CalculatorEvent {
     data object NavigateToSettings : CalculatorEvent
     data object NavigateToHistory : CalculatorEvent
     data class PlayFeedback(val intent: FeedbackIntent) : CalculatorEvent
+    // v1.5 result actions
+    data class CopyToClipboard(val text: String) : CalculatorEvent
+    data class ShareText(val text: String) : CalculatorEvent
 }
