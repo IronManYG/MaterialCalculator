@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import android.app.Activity
@@ -27,12 +26,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,8 +47,12 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
+import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
+import dev.gaddal.sifr.core.ui.theme.PalettePreviewProvider
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
+import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorButtonGrid
@@ -123,13 +128,16 @@ fun CalculatorScreen(
     // it needs the lion's share; in basic mode the keypad has only 6 rows so
     // the display can afford to be visually prominent. Weights are
     // complementary (sum to 1.0) so they read directly as screen percentages.
+    val sifr = SifrTokens.colors
     val isScientific = state.mode == CalculatorMode.Scientific
     val displayWeight = if (isScientific) 0.30f else 0.45f
     val keypadWeight = 1f - displayWeight
     val keypadFontSize = if (isScientific) 20.sp else 32.sp
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
+        modifier = Modifier
+            .fillMaxSize()
+            .background(sifr.background),
+        containerColor = Color.Transparent,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -147,7 +155,7 @@ fun CalculatorScreen(
                             bottomEnd = 25.dp
                         )
                     )
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .background(sifr.surface)
             ) {
                 CalculatorDisplay(
                     expression = state.expression,
@@ -175,12 +183,12 @@ fun CalculatorScreen(
                             modifier = Modifier
                                 .padding(end = 4.dp)
                                 .clip(RoundedCornerShape(50))
-                                .background(MaterialTheme.colorScheme.primary)
+                                .background(sifr.accent)
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
                         ) {
                             Text(
                                 text = stringResource(R.string.calc_mode_chip_memory),
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = sifr.accentInk,
                                 fontSize = 12.sp,
                             )
                         }
@@ -191,6 +199,7 @@ fun CalculatorScreen(
                         Icon(
                             imageVector = Icons.Outlined.History,
                             contentDescription = stringResource(R.string.calc_open_history),
+                            tint = sifr.dim,
                         )
                     }
                     IconButton(
@@ -200,9 +209,9 @@ fun CalculatorScreen(
                             imageVector = Icons.Outlined.Science,
                             contentDescription = stringResource(R.string.calc_toggle_mode),
                             tint = if (state.mode == CalculatorMode.Scientific)
-                                MaterialTheme.colorScheme.primary
+                                sifr.accent
                             else
-                                MaterialTheme.colorScheme.onSurfaceVariant,
+                                sifr.dim,
                         )
                     }
                     IconButton(
@@ -211,6 +220,7 @@ fun CalculatorScreen(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = stringResource(R.string.calc_open_settings),
+                            tint = sifr.dim,
                         )
                     }
                 }
@@ -238,7 +248,7 @@ private fun PreviewEmpty() = SifrTheme {
 @PreviewLightDark
 @PreviewScreenSizes
 @Composable
-private fun PreviewMidTyping() = SifrTheme {
+private fun PreviewMidTyping() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
     CalculatorScreen(
         state = CalculatorState(expression = "12+5", cursor = 4, livePreview = "17"),
         onAction = {},
@@ -248,6 +258,15 @@ private fun PreviewMidTyping() = SifrTheme {
 @Preview(name = "Result", showBackground = true)
 @Composable
 private fun PreviewResult() = SifrTheme {
+    CalculatorScreen(
+        state = CalculatorState(expression = "17", cursor = 2),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Result (Bayan light)", showBackground = true)
+@Composable
+private fun PreviewResultBayan() = SifrTheme(palette = SifrPalette.Bayan) {
     CalculatorScreen(
         state = CalculatorState(expression = "17", cursor = 2),
         onAction = {},
@@ -278,7 +297,7 @@ private fun PreviewMemoryActive() = SifrTheme {
 
 @Preview(name = "Scientific mode", showBackground = true)
 @Composable
-private fun PreviewScientific() = SifrTheme {
+private fun PreviewScientific() = SifrTheme(palette = SifrPalette.Farah) {
     CalculatorScreen(
         state = CalculatorState(
             expression = "sin(30)",
@@ -287,6 +306,17 @@ private fun PreviewScientific() = SifrTheme {
             angleUnit = AngleUnit.Degrees,
             livePreview = "0.5",
         ),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Palette sweep", showBackground = true)
+@Composable
+private fun PreviewAllPalettes(
+    @PreviewParameter(PalettePreviewProvider::class) palette: SifrPalette,
+) = SifrTheme(palette = palette) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "12+5", cursor = 4, livePreview = "17"),
         onAction = {},
     )
 }

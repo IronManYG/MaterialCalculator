@@ -5,7 +5,7 @@
     <!-- Settings screen -->
     <string name="settings_title">الإعدادات</string>
     <string name="settings_back">رجوع</string>
-    <string name="settings_theme_section">المظهر</string>
+    <string name="settings_theme_section">الوضع</string>
     <string name="settings_theme_system">حسب النظام</string>
     <string name="settings_theme_light">فاتح</string>
     <string name="settings_theme_dark">داكن</string>
@@ -25,6 +25,15 @@
     <string name="calc_error_domain_error">المدخل خارج نطاق الدالة</string>
     <string name="calc_error_overflow">الناتج كبير جدًا</string>
     <string name="calc_error_syntax_error">خطأ في الصيغة</string>
+
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_palette_section">السمة</string>
+    <string name="settings_palette_layl">Layl</string>
+    <string name="settings_palette_bayan">Bayan</string>
+    <string name="settings_palette_raqim">Raqim</string>
+    <string name="settings_palette_farah">Farah</string>
+    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_dynamic">ديناميكي</string>
 
     <!-- History screen -->
     <string name="history_title">السجل</string>

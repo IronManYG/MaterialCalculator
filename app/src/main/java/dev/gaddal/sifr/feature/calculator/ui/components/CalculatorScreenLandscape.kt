@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +27,7 @@ import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,7 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
+import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
+import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
@@ -64,9 +67,12 @@ fun CalculatorScreenLandscape(
     state: CalculatorState,
     onAction: (CalculatorAction) -> Unit,
 ) {
+    val sifr = SifrTokens.colors
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(sifr.background),
+        containerColor = Color.Transparent,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -82,7 +88,7 @@ fun CalculatorScreenLandscape(
                     .fillMaxWidth()
                     .weight(0.30f)
                     .clip(RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                    .background(sifr.surface),
             ) {
                 CalculatorDisplay(
                     expression = state.expression,
@@ -138,6 +144,7 @@ fun CalculatorScreenLandscape(
                                 Icon(
                                     imageVector = Icons.Outlined.History,
                                     contentDescription = stringResource(R.string.calc_open_history),
+                                    tint = sifr.dim,
                                 )
                             }
                             // Mode toggle hidden in landscape: scientific
@@ -149,6 +156,7 @@ fun CalculatorScreenLandscape(
                                 Icon(
                                     imageVector = Icons.Default.Settings,
                                     contentDescription = stringResource(R.string.calc_open_settings),
+                                    tint = sifr.dim,
                                 )
                             }
                         }
@@ -160,12 +168,12 @@ fun CalculatorScreenLandscape(
                                 modifier = Modifier
                                     .padding(top = 4.dp)
                                     .clip(RoundedCornerShape(50))
-                                    .background(MaterialTheme.colorScheme.primary)
+                                    .background(sifr.accent)
                                     .padding(horizontal = 10.dp, vertical = 4.dp),
                             ) {
                                 Text(
                                     text = stringResource(R.string.calc_mode_chip_memory),
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    color = sifr.accentInk,
                                     fontSize = 12.sp,
                                 )
                             }
@@ -185,9 +193,7 @@ fun CalculatorScreenLandscape(
                         .absolutePadding(left = 96.dp, top = 8.dp, bottom = 8.dp)
                         .width(1.dp)
                         .fillMaxHeight()
-                        .background(
-                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.12f)
-                        ),
+                        .background(sifr.hairline),
                 )
             }
             // Body: two-column split. Weight complements the display's 0.30
@@ -326,7 +332,7 @@ private fun WeightedButtonGrid(
     heightDp = 360,
 )
 @Composable
-private fun PreviewLandscapeScientific() = SifrTheme {
+private fun PreviewLandscapeScientific() = SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
     CalculatorScreenLandscape(
         state = CalculatorState(
             expression = "12xsin(45)",
@@ -347,7 +353,7 @@ private fun PreviewLandscapeScientific() = SifrTheme {
     heightDp = 360,
 )
 @Composable
-private fun PreviewLandscapeBasic() = SifrTheme {
+private fun PreviewLandscapeBasic() = SifrTheme(palette = SifrPalette.Raqim, themeMode = ThemeMode.Light) {
     CalculatorScreenLandscape(
         state = CalculatorState(
             expression = "100+25",

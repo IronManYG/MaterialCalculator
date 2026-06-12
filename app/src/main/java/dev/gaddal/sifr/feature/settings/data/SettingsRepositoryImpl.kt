@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
@@ -28,6 +29,7 @@ class SettingsRepositoryImpl(
         dataStore.edit { prefs ->
             val updated = prefs.toAppSettings().transform()
             prefs[KEY_THEME_MODE] = updated.themeMode.name
+            prefs[KEY_PALETTE] = updated.palette.name
             prefs[KEY_HAPTICS] = updated.hapticsEnabled
             prefs[KEY_SOUND] = updated.soundEnabled
             prefs[KEY_CALC_MODE] = updated.calculatorMode.name
@@ -39,6 +41,9 @@ class SettingsRepositoryImpl(
         themeMode = this[KEY_THEME_MODE]
             ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
             ?: ThemeMode.System,
+        palette = this[KEY_PALETTE]
+            ?.let { runCatching { SifrPalette.valueOf(it) }.getOrNull() }
+            ?: SifrPalette.Layl,
         hapticsEnabled = this[KEY_HAPTICS] ?: true,
         soundEnabled = this[KEY_SOUND] ?: false,
         calculatorMode = this[KEY_CALC_MODE]
@@ -51,6 +56,7 @@ class SettingsRepositoryImpl(
 
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
+        val KEY_PALETTE = stringPreferencesKey("palette")
         val KEY_HAPTICS = booleanPreferencesKey("haptics_enabled")
         val KEY_SOUND = booleanPreferencesKey("sound_enabled")
         val KEY_CALC_MODE = stringPreferencesKey("calculator_mode")
