@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
@@ -49,11 +51,13 @@ fun CalculatorButton(
     action: CalculatorUiAction,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 32.sp,
+    shape: Shape? = null,
     onClick: () -> Unit,
 ) {
     val sifr = SifrTokens.colors
     val style = sifr.keyStyle(action.role)
-    val shape = RoundedCornerShape(sifr.keyRadius)
+    val keyShape = shape ?: RoundedCornerShape(sifr.keyRadius)
+    val isCircle = keyShape == CircleShape
 
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -91,7 +95,7 @@ fun CalculatorButton(
                         val glow = buildGlowBitmap(
                             widthPx = size.width.toInt(),
                             heightPx = size.height.toInt(),
-                            cornerRadiusPx = radiusDp.toPx(),
+                            cornerRadiusPx = if (isCircle) size.minDimension / 2f else radiusDp.toPx(),
                             blurRadiusPx = blurPx,
                             colorArgb = glowColor.toArgb(),
                         ).asImageBitmap()
@@ -110,13 +114,15 @@ fun CalculatorButton(
                             color = style.dropShadow,
                             topLeft = Offset(0f, off),
                             size = size,
-                            cornerRadius = CornerRadius(sifr.keyRadius.toPx()),
+                            cornerRadius = CornerRadius(
+                                if (isCircle) size.minDimension / 2f else sifr.keyRadius.toPx(),
+                            ),
                         )
                     }
                 } else Modifier,
             )
-            .clip(shape)
-            .background(style.container, shape)
+            .clip(keyShape)
+            .background(style.container, keyShape)
             // Mizan: 1px inner-top highlight line. Drawn over the key background so
             // it appears inside the top edge of the rounded rect.
             .then(
@@ -135,7 +141,7 @@ fun CalculatorButton(
                 } else Modifier,
             )
             .then(
-                if (style.border != null) Modifier.border(1.dp, style.border, shape) else Modifier,
+                if (style.border != null) Modifier.border(1.dp, style.border, keyShape) else Modifier,
             )
             .clickable(interactionSource = interaction, indication = null) { onClick() },
         contentAlignment = Alignment.Center,

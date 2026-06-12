@@ -1,5 +1,6 @@
 package dev.gaddal.sifr.feature.settings.ui
 
+import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
@@ -12,4 +13,6 @@ sealed interface SettingsAction {
     data object ToggleFractionResults : SettingsAction
     data class SetAngleUnit(val unit: AngleUnit) : SettingsAction
     data object BackClicked : SettingsAction
+    data class SetKeypadLayout(val layout: KeypadLayout) : SettingsAction
+    data object ToggleMemoryKeys : SettingsAction
 }

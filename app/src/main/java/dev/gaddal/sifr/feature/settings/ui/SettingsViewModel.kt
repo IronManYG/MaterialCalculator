@@ -47,6 +47,8 @@ class SettingsViewModel(
             SettingsAction.ToggleFractionResults -> updateSettings { copy(fractionResults = !fractionResults) }
             is SettingsAction.SetAngleUnit -> updateSettings { copy(angleUnit = action.unit) }
             SettingsAction.BackClicked -> emit(SettingsEvent.NavigateBack)
+            is SettingsAction.SetKeypadLayout -> updateSettings { copy(keypadLayout = action.layout) }
+            SettingsAction.ToggleMemoryKeys -> updateSettings { copy(memoryKeysVisible = !memoryKeysVisible) }
         }
     }
 

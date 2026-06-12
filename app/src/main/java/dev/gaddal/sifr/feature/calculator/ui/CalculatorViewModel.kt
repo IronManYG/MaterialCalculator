@@ -68,6 +68,8 @@ class CalculatorViewModel(
                         angleUnit = settings.angleUnit,
                         memoryValue = settings.memoryValue,
                         fractionResults = settings.fractionResults,
+                        keypadLayout = settings.keypadLayout,
+                        memoryKeysVisible = settings.memoryKeysVisible,
                         livePreview = computePreview(),
                         justEvaluated = false,
                     )

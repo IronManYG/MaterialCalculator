@@ -52,6 +52,7 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
@@ -262,6 +263,8 @@ fun CalculatorScreen(
             CalculatorButtonGrid(
                 mode = state.mode,
                 angleUnit = state.angleUnit,
+                layout = state.keypadLayout,
+                memoryKeysVisible = state.memoryKeysVisible,
                 onAction = onAction,
                 modifier = Modifier
                     .weight(keypadWeight)
@@ -380,6 +383,24 @@ private fun PreviewMizanInset() = SifrTheme(palette = SifrPalette.Mizan, themeMo
 private fun PreviewFraction() = SifrTheme(palette = SifrPalette.Raqim) {
     CalculatorScreen(
         state = CalculatorState(expression = "0.75", cursor = 4, fractionResults = true),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Remix (Layl dark)", showBackground = true)
+@Composable
+private fun PreviewRemix() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "12+5", cursor = 4, livePreview = "17", keypadLayout = KeypadLayout.Remix),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Remix — memory keys off (Bayan)", showBackground = true)
+@Composable
+private fun PreviewRemixNoMemory() = SifrTheme(palette = SifrPalette.Bayan) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "7", cursor = 1, keypadLayout = KeypadLayout.Remix, memoryKeysVisible = false),
         onAction = {},
     )
 }

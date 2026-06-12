@@ -48,6 +48,13 @@
     <string name="settings_palette_mizan">Mizan</string>
     <string name="settings_palette_dynamic">ديناميكي</string>
 
+    <!-- v1.6 settings — keypad -->
+    <string name="settings_keypad_section">لوحة المفاتيح</string>
+    <string name="settings_memory_keys">مفاتيح الذاكرة</string>
+    <string name="settings_keypad_classic">Classic</string>
+    <string name="settings_keypad_remix">Remix</string>
+    <string name="settings_keypad_arc">Arc</string>
+
     <!-- History screen -->
     <string name="history_title">السجل</string>
     <string name="history_back">رجوع</string>

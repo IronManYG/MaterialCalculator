@@ -226,6 +226,7 @@ fun CalculatorScreenLandscape(
                 )
                 BasicBlockLandscape(
                     onAction = onAction,
+                    memoryKeysVisible = state.memoryKeysVisible,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
@@ -269,14 +270,15 @@ private fun ScientificBlockLandscape(
 @Composable
 private fun BasicBlockLandscape(
     onAction: (CalculatorAction) -> Unit,
+    memoryKeysVisible: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    // Memory row at TOP of the basic block; then the standard basic grid below.
-    // Chunk per section so the memory row stays its own row and never bleeds
-    // into the basic rows.
-    val rows = remember {
+    // Memory row at TOP of the basic block (when visible); then the standard
+    // basic grid below. Chunk per section so the memory row stays its own row
+    // and never bleeds into the basic rows.
+    val rows = remember(memoryKeysVisible) {
         buildList {
-            add(memoryRow)
+            if (memoryKeysVisible) add(memoryRow)
             addAll(basicRows.chunked(BASIC_COLUMNS))
         }
     }
@@ -373,6 +375,27 @@ private fun PreviewLandscapeBasic() = SifrTheme(palette = SifrPalette.Raqim, the
             mode = CalculatorMode.Basic,
             angleUnit = AngleUnit.Degrees,
             livePreview = "125",
+        ),
+        onAction = {},
+    )
+}
+
+@Preview(
+    name = "Landscape — memory keys off",
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 360,
+)
+@Composable
+private fun PreviewLandscapeNoMemory() = SifrTheme(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light) {
+    CalculatorScreenLandscape(
+        state = CalculatorState(
+            expression = "7x8",
+            cursor = 3,
+            mode = CalculatorMode.Basic,
+            angleUnit = AngleUnit.Degrees,
+            livePreview = "56",
+            memoryKeysVisible = false,
         ),
         onAction = {},
     )
