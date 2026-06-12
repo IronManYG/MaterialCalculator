@@ -36,11 +36,11 @@ fun SifrBrand(modifier: Modifier = Modifier) {
     when (SifrTokens.palette) {
         SifrPalette.Bayan -> Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("✴", color = sifr.accent, fontSize = 16.sp)            // ✴ 8-point star
-            Text("SIFR", color = sifr.text, fontWeight = FontWeight.W900, fontSize = 18.sp, fontFamily = sifr.uiFamily)
+            Text("SIFR", color = sifr.text, fontWeight = FontWeight.W900, fontSize = 18.sp, letterSpacing = 1.1.sp, fontFamily = sifr.uiFamily)
             Text(AR_SIFR, color = sifr.dim, fontFamily = Amiri, fontSize = 18.sp)
         }
         SifrPalette.Raqim -> Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text(AR_SIFR, color = sifr.text, fontFamily = sifr.displayFamily, fontSize = 23.sp)
+            Text(AR_SIFR, color = sifr.text, fontFamily = Amiri, fontSize = 23.sp)
             Box(Modifier.size(5.dp).clip(CircleShape).background(sifr.accent))
         }
         SifrPalette.Farah -> Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
