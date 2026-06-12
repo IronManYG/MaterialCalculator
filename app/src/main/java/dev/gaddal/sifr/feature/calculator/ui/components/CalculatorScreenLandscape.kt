@@ -379,3 +379,24 @@ private fun PreviewLandscapeBasic() = SifrTheme(palette = SifrPalette.Raqim, the
         onAction = {},
     )
 }
+
+@Preview(
+    name = "Landscape — memory keys off",
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 360,
+)
+@Composable
+private fun PreviewLandscapeNoMemory() = SifrTheme(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light) {
+    CalculatorScreenLandscape(
+        state = CalculatorState(
+            expression = "7x8",
+            cursor = 3,
+            mode = CalculatorMode.Basic,
+            angleUnit = AngleUnit.Degrees,
+            livePreview = "56",
+            memoryKeysVisible = false,
+        ),
+        onAction = {},
+    )
+}
