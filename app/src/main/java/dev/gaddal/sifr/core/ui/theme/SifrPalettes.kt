@@ -57,7 +57,7 @@ internal fun bayanLight(accent: Color = Color(0xFF2C3FE3)): SifrColors = SifrCol
     statusBarLightIcons = false,
     text = Color(0xFF16140F), dim = Color(0xFF7A745F), accent = accent, accentInk = Color(0xFFF2EDE0),
     hairline = Color(0xFF16140F), surface = Color(0xFFFBF8F0), surfaceBorder = Color(0xFF16140F),
-    displayExpression = Color(0xFF16140F), displayResult = Color(0xFF2C3FE3),
+    displayExpression = Color(0xFFF2EDE0), displayResult = Color(0xFF8E9BFF),
     displayError = Color(0xFFC94040),
     displayBlock = Color(0xFF16140F), // v1.5 renders the ink block; v1.4 stays flat
     keyNum = SifrKeyStyle(SolidColor(Color(0xFFF2EDE0)), Color(0xFF16140F)),
@@ -74,12 +74,7 @@ internal fun bayanDark(accent: Color = Color(0xFF5B6CFF)): SifrColors = SifrColo
     statusBarLightIcons = true,
     text = Color(0xFFF2EDE0), dim = Color(0xFF8F876E), accent = accent, accentInk = Color(0xFFF2EDE0),
     hairline = Color(0xFFF2EDE0).copy(0.30f), surface = Color(0xFF1E1A12), surfaceBorder = Color(0xFFF2EDE0).copy(0.30f),
-    // v1.4 renders the display flat on the dark surface, so the expression must be light
-    // (= text). The dark #16140F is the v1.5 on-cream-ink-block value; restore it when
-    // displayBlock renders (v1.5). displayResult uses accent (#5B6CFF, ~3.8:1 on the flat
-    // dark surface) — the light-mode brand indigo #2C3FE3 is only ~1.8:1 here and fails the
-    // 3:1 large-text bar; #2C3FE3 returns with displayBlock in v1.5.
-    displayExpression = Color(0xFFF2EDE0), displayResult = accent,
+    displayExpression = Color(0xFF16140F), displayResult = Color(0xFF2C3FE3),
     displayError = Color(0xFFFF8080),
     displayBlock = Color(0xFFF2EDE0),
     keyNum = SifrKeyStyle(SolidColor(Color(0xFF211D14)), Color(0xFFF2EDE0)),
@@ -130,7 +125,9 @@ internal fun farahLight(accent: Color = Color(0xFFF2683C)): SifrColors = SifrCol
     statusBarLightIcons = false,
     text = Color(0xFF4A3326), dim = Color(0xFFB08A62), accent = accent, accentInk = Color(0xFFFFF6EC),
     hairline = Color(0xFFF0DFC8), surface = Color(0xFFFFFDF8), surfaceBorder = Color(0xFFF4E3CC),
-    displayExpression = Color(0xFF4A3326), displayResult = accent, displayError = Color(0xFFC94040),
+    displayExpression = Color(0xFF4A3326),
+    // displayResult is on-container-tuned; coincides with accent for Farah/Mizan today but kept independent (cf. Bayan, which diverges).
+    displayResult = Color(0xFFF2683C), displayError = Color(0xFFC94040),
     displayCard = Color(0xFFFFFDF8),
     keyNum = SifrKeyStyle(SolidColor(Color(0xFFF7E3C8)), Color(0xFF4A3326), dropShadow = Color(0xFFE8CFA9)),
     keyOp = SifrKeyStyle(SolidColor(accent), Color(0xFFFFF6EC), dropShadow = accent.copy(0.55f)),
@@ -145,7 +142,7 @@ internal fun farahDark(accent: Color = Color(0xFFFF7A4D)): SifrColors = SifrColo
     statusBarLightIcons = true,
     text = Color(0xFFFFE9CF), dim = Color(0xFFC49A6C), accent = accent, accentInk = Color(0xFF2A1D13),
     hairline = Color(0xFFFFE9CF).copy(0.12f), surface = Color(0xFF352617), surfaceBorder = Color(0xFFFFE9CF).copy(0.10f),
-    displayExpression = Color(0xFFFFE9CF), displayResult = accent, displayError = Color(0xFFFF8080),
+    displayExpression = Color(0xFFFFE9CF), displayResult = Color(0xFFFF7A4D), displayError = Color(0xFFFF8080),
     displayCard = Color(0xFF352617),
     keyNum = SifrKeyStyle(SolidColor(Color(0xFF3E2D1C)), Color(0xFFFFE9CF), dropShadow = Color(0xFF271A0E)),
     keyOp = SifrKeyStyle(SolidColor(accent), Color(0xFF2A1D13), dropShadow = Color(0xFF000000).copy(0.40f)),
@@ -162,7 +159,7 @@ internal fun mizanDark(accent: Color = Color(0xFFE2772E)): SifrColors = SifrColo
     statusBarLightIcons = true,
     text = Color(0xFFF4F1E8), dim = Color(0xFF8E8A80), accent = accent, accentInk = Color(0xFF1B1108),
     hairline = Color.White.copy(0.08f), surface = Color(0xFF222220), surfaceBorder = Color.White.copy(0.07f),
-    displayExpression = Color(0xFFF4F1E8), displayResult = accent, displayError = Color(0xFFFF8080),
+    displayExpression = Color(0xFFF4F1E8), displayResult = Color(0xFFE2772E), displayError = Color(0xFFFF8080),
     displayInset = Color(0xFF111110),
     keyNum = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFF272725), Color(0xFF1F1F1D))), Color(0xFFDBD7CE), dropShadow = Color.Black.copy(0.55f), innerTopHighlight = Color.White.copy(0.07f)),
     keyOp = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFF272725), Color(0xFF1F1F1D))), accent, dropShadow = Color.Black.copy(0.55f), innerTopHighlight = Color.White.copy(0.07f)),
@@ -177,7 +174,7 @@ internal fun mizanLight(accent: Color = Color(0xFFD96A20)): SifrColors = SifrCol
     statusBarLightIcons = false,
     text = Color(0xFF23221F), dim = Color(0xFF75736C), accent = accent, accentInk = Color(0xFFFFF8EE),
     hairline = Color(0xFF23221F).copy(0.12f), surface = Color(0xFFE6E5E1), surfaceBorder = Color(0xFF23221F).copy(0.10f),
-    displayExpression = Color(0xFF23221F), displayResult = accent, displayError = Color(0xFFC94040),
+    displayExpression = Color(0xFF23221F), displayResult = Color(0xFFD96A20), displayError = Color(0xFFC94040),
     displayInset = Color(0xFFC8C7C1),
     keyNum = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFFFCFCFA), Color(0xFFEDECE8))), Color(0xFF2E2D2A), dropShadow = Color(0xFFB4B3AE), innerTopHighlight = Color.White.copy(0.9f)),
     keyOp = SifrKeyStyle(Brush.verticalGradient(listOf(Color(0xFFFCFCFA), Color(0xFFEDECE8))), accent, dropShadow = Color(0xFFB4B3AE), innerTopHighlight = Color.White.copy(0.9f)),

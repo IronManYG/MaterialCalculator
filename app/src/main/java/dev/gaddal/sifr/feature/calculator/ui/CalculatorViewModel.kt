@@ -40,7 +40,6 @@ class CalculatorViewModel(
     init {
         val restoredExpression: String = savedStateHandle[KEY_EXPRESSION] ?: ""
         val restoredCursor: Int = savedStateHandle[KEY_CURSOR] ?: 0
-        val restoredMemory: Double? = savedStateHandle[KEY_MEMORY]
         if (restoredExpression.isNotEmpty()) {
             writer.restoreState(restoredExpression, restoredCursor)
         }
@@ -50,7 +49,7 @@ class CalculatorViewModel(
                 cursor = writer.cursor,
                 selectionStart = writer.selectionStart,
                 livePreview = computePreview(),
-                memoryValue = restoredMemory,
+                memoryValue = null,
             )
         )
         state = _state.asStateFlow()
@@ -67,7 +66,10 @@ class CalculatorViewModel(
                     it.copy(
                         mode = settings.calculatorMode,
                         angleUnit = settings.angleUnit,
+                        memoryValue = settings.memoryValue,
+                        fractionResults = settings.fractionResults,
                         livePreview = computePreview(),
+                        justEvaluated = false,
                     )
                 }
             }
@@ -101,6 +103,14 @@ class CalculatorViewModel(
                 val v = _state.value.memoryValue ?: return
                 applyToWriter(CalculatorAction.InsertText(numberToInsert(v)))
             }
+            CalculatorAction.CopyResult -> {
+                val text = _state.value.expression
+                if (text.isNotBlank()) emit(CalculatorEvent.CopyToClipboard(text))
+            }
+            CalculatorAction.ShareResult -> {
+                val text = _state.value.expression
+                if (text.isNotBlank()) emit(CalculatorEvent.ShareText(text))
+            }
             else -> applyToWriter(action)
         }
     }
@@ -118,8 +128,8 @@ class CalculatorViewModel(
     }
 
     private fun updateMemory(newValue: Double?) {
-        _state.update { it.copy(memoryValue = newValue) }
-        savedStateHandle[KEY_MEMORY] = newValue
+        _state.update { it.copy(memoryValue = newValue, justEvaluated = false) }
+        viewModelScope.launch { settingsRepository.update { copy(memoryValue = newValue) } }
     }
 
     private fun numberToInsert(v: Double): String {
@@ -141,13 +151,14 @@ class CalculatorViewModel(
                         selectionStart = writer.selectionStart,
                         livePreview = computePreview(),
                         error = null,
+                        justEvaluated = action == CalculatorAction.Calculate && pre.isNotBlank() && pre != post,
                     )
                 }
                 persistForRestore(post, writer.cursor)
                 onSuccessSideEffects(action, pre, post)
             }
             .onFailure { error ->
-                _state.update { it.copy(livePreview = null, error = error.toUiText()) }
+                _state.update { it.copy(livePreview = null, error = error.toUiText(), justEvaluated = false) }
                 emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
             }
     }
@@ -195,6 +206,5 @@ class CalculatorViewModel(
     companion object {
         private const val KEY_EXPRESSION = "expression"
         private const val KEY_CURSOR = "cursor"
-        private const val KEY_MEMORY = "memory"
     }
 }

@@ -44,6 +44,8 @@ class SettingsViewModel(
                 updateSettings { copy(soundEnabled = !soundEnabled) }
                 if (!wasEnabled) emit(SettingsEvent.DemoSound)
             }
+            SettingsAction.ToggleFractionResults -> updateSettings { copy(fractionResults = !fractionResults) }
+            is SettingsAction.SetAngleUnit -> updateSettings { copy(angleUnit = action.unit) }
             SettingsAction.BackClicked -> emit(SettingsEvent.NavigateBack)
         }
     }

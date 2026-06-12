@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.contextmenu.data.TextContextMenuKeys
 import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
@@ -38,9 +39,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.UiText
+import dev.gaddal.sifr.feature.calculator.domain.toFraction
 
 private const val PROMOTION_ANIMATION_MS = 340
 
@@ -62,6 +63,7 @@ fun CalculatorDisplay(
     modifier: Modifier = Modifier,
     maxFontSize: TextUnit = 64.sp,
     previewSlotHeight: androidx.compose.ui.unit.Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
+    fractionResults: Boolean = false,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val sifr = SifrTokens.colors
@@ -295,6 +297,24 @@ fun CalculatorDisplay(
                             },
                         )
                     }
+                }
+
+                // Fraction row — shown only when fractionResults is on AND
+                // the whole expression is a single bare finite number that
+                // has a representable fraction (toFraction returns null for
+                // integers, so 17 or 42 correctly show nothing here).
+                val fraction = remember(expression, fractionResults) {
+                    if (!fractionResults) null
+                    else expression.toDoubleOrNull()?.toFraction()
+                }
+                if (error == null && fraction != null) {
+                    FractionLabel(
+                        fraction = fraction,
+                        color = previewColor,
+                        fontFamily = sifr.displayFamily,
+                        fontSize = 22.sp,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
                 }
             }
         }

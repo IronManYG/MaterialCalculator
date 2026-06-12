@@ -20,6 +20,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -27,8 +30,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +54,7 @@ import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.PalettePreviewProvider
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
@@ -57,7 +63,9 @@ import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorButtonGrid
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplay
+import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplaySurface
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorScreenLandscape
+import dev.gaddal.sifr.feature.calculator.ui.components.ResultActionsRow
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -76,11 +84,24 @@ fun CalculatorRoot(
         hapticsEnabled = settings.hapticsEnabled,
         soundEnabled = settings.soundEnabled,
     )
+    val context = LocalContext.current
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             CalculatorEvent.NavigateToSettings -> onNavigateToSettings()
             CalculatorEvent.NavigateToHistory -> onNavigateToHistory()
             is CalculatorEvent.PlayFeedback -> feedback.play(event.intent)
+            is CalculatorEvent.CopyToClipboard -> {
+                ContextCompat.getSystemService(context, ClipboardManager::class.java)
+                    ?.setPrimaryClip(ClipData.newPlainText("Sifr", event.text))
+                feedback.play(FeedbackIntent.Selection)
+            }
+            is CalculatorEvent.ShareText -> {
+                val send = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, event.text)
+                }
+                context.startActivity(Intent.createChooser(send, null))
+            }
         }
     }
     val isLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
@@ -157,22 +178,34 @@ fun CalculatorScreen(
                     )
                     .background(sifr.surface)
             ) {
-                CalculatorDisplay(
-                    expression = state.expression,
-                    cursor = state.cursor,
-                    selectionStart = state.selectionStart,
-                    livePreview = state.livePreview,
-                    error = state.error,
-                    onSelectionChange = { start, end ->
-                        onAction(CalculatorAction.SelectionChanged(start, end))
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            vertical = 24.dp,
-                            horizontal = 16.dp
-                        )
-                )
+                CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
+                    CalculatorDisplay(
+                        expression = state.expression,
+                        cursor = state.cursor,
+                        selectionStart = state.selectionStart,
+                        livePreview = state.livePreview,
+                        error = state.error,
+                        onSelectionChange = { start, end ->
+                            onAction(CalculatorAction.SelectionChanged(start, end))
+                        },
+                        fractionResults = state.fractionResults,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                vertical = 24.dp,
+                                horizontal = 16.dp
+                            )
+                    )
+                }
+                if (state.justEvaluated && state.error == null) {
+                    ResultActionsRow(
+                        onCopy = { onAction(CalculatorAction.CopyResult) },
+                        onShare = { onAction(CalculatorAction.ShareResult) },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(12.dp),
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -264,6 +297,15 @@ private fun PreviewResult() = SifrTheme {
     )
 }
 
+@Preview(name = "Result actions (Layl dark)", showBackground = true)
+@Composable
+private fun PreviewResultActions() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "17", cursor = 2, justEvaluated = true),
+        onAction = {},
+    )
+}
+
 @Preview(name = "Result (Bayan light)", showBackground = true)
 @Composable
 private fun PreviewResultBayan() = SifrTheme(palette = SifrPalette.Bayan) {
@@ -317,6 +359,27 @@ private fun PreviewAllPalettes(
 ) = SifrTheme(palette = palette) {
     CalculatorScreen(
         state = CalculatorState(expression = "12+5", cursor = 4, livePreview = "17"),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Farah card (light)", showBackground = true)
+@Composable
+private fun PreviewFarahCard() = SifrTheme(palette = SifrPalette.Farah, themeMode = ThemeMode.Light) {
+    CalculatorScreen(state = CalculatorState(expression = "48", cursor = 2), onAction = {})
+}
+
+@Preview(name = "Mizan inset (dark)", showBackground = true)
+@Composable
+private fun PreviewMizanInset() = SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
+    CalculatorScreen(state = CalculatorState(expression = "48", cursor = 2), onAction = {})
+}
+
+@Preview(name = "Fraction result (Raqim)", showBackground = true)
+@Composable
+private fun PreviewFraction() = SifrTheme(palette = SifrPalette.Raqim) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "0.75", cursor = 4, fractionResults = true),
         onAction = {},
     )
 }

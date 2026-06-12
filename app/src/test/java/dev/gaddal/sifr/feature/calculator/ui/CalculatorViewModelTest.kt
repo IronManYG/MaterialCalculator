@@ -499,14 +499,20 @@ class CalculatorViewModelTest {
     }
 
     @Test
-    fun `Memory value survives process death via SavedStateHandle`() = runTest {
-        val handle = SavedStateHandle()
-        val first = newViewModel(savedState = handle)
+    fun `Memory value survives process death via DataStore`() = runTest {
+        // Shared FakeSettingsRepository simulates DataStore surviving process death:
+        // both VM instances observe the same MutableStateFlow<AppSettings>.
+        val settings = FakeSettingsRepository()
+        val first = newViewModel(settings = settings)
         first.onAction(CalculatorAction.Number(9))
         first.onAction(CalculatorAction.MemoryAdd)
+        advanceUntilIdle()
 
-        // Simulate process death — create a fresh ViewModel with the same handle.
-        val restored = newViewModel(savedState = handle)
+        // Simulate process death — create a fresh ViewModel with a new writer
+        // but the SAME settings repo (DataStore contents survive).
+        val restored = newViewModel(settings = settings, writer = ExpressionWriter())
+        advanceUntilIdle()
+
         assertThat(restored.state.value.memoryValue).isEqualTo(9.0)
     }
 }

@@ -24,6 +24,19 @@
     <string name="calc_error_domain_error">Input outside function domain</string>
     <string name="calc_error_overflow">Result too large</string>
     <string name="calc_error_syntax_error">Syntax error</string>
+    <!-- v1.5 result actions -->
+    <string name="calc_action_copy">COPY</string>
+    <string name="calc_action_share">SHARE</string>
+
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">Display</string>
+    <string name="settings_fraction_results">Fraction results</string>
+    <string name="settings_angle_unit">Angle unit</string>
+    <string name="settings_angle_deg">DEG</string>
+    <string name="settings_angle_rad">RAD</string>
+    <string name="settings_feedback_section">Feedback</string>
+    <string name="settings_about_section">About</string>
+    <string name="settings_about_tagline">Sifr — صفر · a calmer calculator.</string>
 
     <!-- Settings screen — appearance/palette -->
     <string name="settings_palette_section">Theme</string>
