@@ -46,6 +46,8 @@ import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
+import dev.gaddal.sifr.core.domain.settings.KeypadLayout
+import dev.gaddal.sifr.feature.settings.ui.components.KeypadLayoutPicker
 import dev.gaddal.sifr.feature.settings.ui.components.ThemePicker
 import org.koin.androidx.compose.koinViewModel
 
@@ -115,6 +117,17 @@ fun SettingsScreen(
                 selected = state.settings.palette,
                 dark = dark,
                 onSelect = { onAction(SettingsAction.SetPalette(it)) },
+            )
+            HorizontalDivider()
+            SectionLabel(stringResource(R.string.settings_keypad_section))
+            KeypadLayoutPicker(
+                selected = state.settings.keypadLayout,
+                onSelect = { onAction(SettingsAction.SetKeypadLayout(it)) },
+            )
+            SwitchRow(
+                label = stringResource(R.string.settings_memory_keys),
+                checked = state.settings.memoryKeysVisible,
+                onCheckedChange = { onAction(SettingsAction.ToggleMemoryKeys) },
             )
             HorizontalDivider()
             SectionLabel(stringResource(R.string.settings_display_section))
@@ -258,6 +271,18 @@ private fun SettingsPreviewBayan() = SifrTheme(palette = SifrPalette.Bayan, them
 private fun SettingsPreviewDisplayVariant() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Light) {
     SettingsScreen(
         state = SettingsState(settings = AppSettings(fractionResults = true, angleUnit = AngleUnit.Radians), isLoading = false),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Settings — Keypad (Arc / mem off)", showBackground = true)
+@Composable
+private fun SettingsPreviewKeypad() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+    SettingsScreen(
+        state = SettingsState(
+            settings = AppSettings(keypadLayout = KeypadLayout.Arc, memoryKeysVisible = false),
+            isLoading = false,
+        ),
         onAction = {},
     )
 }
