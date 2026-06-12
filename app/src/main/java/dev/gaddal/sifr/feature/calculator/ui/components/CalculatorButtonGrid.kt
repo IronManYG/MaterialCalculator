@@ -140,7 +140,7 @@ private fun buildKeypadRows(
     addAll(
         when (layout) {
             KeypadLayout.Remix -> remixBasicRows
-            else -> classicBasicRows // Classic + Tape fallback (+ Arc until Task 6)
+            else -> classicBasicRows // Classic + Tape fallback (Arc is dispatched separately)
         },
     )
 }
