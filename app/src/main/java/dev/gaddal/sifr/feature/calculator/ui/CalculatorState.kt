@@ -1,5 +1,6 @@
 package dev.gaddal.sifr.feature.calculator.ui
 
+import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.ui.util.UiText
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
@@ -15,4 +16,6 @@ data class CalculatorState(
     val memoryValue: Double? = null,
     val fractionResults: Boolean = false, // v1.5 — mirror of AppSettings.fractionResults
     val justEvaluated: Boolean = false,   // v1.5 — true only right after a successful '='
+    val keypadLayout: KeypadLayout = KeypadLayout.Classic, // v1.6 — mirror of AppSettings
+    val memoryKeysVisible: Boolean = true,                 // v1.6 — mirror of AppSettings
 )
