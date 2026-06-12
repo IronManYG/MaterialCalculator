@@ -7,11 +7,10 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -163,14 +162,12 @@ fun CalculatorScreen(
     onRotate: () -> Unit = {},
     rotateActive: Boolean = false,
 ) {
-    // Mode-aware ratios: in scientific mode the keypad has many more rows so
-    // it needs the lion's share; in basic mode the keypad has only 6 rows so
-    // the display can afford to be visually prominent. Weights are
-    // complementary (sum to 1.0) so they read directly as screen percentages.
+    // The keypad is content-sized (fixed-height rows, Task 3); the display takes
+    // the remaining space and bottom-aligns its content (prototype flex:1 +
+    // justify-end). On short screens the keypad clamps its row height toward the
+    // 46dp floor (handled in CalculatorButtonGrid) before the display collapses.
     val sifr = SifrTokens.colors
     val isScientific = state.mode == CalculatorMode.Scientific
-    val displayWeight = if (isScientific) 0.30f else 0.45f
-    val keypadWeight = 1f - displayWeight
     val keypadFontSize = if (isScientific) 20.sp else 32.sp
     Scaffold(
         modifier = Modifier
@@ -195,58 +192,62 @@ fun CalculatorScreen(
             )
         },
     ) { innerPadding ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .padding(horizontal = 18.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 180.dp)
-                    .weight(displayWeight)
-            ) {
-                CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
-                    CalculatorDisplay(
-                        expression = state.expression,
-                        cursor = state.cursor,
-                        selectionStart = state.selectionStart,
-                        livePreview = state.livePreview,
-                        error = state.error,
-                        onSelectionChange = { start, end ->
-                            onAction(CalculatorAction.SelectionChanged(start, end))
-                        },
-                        fractionResults = state.fractionResults,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(
-                                vertical = 24.dp,
-                                horizontal = 16.dp
-                            )
-                    )
+            // Reserve a minimum for the display; the keypad may shrink its base
+            // row height toward the 46dp floor (spec §4.6) so it never crowds the
+            // display below this on short screens.
+            val minDisplayHeight = 160.dp
+            val keypadMaxHeight = (maxHeight - minDisplayHeight).coerceAtLeast(0.dp)
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = minDisplayHeight)
+                        .weight(1f),
+                    contentAlignment = Alignment.BottomEnd,
+                ) {
+                    CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
+                        CalculatorDisplay(
+                            expression = state.expression,
+                            cursor = state.cursor,
+                            selectionStart = state.selectionStart,
+                            livePreview = state.livePreview,
+                            error = state.error,
+                            onSelectionChange = { start, end ->
+                                onAction(CalculatorAction.SelectionChanged(start, end))
+                            },
+                            fractionResults = state.fractionResults,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(vertical = 18.dp),
+                        )
+                    }
+                    if (state.justEvaluated && state.error == null) {
+                        ResultActionsRow(
+                            onCopy = { onAction(CalculatorAction.CopyResult) },
+                            onShare = { onAction(CalculatorAction.ShareResult) },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(12.dp),
+                        )
+                    }
                 }
-                if (state.justEvaluated && state.error == null) {
-                    ResultActionsRow(
-                        onCopy = { onAction(CalculatorAction.CopyResult) },
-                        onShare = { onAction(CalculatorAction.ShareResult) },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(12.dp),
-                    )
-                }
+                CalculatorButtonGrid(
+                    mode = state.mode,
+                    angleUnit = state.angleUnit,
+                    layout = state.keypadLayout,
+                    memoryKeysVisible = state.memoryKeysVisible,
+                    onAction = onAction,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                    fontSize = keypadFontSize,
+                    maxHeight = keypadMaxHeight,
+                )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            CalculatorButtonGrid(
-                mode = state.mode,
-                angleUnit = state.angleUnit,
-                layout = state.keypadLayout,
-                memoryKeysVisible = state.memoryKeysVisible,
-                onAction = onAction,
-                modifier = Modifier
-                    .weight(keypadWeight)
-                    .padding(8.dp),
-                fontSize = keypadFontSize,
-            )
         }
     }
 }

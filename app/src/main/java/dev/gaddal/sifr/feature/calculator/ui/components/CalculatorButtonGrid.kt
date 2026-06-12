@@ -41,6 +41,7 @@ fun CalculatorButtonGrid(
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 32.sp,
+    maxHeight: Dp? = null,
 ) {
     val sifr = SifrTokens.colors
     val gridLineColor = when {
@@ -61,12 +62,21 @@ fun CalculatorButtonGrid(
             )
             else -> {
                 val rows = buildKeypadRows(mode, angleUnit, layout, memoryKeysVisible, GRID_COLUMNS)
+                // keyGap is palette-variable (≈1dp hairline themes → 12dp pill
+                // themes); fold it into the budget so the clamp stays accurate as
+                // the inter-row gaps grow/shrink with the active palette.
+                val gap = sifr.keyGap
+                val base = if (maxHeight != null) {
+                    val totalScale = rows.sumOf { it.heightScale.toDouble() }.toFloat()
+                    val gaps = gap * (rows.size - 1)
+                    ((maxHeight - gaps) / totalScale).coerceIn(46.dp, 58.dp)
+                } else 58.dp
                 WeightedCellGrid(
                     rows = rows,
                     columns = GRID_COLUMNS,
                     onAction = onAction,
                     fontSize = fontSize,
-                    baseRowHeight = 58.dp,
+                    baseRowHeight = base,
                     modifier = modifier.then(
                         if (gridLineColor != null) Modifier.background(gridLineColor).padding(sifr.keyGap) else Modifier,
                     ),
