@@ -168,6 +168,7 @@ fun CalculatorScreen(
                         onSelectionChange = { start, end ->
                             onAction(CalculatorAction.SelectionChanged(start, end))
                         },
+                        fractionResults = state.fractionResults,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(
@@ -334,4 +335,13 @@ private fun PreviewFarahCard() = SifrTheme(palette = SifrPalette.Farah, themeMod
 @Composable
 private fun PreviewMizanInset() = SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
     CalculatorScreen(state = CalculatorState(expression = "48", cursor = 2), onAction = {})
+}
+
+@Preview(name = "Fraction result (Raqim)", showBackground = true)
+@Composable
+private fun PreviewFraction() = SifrTheme(palette = SifrPalette.Raqim) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "0.75", cursor = 4, fractionResults = true),
+        onAction = {},
+    )
 }

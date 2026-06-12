@@ -105,6 +105,7 @@ fun CalculatorScreenLandscape(
                         // in a ~100dp box.
                         maxFontSize = 36.sp,
                         previewSlotHeight = 28.dp,
+                        fractionResults = state.fractionResults,
                         modifier = Modifier
                             .fillMaxSize()
                             // Reserve horizontal space on the leading edge for
