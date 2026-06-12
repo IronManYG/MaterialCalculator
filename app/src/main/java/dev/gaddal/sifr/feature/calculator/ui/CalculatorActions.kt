@@ -9,6 +9,88 @@ import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.ConstantSymbol
 import dev.gaddal.sifr.feature.calculator.domain.Operation
 
+/** A keypad cell with an optional column span (Remix's `0` spans 2). */
+data class KeypadCell(
+    val action: CalculatorUiAction,
+    val span: Int = 1,
+)
+
+// ---- Shared basic-key descriptors (one source of truth for every layout) ----
+private fun digitKey(n: Int) =
+    CalculatorUiAction(n.toString(), SifrKeyRole.Num, CalculatorAction.Number(n))
+
+private val key0 = digitKey(0)
+private val key1 = digitKey(1)
+private val key2 = digitKey(2)
+private val key3 = digitKey(3)
+private val key4 = digitKey(4)
+private val key5 = digitKey(5)
+private val key6 = digitKey(6)
+private val key7 = digitKey(7)
+private val key8 = digitKey(8)
+private val key9 = digitKey(9)
+
+private val keyClear = CalculatorUiAction("AC", SifrKeyRole.Fn, CalculatorAction.Clear)
+private val keyParens = CalculatorUiAction("()", SifrKeyRole.Fn, CalculatorAction.Parentheses)
+private val keyPercent = CalculatorUiAction("%", SifrKeyRole.Fn, CalculatorAction.Op(Operation.PERCENT))
+private val keyDivide = CalculatorUiAction("÷", SifrKeyRole.Op, CalculatorAction.Op(Operation.DIVIDE))
+private val keyMultiply = CalculatorUiAction("x", SifrKeyRole.Op, CalculatorAction.Op(Operation.MULTIPLY))
+private val keySubtract = CalculatorUiAction("-", SifrKeyRole.Op, CalculatorAction.Op(Operation.SUBTRACT))
+private val keyAdd = CalculatorUiAction("+", SifrKeyRole.Op, CalculatorAction.Op(Operation.ADD))
+private val keyDecimal = CalculatorUiAction(".", SifrKeyRole.Num, CalculatorAction.Decimal)
+private val keyEquals = CalculatorUiAction("=", SifrKeyRole.Eq, CalculatorAction.Calculate)
+private val keyDelete = CalculatorUiAction(
+    text = null,
+    role = SifrKeyRole.Num,
+    action = CalculatorAction.Delete,
+    content = {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Backspace,
+            contentDescription = null,
+            tint = SifrTokens.colors.keyNum.content,
+        )
+    },
+)
+
+/** Classic basic block as a flat list — still consumed by the landscape screen. */
+val basicRows: List<CalculatorUiAction> = listOf(
+    keyClear, keyParens, keyPercent, keyDivide,
+    key7, key8, key9, keyMultiply,
+    key4, key5, key6, keySubtract,
+    key1, key2, key3, keyAdd,
+    key0, keyDecimal, keyDelete, keyEquals,
+)
+
+/** Classic basic block as span-aware rows (all span 1). */
+val classicBasicRows: List<List<KeypadCell>> =
+    basicRows.chunked(4).map { row -> row.map { KeypadCell(it) } }
+
+/**
+ * Remix basic block (spec §5): top row swaps `()` → `⌫`; `0` spans 2 cols;
+ * `=` takes the old backspace slot. NO parentheses key (decision #4 — parens
+ * remain in Scientific mode and in Classic).
+ */
+val remixBasicRows: List<List<KeypadCell>> = listOf(
+    listOf(KeypadCell(keyClear), KeypadCell(keyPercent), KeypadCell(keyDelete), KeypadCell(keyDivide)),
+    listOf(KeypadCell(key7), KeypadCell(key8), KeypadCell(key9), KeypadCell(keyMultiply)),
+    listOf(KeypadCell(key4), KeypadCell(key5), KeypadCell(key6), KeypadCell(keySubtract)),
+    listOf(KeypadCell(key1), KeypadCell(key2), KeypadCell(key3), KeypadCell(keyAdd)),
+    listOf(KeypadCell(key0, span = 2), KeypadCell(keyDecimal), KeypadCell(keyEquals)),
+)
+
+/** Arc number pad (3-col, spec §5). Operators + `=` are drawn separately as circles. */
+val arcNumberPadRows: List<List<KeypadCell>> = listOf(
+    listOf(KeypadCell(key7), KeypadCell(key8), KeypadCell(key9)),
+    listOf(KeypadCell(key4), KeypadCell(key5), KeypadCell(key6)),
+    listOf(KeypadCell(key1), KeypadCell(key2), KeypadCell(key3)),
+    listOf(KeypadCell(key0), KeypadCell(keyDecimal), KeypadCell(keyDelete)),
+    listOf(KeypadCell(keyClear, span = 2), KeypadCell(keyPercent)),
+)
+
+/** Arc operators (bottom-end circles) + the oversized `=` circle. */
+val arcOperators: List<CalculatorUiAction> = listOf(keyDivide, keyMultiply, keySubtract, keyAdd)
+val arcEquals: CalculatorUiAction = keyEquals
+
 val memoryRow: List<CalculatorUiAction> = listOf(
     CalculatorUiAction("MC", SifrKeyRole.Fn, CalculatorAction.MemoryClear),
     CalculatorUiAction("M+", SifrKeyRole.Fn, CalculatorAction.MemoryAdd),
@@ -38,42 +120,6 @@ val scientificCells: List<CalculatorUiAction> = listOf(
     CalculatorUiAction("acos", SifrKeyRole.Fn, CalculatorAction.Function("acos")),
     CalculatorUiAction("atan", SifrKeyRole.Fn, CalculatorAction.Function("atan")),
     CalculatorUiAction("exp", SifrKeyRole.Fn, CalculatorAction.Function("exp")),
-    // Angle-unit toggle — the displayed label is the CURRENT unit. The
-    // keypad consumer filters to only emit the matching cell.
     CalculatorUiAction("deg", SifrKeyRole.Fn, CalculatorAction.ToggleAngleUnit),
     CalculatorUiAction("rad", SifrKeyRole.Fn, CalculatorAction.ToggleAngleUnit),
-)
-
-val basicRows: List<CalculatorUiAction> = listOf(
-    CalculatorUiAction("AC", SifrKeyRole.Fn, CalculatorAction.Clear),
-    CalculatorUiAction("()", SifrKeyRole.Fn, CalculatorAction.Parentheses),
-    CalculatorUiAction("%", SifrKeyRole.Fn, CalculatorAction.Op(Operation.PERCENT)),
-    CalculatorUiAction("÷", SifrKeyRole.Op, CalculatorAction.Op(Operation.DIVIDE)),
-    CalculatorUiAction("7", SifrKeyRole.Num, CalculatorAction.Number(7)),
-    CalculatorUiAction("8", SifrKeyRole.Num, CalculatorAction.Number(8)),
-    CalculatorUiAction("9", SifrKeyRole.Num, CalculatorAction.Number(9)),
-    CalculatorUiAction("x", SifrKeyRole.Op, CalculatorAction.Op(Operation.MULTIPLY)),
-    CalculatorUiAction("4", SifrKeyRole.Num, CalculatorAction.Number(4)),
-    CalculatorUiAction("5", SifrKeyRole.Num, CalculatorAction.Number(5)),
-    CalculatorUiAction("6", SifrKeyRole.Num, CalculatorAction.Number(6)),
-    CalculatorUiAction("-", SifrKeyRole.Op, CalculatorAction.Op(Operation.SUBTRACT)),
-    CalculatorUiAction("1", SifrKeyRole.Num, CalculatorAction.Number(1)),
-    CalculatorUiAction("2", SifrKeyRole.Num, CalculatorAction.Number(2)),
-    CalculatorUiAction("3", SifrKeyRole.Num, CalculatorAction.Number(3)),
-    CalculatorUiAction("+", SifrKeyRole.Op, CalculatorAction.Op(Operation.ADD)),
-    CalculatorUiAction("0", SifrKeyRole.Num, CalculatorAction.Number(0)),
-    CalculatorUiAction(".", SifrKeyRole.Num, CalculatorAction.Decimal),
-    CalculatorUiAction(
-        text = null,
-        content = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Backspace,
-                contentDescription = null,
-                tint = SifrTokens.colors.keyNum.content,
-            )
-        },
-        role = SifrKeyRole.Num,
-        action = CalculatorAction.Delete,
-    ),
-    CalculatorUiAction("=", SifrKeyRole.Eq, CalculatorAction.Calculate),
 )
