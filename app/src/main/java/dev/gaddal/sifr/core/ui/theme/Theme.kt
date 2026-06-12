@@ -48,7 +48,10 @@ fun SifrTheme(
         }
     }
 
-    CompositionLocalProvider(LocalSifrColors provides sifr) {
+    CompositionLocalProvider(
+        LocalSifrColors provides sifr,
+        LocalSifrPalette provides palette,
+    ) {
         MaterialTheme(
             colorScheme = sifr.toMaterialColorScheme(dark),
             typography = sifrTypography(sifr),

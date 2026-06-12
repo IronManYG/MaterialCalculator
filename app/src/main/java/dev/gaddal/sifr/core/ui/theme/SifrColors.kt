@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
 
 /** Every keypad key maps to exactly one of these four roles for styling. */
 enum class SifrKeyRole { Num, Op, Eq, Fn }
@@ -74,8 +75,15 @@ val LocalSifrColors = staticCompositionLocalOf<SifrColors> {
     error("SifrColors not provided — wrap content in SifrTheme { }.")
 }
 
+/** The active palette enum (Layl/Bayan/Raqim/Farah/Mizan/Dynamic), for components
+ *  that must branch on identity (e.g. SifrBrand) rather than resolved colors. */
+val LocalSifrPalette = staticCompositionLocalOf { SifrPalette.Layl }
+
 /** Ergonomic, free (`@ReadOnlyComposable`) token accessor: `SifrTokens.colors.accent`. */
 object SifrTokens {
     val colors: SifrColors
         @Composable @ReadOnlyComposable get() = LocalSifrColors.current
+
+    val palette: SifrPalette
+        @Composable @ReadOnlyComposable get() = LocalSifrPalette.current
 }
