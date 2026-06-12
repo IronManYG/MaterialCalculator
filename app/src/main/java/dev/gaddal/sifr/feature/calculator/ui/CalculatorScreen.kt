@@ -57,6 +57,7 @@ import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorButtonGrid
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplay
+import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplaySurface
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorScreenLandscape
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -157,22 +158,24 @@ fun CalculatorScreen(
                     )
                     .background(sifr.surface)
             ) {
-                CalculatorDisplay(
-                    expression = state.expression,
-                    cursor = state.cursor,
-                    selectionStart = state.selectionStart,
-                    livePreview = state.livePreview,
-                    error = state.error,
-                    onSelectionChange = { start, end ->
-                        onAction(CalculatorAction.SelectionChanged(start, end))
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            vertical = 24.dp,
-                            horizontal = 16.dp
-                        )
-                )
+                CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
+                    CalculatorDisplay(
+                        expression = state.expression,
+                        cursor = state.cursor,
+                        selectionStart = state.selectionStart,
+                        livePreview = state.livePreview,
+                        error = state.error,
+                        onSelectionChange = { start, end ->
+                            onAction(CalculatorAction.SelectionChanged(start, end))
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                vertical = 24.dp,
+                                horizontal = 16.dp
+                            )
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -319,4 +322,16 @@ private fun PreviewAllPalettes(
         state = CalculatorState(expression = "12+5", cursor = 4, livePreview = "17"),
         onAction = {},
     )
+}
+
+@Preview(name = "Farah card (light)", showBackground = true)
+@Composable
+private fun PreviewFarahCard() = SifrTheme(palette = SifrPalette.Farah, themeMode = ThemeMode.Light) {
+    CalculatorScreen(state = CalculatorState(expression = "48", cursor = 2), onAction = {})
+}
+
+@Preview(name = "Mizan inset (dark)", showBackground = true)
+@Composable
+private fun PreviewMizanInset() = SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
+    CalculatorScreen(state = CalculatorState(expression = "48", cursor = 2), onAction = {})
 }

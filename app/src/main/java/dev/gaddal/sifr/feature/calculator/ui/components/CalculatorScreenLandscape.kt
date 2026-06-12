@@ -90,36 +90,38 @@ fun CalculatorScreenLandscape(
                     .clip(RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp))
                     .background(sifr.surface),
             ) {
-                CalculatorDisplay(
-                    expression = state.expression,
-                    cursor = state.cursor,
-                    selectionStart = state.selectionStart,
-                    livePreview = state.livePreview,
-                    error = state.error,
-                    onSelectionChange = { start, end ->
-                        onAction(CalculatorAction.SelectionChanged(start, end))
-                    },
-                    // Landscape display strip is short. Lower the main-text
-                    // cap and shrink the preview slot so both fit comfortably
-                    // in a ~100dp box.
-                    maxFontSize = 36.sp,
-                    previewSlotHeight = 28.dp,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        // Reserve horizontal space on the leading edge for
-                        // the toolbar icons (forced top-left below). 104dp =
-                        // 8dp margin + 2 × 48dp IconButton. Right-aligned
-                        // expression text grows leftward and stops *before*
-                        // the icons' x-range, so they can't collide
-                        // regardless of expression length. Vertical padding
-                        // stays tight so the preview slot fits.
-                        .padding(
-                            top = 8.dp,
-                            bottom = 8.dp,
-                            start = 104.dp,
-                            end = 16.dp,
-                        ),
-                )
+                CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
+                    CalculatorDisplay(
+                        expression = state.expression,
+                        cursor = state.cursor,
+                        selectionStart = state.selectionStart,
+                        livePreview = state.livePreview,
+                        error = state.error,
+                        onSelectionChange = { start, end ->
+                            onAction(CalculatorAction.SelectionChanged(start, end))
+                        },
+                        // Landscape display strip is short. Lower the main-text
+                        // cap and shrink the preview slot so both fit comfortably
+                        // in a ~100dp box.
+                        maxFontSize = 36.sp,
+                        previewSlotHeight = 28.dp,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            // Reserve horizontal space on the leading edge for
+                            // the toolbar icons (forced top-left below). 104dp =
+                            // 8dp margin + 2 × 48dp IconButton. Right-aligned
+                            // expression text grows leftward and stops *before*
+                            // the icons' x-range, so they can't collide
+                            // regardless of expression length. Vertical padding
+                            // stays tight so the preview slot fits.
+                            .padding(
+                                top = 8.dp,
+                                bottom = 8.dp,
+                                start = 104.dp,
+                                end = 16.dp,
+                            ),
+                    )
+                }
                 // Toolbar overlay anchored to the visual top-left in both
                 // locales. `AbsoluteAlignment.TopLeft` (unlike `TopStart`)
                 // does not flip under RTL — `TopStart` was being resolved
