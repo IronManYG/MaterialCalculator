@@ -13,4 +13,6 @@ data class CalculatorState(
     val mode: CalculatorMode = CalculatorMode.Basic,
     val angleUnit: AngleUnit = AngleUnit.Degrees,
     val memoryValue: Double? = null,
+    val fractionResults: Boolean = false, // v1.5 — mirror of AppSettings.fractionResults
+    val justEvaluated: Boolean = false,   // v1.5 — true only right after a successful '='
 )
