@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -45,20 +44,30 @@ fun CalculatorButtonGrid(
         sifr.hairlineGrid -> sifr.gridLine
         else -> null
     }
-    val rows = remember(mode, angleUnit, layout, memoryKeysVisible) {
-        buildKeypadRows(mode, angleUnit, layout, memoryKeysVisible, GRID_COLUMNS)
-    }
     // Keypad is conventionally LTR even in Arabic locale (math reads L→R).
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        WeightedCellGrid(
-            rows = rows,
-            columns = GRID_COLUMNS,
-            onAction = onAction,
-            fontSize = fontSize,
-            modifier = modifier.then(
-                if (gridLineColor != null) Modifier.background(gridLineColor).padding(sifr.keyGap) else Modifier,
-            ),
-        )
+        when (layout) {
+            KeypadLayout.Arc -> ArcKeypad(
+                mode = mode,
+                angleUnit = angleUnit,
+                memoryKeysVisible = memoryKeysVisible,
+                onAction = onAction,
+                modifier = modifier,
+                fontSize = fontSize,
+            )
+            else -> {
+                val rows = buildKeypadRows(mode, angleUnit, layout, memoryKeysVisible, GRID_COLUMNS)
+                WeightedCellGrid(
+                    rows = rows,
+                    columns = GRID_COLUMNS,
+                    onAction = onAction,
+                    fontSize = fontSize,
+                    modifier = modifier.then(
+                        if (gridLineColor != null) Modifier.background(gridLineColor).padding(sifr.keyGap) else Modifier,
+                    ),
+                )
+            }
+        }
     }
 }
 
