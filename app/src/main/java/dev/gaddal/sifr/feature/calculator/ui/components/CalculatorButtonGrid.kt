@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
@@ -23,6 +24,7 @@ import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.feature.calculator.ui.KeypadCell
 import dev.gaddal.sifr.feature.calculator.ui.classicBasicRows
 import dev.gaddal.sifr.feature.calculator.ui.memoryRow
+import dev.gaddal.sifr.feature.calculator.ui.remixBasicRows
 import dev.gaddal.sifr.feature.calculator.ui.scientificCells
 
 private const val GRID_COLUMNS = 4
@@ -31,6 +33,8 @@ private const val GRID_COLUMNS = 4
 fun CalculatorButtonGrid(
     mode: CalculatorMode,
     angleUnit: AngleUnit,
+    layout: KeypadLayout,
+    memoryKeysVisible: Boolean,
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 32.sp,
@@ -41,7 +45,9 @@ fun CalculatorButtonGrid(
         sifr.hairlineGrid -> sifr.gridLine
         else -> null
     }
-    val rows = remember(mode, angleUnit) { buildKeypadRows(mode, angleUnit, GRID_COLUMNS) }
+    val rows = remember(mode, angleUnit, layout, memoryKeysVisible) {
+        buildKeypadRows(mode, angleUnit, layout, memoryKeysVisible, GRID_COLUMNS)
+    }
     // Keypad is conventionally LTR even in Arabic locale (math reads L→R).
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         WeightedCellGrid(
@@ -102,13 +108,15 @@ fun WeightedCellGrid(
 }
 
 /**
- * Build the keypad as span-aware rows: scientific (when active) → memory →
- * Classic basic. Each section chunked independently so memory keys never
- * bleed into another section.
+ * Build the keypad as span-aware rows: scientific (when active) → memory
+ * (when visible) → basic rows selected by layout. Each section chunked
+ * independently so memory keys never bleed into another section.
  */
 private fun buildKeypadRows(
     mode: CalculatorMode,
     angleUnit: AngleUnit,
+    layout: KeypadLayout,
+    memoryKeysVisible: Boolean,
     columns: Int,
 ): List<List<KeypadCell>> = buildList {
     if (mode == CalculatorMode.Scientific) {
@@ -119,6 +127,11 @@ private fun buildKeypadRows(
         }
         addAll(sci.chunked(columns).map { rowActions -> rowActions.map { KeypadCell(it) } })
     }
-    add(memoryRow.map { KeypadCell(it) })
-    addAll(classicBasicRows)
+    if (memoryKeysVisible) add(memoryRow.map { KeypadCell(it) })
+    addAll(
+        when (layout) {
+            KeypadLayout.Remix -> remixBasicRows
+            else -> classicBasicRows // Classic + Tape fallback (+ Arc until Task 6)
+        },
+    )
 }
