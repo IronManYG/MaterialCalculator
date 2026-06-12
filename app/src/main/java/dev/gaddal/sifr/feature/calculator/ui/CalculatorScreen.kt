@@ -22,7 +22,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -209,7 +208,6 @@ fun CalculatorScreen(
                         .fillMaxWidth()
                         .heightIn(min = minDisplayHeight)
                         .weight(1f),
-                    contentAlignment = Alignment.BottomEnd,
                 ) {
                     CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
                         CalculatorDisplay(
@@ -221,19 +219,21 @@ fun CalculatorScreen(
                             onSelectionChange = { start, end ->
                                 onAction(CalculatorAction.SelectionChanged(start, end))
                             },
+                            evaluatedInput = state.evaluatedInput,
+                            justEvaluated = state.justEvaluated,
+                            angleUnit = state.angleUnit,
+                            memoryValue = state.memoryValue,
+                            onToggleAngleUnit = { onAction(CalculatorAction.ToggleAngleUnit) },
+                            resultActions = {
+                                ResultActionsRow(
+                                    onCopy = { onAction(CalculatorAction.CopyResult) },
+                                    onShare = { onAction(CalculatorAction.ShareResult) },
+                                )
+                            },
                             fractionResults = state.fractionResults,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(vertical = 18.dp),
-                        )
-                    }
-                    if (state.justEvaluated && state.error == null) {
-                        ResultActionsRow(
-                            onCopy = { onAction(CalculatorAction.CopyResult) },
-                            onShare = { onAction(CalculatorAction.ShareResult) },
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(12.dp),
                         )
                     }
                 }
@@ -281,7 +281,7 @@ private fun PreviewResult() = SifrTheme {
 @Composable
 private fun PreviewResultActions() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
     CalculatorScreen(
-        state = CalculatorState(expression = "17", cursor = 2, justEvaluated = true),
+        state = CalculatorState(expression = "512", cursor = 3, justEvaluated = true, evaluatedInput = "128 x 4"),
         onAction = {},
     )
 }
