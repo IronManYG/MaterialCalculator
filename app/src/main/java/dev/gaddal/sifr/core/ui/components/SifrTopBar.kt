@@ -80,7 +80,7 @@ fun SifrCalcTopBar(
                     color = if (scientificActive) sifr.accent else sifr.dim,
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.W600,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                 )
             }
         }
@@ -123,7 +123,9 @@ fun SifrSubScreenTopBar(
 @Composable
 private fun BarIcon(icon: ImageVector, cd: String, tint: Color, onClick: () -> Unit) {
     IconButton(onClick = onClick) {
-        Icon(icon, contentDescription = cd, tint = tint, modifier = Modifier.size(22.dp))
+        // 20dp (was 22): the prototype's top-bar glyphs read smaller (ui-bits.jsx
+        // SifrIconBtn size 17). Keeps the 48dp IconButton touch target intact.
+        Icon(icon, contentDescription = cd, tint = tint, modifier = Modifier.size(20.dp))
     }
 }
 
