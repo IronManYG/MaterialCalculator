@@ -18,10 +18,16 @@ data class KeypadCell(
 /**
  * A keypad row plus its height scale relative to the base key-row height
  * (spec §4.6): basic rows 1.0, scientific rows 0.62, memory row 0.58.
+ *
+ * [fontScale] multiplies the grid's base key font for this row. Multi-glyph rows
+ * (memory MC/M+/M−/MR, scientific names) want smaller text than single-digit
+ * number keys — the prototype hard-codes memory fs=15 vs basic num fs=23. Basic
+ * rows stay 1.0.
  */
 data class KeypadRowSpec(
     val cells: List<KeypadCell>,
     val heightScale: Float = 1f,
+    val fontScale: Float = 1f,
 )
 
 // ---- Shared basic-key descriptors (one source of truth for every layout) ----
@@ -111,11 +117,15 @@ val memoryRow: List<CalculatorUiAction> = listOf(
 )
 
 /**
- * Scientific row cells, compact layout (a 4-column grid).
+ * Scientific row cells — a clean 4×4 grid matching the prototype's `SciRows`
+ * (layouts.jsx:26-31): trig + log/constants/root, then power/factorial/parens,
+ * then inverse trig + exp. Angle (deg/rad) is the DEG/RAD display chip's job, not
+ * a keypad key, so no `deg`/`rad` cells live here.
  *
- * The `deg`/`rad` cells are mutually exclusive — only one is rendered at a
- * time, picked by the current angleUnit. The keypad consumer filters them
- * before chunking.
+ * `(` and `)` route to the same smart [CalculatorAction.Parentheses] as Classic's
+ * `()` key (the writer infers open-vs-close from context — there is no literal
+ * open/close action, and a literal `(` would skip implicit-multiply). The prototype
+ * carries the same redundancy (parens also reachable via Classic's `()`).
  */
 val scientificCells: List<CalculatorUiAction> = listOf(
     CalculatorUiAction("sin", SifrKeyRole.Fn, CalculatorAction.Function("sin")),
@@ -128,10 +138,10 @@ val scientificCells: List<CalculatorUiAction> = listOf(
     CalculatorUiAction("√", SifrKeyRole.Fn, CalculatorAction.Function("sqrt")),
     CalculatorUiAction("x^y", SifrKeyRole.Fn, CalculatorAction.Op(Operation.POWER)),
     CalculatorUiAction("x!", SifrKeyRole.Fn, CalculatorAction.Factorial),
+    CalculatorUiAction("(", SifrKeyRole.Fn, CalculatorAction.Parentheses),
+    CalculatorUiAction(")", SifrKeyRole.Fn, CalculatorAction.Parentheses),
     CalculatorUiAction("asin", SifrKeyRole.Fn, CalculatorAction.Function("asin")),
     CalculatorUiAction("acos", SifrKeyRole.Fn, CalculatorAction.Function("acos")),
     CalculatorUiAction("atan", SifrKeyRole.Fn, CalculatorAction.Function("atan")),
     CalculatorUiAction("exp", SifrKeyRole.Fn, CalculatorAction.Function("exp")),
-    CalculatorUiAction("deg", SifrKeyRole.Fn, CalculatorAction.ToggleAngleUnit),
-    CalculatorUiAction("rad", SifrKeyRole.Fn, CalculatorAction.ToggleAngleUnit),
 )

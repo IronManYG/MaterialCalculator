@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,16 +67,27 @@ fun CalculatorDisplay(
     maxFontSize: TextUnit = 50.sp,
     previewSlotHeight: Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
     fractionResults: Boolean = false,
+    // Scientific mode squeezes the display; `compact` shaves the inter-line gaps in
+    // the two-line result state so the COPY row stops clipping there.
+    compact: Boolean = false,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val sifr = SifrTokens.colors
     val mainColor = if (error != null) sifr.displayError else sifr.displayExpression
     val resultColor = sifr.displayResult
     val previewColor = sifr.displayResult.copy(alpha = 0.85f)
+    // Input/expression weight is palette-specific (prototype display.jsx:66 —
+    // Bayan extra-bold, Raqim light, everything else medium).
+    val displayWeight = when (SifrTokens.palette) {
+        SifrPalette.Bayan -> FontWeight.W900
+        SifrPalette.Raqim -> FontWeight.W300
+        else -> FontWeight.W500
+    }
     val mainStyle = TextStyle(
         color = mainColor,
         textAlign = TextAlign.End,
         fontFamily = sifr.displayFamily,
+        fontWeight = displayWeight,
     )
 
     // While justEvaluated the 50sp line shows the INPUT the user typed (kept in
@@ -86,160 +98,213 @@ fun CalculatorDisplay(
     val showResult = justEvaluated && error == null && evaluatedInput != null
     val mainText = if (showResult) evaluatedInput else expression
 
+    // Fraction shared by the result / preview / bare-number lines: only when the
+    // toggle is on AND the whole expression is a bare finite number with a
+    // representable fraction (toFraction returns null for integers / non-reducible).
+    val fraction = remember(expression, fractionResults) {
+        if (!fractionResults) null else expression.toDoubleOrNull()?.toFraction()
+    }
+
+    // Scientific (compact) tightens the inter-line gaps so the two-line result + COPY
+    // row fits the squeezed display without clipping — even in the airy palettes.
+    val lineGap = if (compact) 2.dp else 4.dp
     Box(
         modifier = modifier,
         contentAlignment = if (isRtl) Alignment.BottomEnd else Alignment.BottomStart,
     ) {
-        // Force math content LTR regardless of system locale (keeps trailing weak
-        // operators like the '+' in "10+" on the visual trailing edge).
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalAlignment = Alignment.End,
-            ) {
-                // 1) Mode-chips band — start-aligned, top of stack (portrait only).
-                if (angleUnit != null) {
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.Start)
-                            .padding(bottom = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        val angleLabel = when (angleUnit) {
-                            AngleUnit.Radians -> stringResource(R.string.settings_angle_rad)
-                            AngleUnit.Degrees -> stringResource(R.string.settings_angle_deg)
-                        }
-                        SifrChip(
-                            label = angleLabel,
-                            active = angleUnit == AngleUnit.Radians,
-                            onClick = onToggleAngleUnit,
-                        )
-                        if (memoryValue != null) {
-                            SifrChip(label = stringResource(R.string.calc_mode_chip_memory), active = true)
-                        }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(lineGap),
+            horizontalAlignment = Alignment.End,
+        ) {
+            // 1) Mode-chips band — kept in the AMBIENT layout direction (outside the
+            // forced-LTR math block below) so it sits on the leading edge and mirrors
+            // to the right in RTL, matching the prototype (only display.jsx's math
+            // lines are dir="ltr"; the chip band follows the locale, display.jsx:61).
+            if (angleUnit != null) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(bottom = if (compact) 3.dp else 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    val angleLabel = when (angleUnit) {
+                        AngleUnit.Radians -> stringResource(R.string.settings_angle_rad)
+                        AngleUnit.Degrees -> stringResource(R.string.settings_angle_deg)
+                    }
+                    SifrChip(
+                        label = angleLabel,
+                        active = angleUnit == AngleUnit.Radians,
+                        onClick = onToggleAngleUnit,
+                    )
+                    if (memoryValue != null) {
+                        SifrChip(label = stringResource(R.string.calc_mode_chip_memory), active = true)
                     }
                 }
+            }
 
-                // 2) Expression / input line.
-                if (error != null) {
-                    // Wrap up to two lines at 28sp so long localized error strings
-                    // fit without clipping (QA: Honor 400 Pro overflow).
-                    BasicText(
-                        text = error.asString(),
-                        style = mainStyle.copy(fontSize = 28.sp, textAlign = TextAlign.End, lineHeight = 32.sp),
-                        maxLines = 2,
-                        softWrap = true,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                } else {
-                    val fieldValue = if (showResult) {
-                        remember(mainText) {
-                            TextFieldValue(text = mainText, selection = TextRange(mainText.length))
-                        }
-                    } else {
-                        remember(mainText, cursor, selectionStart) {
-                            val maxLen = mainText.length
-                            TextFieldValue(
-                                text = mainText,
-                                selection = TextRange(
-                                    start = selectionStart.coerceIn(0, maxLen),
-                                    end = cursor.coerceIn(0, maxLen),
-                                ),
-                            )
-                        }
-                    }
-                    val hasRangeNow = rememberUpdatedState(!showResult && cursor != selectionStart)
-                    AutoSizingExpressionField(
-                        value = fieldValue,
-                        onValueChange = { newValue ->
-                            // Frozen result line is non-editable; only react to
-                            // tap/drag selection changes while editing.
-                            if (!showResult) {
-                                val newStart = newValue.selection.start
-                                val newEnd = newValue.selection.end
-                                if (newStart != selectionStart || newEnd != cursor) {
-                                    onSelectionChange(newStart, newEnd)
-                                }
-                            }
-                        },
-                        style = mainStyle,
-                        maxFontSize = maxFontSize,
-                        // Hide the caret while showing a frozen result (prototype
-                        // hides the blink on justEvaluated, display.jsx:68).
-                        cursorBrush = if (showResult) SolidColor(Color.Transparent) else SolidColor(sifr.accent),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            // Long-press toolbar: with a range selected expose only
-                            // Copy (writer ignores text mutations); collapsed
-                            // selection falls through to the default menu.
-                            .filterTextContextMenuComponents { component ->
-                                if (hasRangeNow.value) component.key == TextContextMenuKeys.CopyKey else true
-                            },
-                    )
-                }
-
-                // 3) Result / preview line.
-                if (error == null) {
-                    if (showResult) {
-                        // Dedicated 30sp result line.
+            // Force math content LTR regardless of system locale (keeps trailing weak
+            // operators like the '+' in "10+" — and the result — on the visual
+            // trailing/right edge).
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(lineGap),
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    // 2) Expression / input line.
+                    if (error != null) {
+                        // Wrap up to two lines at 28sp so long localized error strings
+                        // fit without clipping (QA: Honor 400 Pro overflow).
                         BasicText(
-                            text = "= $expression",
-                            style = TextStyle(
-                                fontSize = 30.sp,
-                                color = resultColor,
-                                fontFamily = sifr.displayFamily,
-                                textAlign = TextAlign.End,
-                            ),
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.StartEllipsis,
+                            text = error.asString(),
+                            style = mainStyle.copy(fontSize = 28.sp, textAlign = TextAlign.End, lineHeight = 32.sp),
+                            maxLines = 2,
+                            softWrap = true,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        val fieldValue = if (showResult) {
+                            remember(mainText) {
+                                TextFieldValue(text = mainText, selection = TextRange(mainText.length))
+                            }
+                        } else {
+                            remember(mainText, cursor, selectionStart) {
+                                val maxLen = mainText.length
+                                TextFieldValue(
+                                    text = mainText,
+                                    selection = TextRange(
+                                        start = selectionStart.coerceIn(0, maxLen),
+                                        end = cursor.coerceIn(0, maxLen),
+                                    ),
+                                )
+                            }
+                        }
+                        val hasRangeNow = rememberUpdatedState(!showResult && cursor != selectionStart)
+                        AutoSizingExpressionField(
+                            value = fieldValue,
+                            onValueChange = { newValue ->
+                                // Frozen result line is non-editable; only react to
+                                // tap/drag selection changes while editing.
+                                if (!showResult) {
+                                    val newStart = newValue.selection.start
+                                    val newEnd = newValue.selection.end
+                                    if (newStart != selectionStart || newEnd != cursor) {
+                                        onSelectionChange(newStart, newEnd)
+                                    }
+                                }
+                            },
+                            style = mainStyle,
+                            maxFontSize = maxFontSize,
+                            // Hide the caret while showing a frozen result (prototype
+                            // hides the blink on justEvaluated, display.jsx:68).
+                            cursorBrush = if (showResult) SolidColor(Color.Transparent) else SolidColor(sifr.accent),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                // Long-press toolbar: with a range selected expose only
+                                // Copy (writer ignores text mutations); collapsed
+                                // selection falls through to the default menu.
+                                .filterTextContextMenuComponents { component ->
+                                    if (hasRangeNow.value) component.key == TextContextMenuKeys.CopyKey else true
+                                },
                         )
-                    } else if (!livePreview.isNullOrBlank()) {
-                        // Live preview at 22sp in a fixed-height slot.
-                        Box(
-                            modifier = Modifier.fillMaxWidth().height(previewSlotHeight),
-                            contentAlignment = Alignment.CenterEnd,
-                        ) {
-                            BasicText(
-                                text = livePreview,
-                                style = TextStyle(fontSize = 22.sp, color = previewColor),
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.StartEllipsis,
+                    }
+
+                    // 3) Result / preview line — fraction renders INLINE to its right
+                    // (prototype display.jsx:77 & 87), not on its own line.
+                    if (error == null) {
+                        if (showResult) {
+                            // Dedicated 30sp result line + inline fraction.
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = if (compact) 4.dp else 8.dp),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.Bottom,
+                            ) {
+                                BasicText(
+                                    text = "= $expression",
+                                    style = TextStyle(
+                                        fontSize = if (compact) 26.sp else 30.sp,
+                                        color = resultColor,
+                                        fontFamily = sifr.displayFamily,
+                                        textAlign = TextAlign.End,
+                                    ),
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.StartEllipsis,
+                                    modifier = Modifier.weight(1f, fill = false),
+                                )
+                                if (fraction != null) {
+                                    FractionLabel(
+                                        fraction = fraction,
+                                        color = resultColor,
+                                        fontFamily = sifr.displayFamily,
+                                        fontSize = 22.sp,
+                                        modifier = Modifier.padding(start = 12.dp),
+                                    )
+                                }
+                            }
+                        } else if (!livePreview.isNullOrBlank()) {
+                            // Live preview at 22sp in a fixed-height slot, prefixed with
+                            // '= ' (prototype display.jsx:87) + inline fraction.
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(previewSlotHeight),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.Bottom,
+                                ) {
+                                    BasicText(
+                                        text = "= $livePreview",
+                                        style = TextStyle(
+                                            fontSize = 22.sp,
+                                            color = previewColor,
+                                            fontFamily = sifr.displayFamily,
+                                            textAlign = TextAlign.End,
+                                        ),
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.StartEllipsis,
+                                        modifier = Modifier.weight(1f, fill = false),
+                                    )
+                                    if (fraction != null) {
+                                        FractionLabel(
+                                            fraction = fraction,
+                                            color = previewColor,
+                                            fontFamily = sifr.displayFamily,
+                                            fontSize = 17.sp,
+                                            modifier = Modifier.padding(start = 10.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        } else if (fraction != null) {
+                            // Bare number with no result/preview line: fraction stands alone.
+                            FractionLabel(
+                                fraction = fraction,
+                                color = previewColor,
+                                fontFamily = sifr.displayFamily,
+                                fontSize = 22.sp,
+                                modifier = Modifier.padding(top = 2.dp),
                             )
                         }
-                    }
 
-                    // Fraction row — only when fractionResults is on AND the whole
-                    // expression is a bare finite number with a representable
-                    // fraction (toFraction returns null for integers).
-                    val fraction = remember(expression, fractionResults) {
-                        if (!fractionResults) null else expression.toDoubleOrNull()?.toFraction()
-                    }
-                    if (fraction != null) {
-                        FractionLabel(
-                            fraction = fraction,
-                            color = previewColor,
-                            fontFamily = sifr.displayFamily,
-                            fontSize = 22.sp,
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
-                    }
-
-                    // 4) In-flow result-actions (COPY · SHARE [· ANS]) — portrait
-                    // passes the slot; landscape leaves it null and keeps its own.
-                    if (showResult && resultActions != null) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .padding(top = 12.dp),
-                        ) {
-                            resultActions()
+                        // 4) In-flow result-actions (COPY · SHARE [· ANS]) — portrait
+                        // passes the slot; landscape leaves it null and keeps its own.
+                        if (showResult && resultActions != null) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .padding(top = if (compact) 6.dp else 12.dp),
+                            ) {
+                                resultActions()
+                            }
                         }
                     }
                 }

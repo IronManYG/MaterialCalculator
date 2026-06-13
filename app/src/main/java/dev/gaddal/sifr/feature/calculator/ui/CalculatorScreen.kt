@@ -167,7 +167,20 @@ fun CalculatorScreen(
     // 46dp floor (handled in CalculatorButtonGrid) before the display collapses.
     val sifr = SifrTokens.colors
     val isScientific = state.mode == CalculatorMode.Scientific
-    val keypadFontSize = if (isScientific) 20.sp else 32.sp
+    // Card / inset / block palettes draw their own container with 18–20dp of inner
+    // padding; the display then added ANOTHER 18dp on top (≈38dp total vs the
+    // prototype's ~7dp). In the two-line result state that double-pad squeezed the
+    // bottom COPY·SHARE·ANS row past the surface and it dropped out of the layout
+    // entirely (device-verified on Farah's tall keypad). Drop the display's redundant
+    // vertical pad only while a frozen result is shown on a surface palette — the
+    // surface's own inset still spaces the content, and the airy typing state is
+    // untouched (the surface insets don't change, so the card doesn't jump on `=`).
+    val hasSurface = sifr.displayCard != null || sifr.displayInset != null || sifr.displayBlock != null
+    val resultShown = state.justEvaluated && state.error == null && state.evaluatedInput != null
+    // One number-key size in both modes (the prototype's num fs is mode-independent,
+    // 23px there). 27sp steps down from the old 32sp toward that — lighter keys, more
+    // breathing room. Memory + scientific rows shrink further via per-row fontScale.
+    val keypadFontSize = 27.sp
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -197,10 +210,13 @@ fun CalculatorScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 18.dp),
         ) {
-            // Reserve a minimum for the display; the keypad may shrink its base
-            // row height toward the 46dp floor (spec §4.6) so it never crowds the
-            // display below this on short screens.
-            val minDisplayHeight = 160.dp
+            // Reserve a minimum for the display; the keypad shrinks its base row
+            // height toward the 46dp floor (spec §4.6) before the display drops below
+            // this. Scientific mode's tall keypad (sci rows + memory + 5 basic) would
+            // otherwise squeeze the frozen two-line result + COPY row, dropping the
+            // "= result" line (N3) — so reserve more there and let the keypad clamp a
+            // touch shorter in return.
+            val minDisplayHeight = if (isScientific) 240.dp else 160.dp
             val keypadMaxHeight = (maxHeight - minDisplayHeight).coerceAtLeast(0.dp)
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -209,7 +225,19 @@ fun CalculatorScreen(
                         .heightIn(min = minDisplayHeight)
                         .weight(1f),
                 ) {
-                    CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
+                    // Scientific's tall keypad squeezes the display to its ~240dp floor.
+                    // The two-line result + COPY row only fits there if the display sheds
+                    // vertical chrome — and the card/block/inset palettes' display-surface
+                    // insets eat even more room than the flat ones, which is why the COPY
+                    // row was clipping/dropping per-palette. `compact` (stable for the whole
+                    // scientific session, so the surface doesn't jump on `=`) trims the
+                    // surface insets, the display's own vertical padding, and the input-line
+                    // cap so the result state fits across all 5 palettes.
+                    CalculatorDisplaySurface(
+                        modifier = Modifier.fillMaxSize(),
+                        compact = isScientific,
+                        resultTight = hasSurface && resultShown && !isScientific,
+                    ) {
                         CalculatorDisplay(
                             expression = state.expression,
                             cursor = state.cursor,
@@ -232,15 +260,22 @@ fun CalculatorScreen(
                                 )
                             },
                             fractionResults = state.fractionResults,
+                            compact = isScientific,
+                            maxFontSize = if (isScientific) 32.sp else 50.sp,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(vertical = 18.dp),
+                                .padding(
+                                    vertical = when {
+                                        isScientific -> 4.dp
+                                        hasSurface && resultShown -> 2.dp
+                                        else -> 18.dp
+                                    },
+                                ),
                         )
                     }
                 }
                 CalculatorButtonGrid(
                     mode = state.mode,
-                    angleUnit = state.angleUnit,
                     layout = state.keypadLayout,
                     memoryKeysVisible = state.memoryKeysVisible,
                     onAction = onAction,
@@ -333,6 +368,25 @@ private fun PreviewScientific() = SifrTheme(palette = SifrPalette.Farah) {
     )
 }
 
+// Scientific two-line result + COPY·SHARE·ANS on a card palette — the exact state
+// that was clipping the COPY row before the compact-display fit fix (Farah's card
+// surface insets eat the most vertical room). Locks the Task-1 regression.
+@Preview(name = "Scientific result (Farah card)", showBackground = true)
+@Composable
+private fun PreviewScientificResult() = SifrTheme(palette = SifrPalette.Farah) {
+    CalculatorScreen(
+        state = CalculatorState(
+            expression = "0.5",
+            cursor = 3,
+            mode = CalculatorMode.Scientific,
+            angleUnit = AngleUnit.Degrees,
+            justEvaluated = true,
+            evaluatedInput = "sin(30)",
+        ),
+        onAction = {},
+    )
+}
+
 @Preview(name = "Palette sweep", showBackground = true)
 @Composable
 private fun PreviewAllPalettes(
@@ -383,6 +437,33 @@ private fun PreviewRemixNoMemory() = SifrTheme(palette = SifrPalette.Bayan) {
     )
 }
 
+// Arc is content-sized (not screen-filling); the display flexes above it. The
+// memory row shows in Arc when memoryKeysVisible = true (user decision 2026-06-13).
+@Preview(name = "Arc (Layl dark)", showBackground = true)
+@Composable
+private fun PreviewArcLayout() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+    CalculatorScreen(
+        state = CalculatorState(
+            expression = "12+5",
+            cursor = 4,
+            livePreview = "17",
+            keypadLayout = KeypadLayout.Arc,
+            memoryKeysVisible = true,
+        ),
+        onAction = {},
+    )
+}
+
+// Tape = compact Classic (0.87× key height).
+@Preview(name = "Tape — compact classic (Farah)", showBackground = true)
+@Composable
+private fun PreviewTapeLayout() = SifrTheme(palette = SifrPalette.Farah) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "48", cursor = 2, keypadLayout = KeypadLayout.Tape),
+        onAction = {},
+    )
+}
+
 // Light-mode coverage of the two-line result state so the resultColor /
 // displayResult token is verified in light theme (complement to PreviewResultActions
 // which covers dark only).
@@ -391,6 +472,30 @@ private fun PreviewRemixNoMemory() = SifrTheme(palette = SifrPalette.Bayan) {
 private fun PreviewResultActionsLight() = SifrTheme(palette = SifrPalette.Bayan) {
     CalculatorScreen(
         state = CalculatorState(expression = "512", cursor = 3, justEvaluated = true, evaluatedInput = "128 x 4"),
+        onAction = {},
+    )
+}
+
+// Farah card — the BASIC two-line result + COPY·SHARE·ANS row. This is the exact state
+// whose bottom row dropped out of the card (the surface's own inner pad plus the
+// display's redundant pad overhung the surface on Farah's tall keypad). Locks the
+// resultTight / no-clip fit fix as the visual contract for the worst-case surface.
+@Preview(name = "Result actions (Farah card)", showBackground = true)
+@Composable
+private fun PreviewResultActionsFarah() = SifrTheme(palette = SifrPalette.Farah, themeMode = ThemeMode.Dark) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "81", cursor = 2, justEvaluated = true, evaluatedInput = "9 x 9"),
+        onAction = {},
+    )
+}
+
+// Mizan inset — BASIC two-line result + COPY row, verifying the chip contrast and the
+// re-centered (PlexMono) chip labels on the recessed inset surface.
+@Preview(name = "Result actions (Mizan inset)", showBackground = true)
+@Composable
+private fun PreviewResultActionsMizan() = SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "81", cursor = 2, justEvaluated = true, evaluatedInput = "9 x 9"),
         onAction = {},
     )
 }
