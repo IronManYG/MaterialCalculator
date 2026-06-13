@@ -62,6 +62,12 @@ class CalculatorViewModel(
         viewModelScope.launch {
             settingsRepository.observe().collect { settings ->
                 writer.angleUnit = settings.angleUnit
+                // Update only the settings-derived mirrors. Deliberately DO NOT touch
+                // justEvaluated / evaluatedInput here: settings changes (DEG/RAD via the
+                // chip, ƒ scientific toggle, palette, etc.) must NOT collapse the frozen
+                // two-line result + COPY row after a '=' (the prototype's CalcDisplay is
+                // mode-agnostic — display.jsx has no scientific branch). Memory ops and
+                // writer actions clear those fields explicitly where they should.
                 _state.update {
                     it.copy(
                         mode = settings.calculatorMode,
@@ -71,8 +77,6 @@ class CalculatorViewModel(
                         keypadLayout = settings.keypadLayout,
                         memoryKeysVisible = settings.memoryKeysVisible,
                         livePreview = computePreview(),
-                        justEvaluated = false,
-                        evaluatedInput = null,
                     )
                 }
             }
