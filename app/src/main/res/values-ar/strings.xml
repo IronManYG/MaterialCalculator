@@ -31,6 +31,8 @@
     <!-- v1.5 result actions -->
     <string name="calc_action_copy">نسخ</string>
     <string name="calc_action_share">مشاركة</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">← الناتج</string>
 
     <!-- v1.5 settings sections -->
     <string name="settings_display_section">العرض</string>

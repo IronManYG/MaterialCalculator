@@ -520,6 +520,24 @@ class CalculatorViewModelTest {
     }
 
     @Test
+    fun `UseAnswer dismisses justEvaluated, clears evaluatedInput, keeps the result`() = runTest {
+        val viewModel = newViewModel()
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Calculate)
+        assertThat(viewModel.state.value.justEvaluated).isTrue()
+        val resultBefore = viewModel.state.value.expression   // "2"
+
+        viewModel.onAction(CalculatorAction.UseAnswer)
+
+        val s = viewModel.state.value
+        assertThat(s.justEvaluated).isFalse()
+        assertThat(s.evaluatedInput).isNull()
+        assertThat(s.expression).isEqualTo(resultBefore)
+    }
+
+    @Test
     fun `Memory value survives process death via DataStore`() = runTest {
         // Shared FakeSettingsRepository simulates DataStore surviving process death:
         // both VM instances observe the same MutableStateFlow<AppSettings>.

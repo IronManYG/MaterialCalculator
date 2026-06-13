@@ -114,6 +114,13 @@ class CalculatorViewModel(
                 val text = _state.value.expression
                 if (text.isNotBlank()) emit(CalculatorEvent.ShareText(text))
             }
+            CalculatorAction.UseAnswer -> {
+                // ANS→ : commit the just-evaluated result as the editable working
+                // expression (it already IS the result after '='), dismissing the
+                // result-actions affordance and collapsing the two-line view back to
+                // the single editable line. Prototype: setExpr(result); setJE(false).
+                _state.update { it.copy(justEvaluated = false, evaluatedInput = null) }
+            }
             else -> applyToWriter(action)
         }
     }

@@ -29,4 +29,6 @@ sealed interface CalculatorAction {
     // v1.5 result actions — shown in the ResultActionsRow right after '='
     data object CopyResult : CalculatorAction
     data object ShareResult : CalculatorAction
+    // v1.7 ANS→ : commit the just-evaluated result as the editable working expression
+    data object UseAnswer : CalculatorAction
 }

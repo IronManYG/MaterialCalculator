@@ -228,6 +228,7 @@ fun CalculatorScreen(
                                 ResultActionsRow(
                                     onCopy = { onAction(CalculatorAction.CopyResult) },
                                     onShare = { onAction(CalculatorAction.ShareResult) },
+                                    onAns = { onAction(CalculatorAction.UseAnswer) },
                                 )
                             },
                             fractionResults = state.fractionResults,
