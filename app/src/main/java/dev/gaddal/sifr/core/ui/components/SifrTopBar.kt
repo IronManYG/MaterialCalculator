@@ -51,6 +51,11 @@ fun SifrCalcTopBar(
     onSettings: () -> Unit,
     modifier: Modifier = Modifier,
     showScientific: Boolean = true,
+    historyCd: String = "History",
+    toolsCd: String = "Tools",
+    scientificCd: String = "Scientific",
+    rotateCd: String = "Rotate",
+    settingsCd: String = "Settings",
 ) {
     val sifr = SifrTokens.colors
     Row(
@@ -62,25 +67,25 @@ fun SifrCalcTopBar(
     ) {
         SifrBrand()
         Spacer(Modifier.weight(1f))
-        BarIcon(Icons.Outlined.History, "History", sifr.dim, onHistory)
-        BarIcon(Icons.Outlined.GridView, "Tools", sifr.dim, onTools)
+        BarIcon(Icons.Outlined.History, historyCd, sifr.dim, onHistory)
+        BarIcon(Icons.Outlined.GridView, toolsCd, sifr.dim, onTools)
         if (showScientific) {
             // ƒ glyph (italic) — accent when scientific mode is on
             IconButton(
                 onClick = onScientific,
-                modifier = Modifier.semantics { contentDescription = "Scientific" },
+                modifier = Modifier.semantics { contentDescription = scientificCd },
             ) {
                 Text(
                     text = "ƒ",   // ƒ
                     color = if (scientificActive) sifr.accent else sifr.dim,
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.W600,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                 )
             }
         }
-        BarIcon(Icons.Outlined.ScreenRotation, "Rotate", if (rotateActive) sifr.accent else sifr.dim, onRotate)
-        BarIcon(Icons.Outlined.Settings, "Settings", sifr.dim, onSettings)
+        BarIcon(Icons.Outlined.ScreenRotation, rotateCd, if (rotateActive) sifr.accent else sifr.dim, onRotate)
+        BarIcon(Icons.Outlined.Settings, settingsCd, sifr.dim, onSettings)
     }
 }
 
@@ -118,7 +123,9 @@ fun SifrSubScreenTopBar(
 @Composable
 private fun BarIcon(icon: ImageVector, cd: String, tint: Color, onClick: () -> Unit) {
     IconButton(onClick = onClick) {
-        Icon(icon, contentDescription = cd, tint = tint, modifier = Modifier.size(22.dp))
+        // 20dp (was 22): the prototype's top-bar glyphs read smaller (ui-bits.jsx
+        // SifrIconBtn size 17). Keeps the 48dp IconButton touch target intact.
+        Icon(icon, contentDescription = cd, tint = tint, modifier = Modifier.size(20.dp))
     }
 }
 

@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,7 +52,16 @@ fun SifrToggle(
 
     Box(
         modifier = modifier
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            .toggleable(
+                value = checked,
+                // No ripple: the pill's own colour/thumb slide IS the indication
+                // (user request; keeps a clean control, consistent with the rest of
+                // the design system's confined-indication rule).
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Switch,
+                onValueChange = onCheckedChange,
+            )
             .padding(12.dp),                    // expands the touch target to ≥48dp around the 42×24 pill
         contentAlignment = Alignment.CenterStart,
     ) {

@@ -499,6 +499,45 @@ class CalculatorViewModelTest {
     }
 
     @Test
+    fun `Calculate keeps the pre-= input in evaluatedInput and clears it on next edit`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+        viewModel.onAction(CalculatorAction.Calculate)
+
+        val afterEq = viewModel.state.value
+        assertThat(afterEq.justEvaluated).isTrue()
+        assertThat(afterEq.expression).isEqualTo("5")        // result promoted into the writer
+        assertThat(afterEq.evaluatedInput).isEqualTo("2+3")  // input preserved for the 50sp line
+
+        // Any subsequent edit leaves the just-evaluated state and drops the kept input.
+        viewModel.onAction(CalculatorAction.Number(7))
+        val afterEdit = viewModel.state.value
+        assertThat(afterEdit.justEvaluated).isFalse()
+        assertThat(afterEdit.evaluatedInput).isNull()
+    }
+
+    @Test
+    fun `UseAnswer dismisses justEvaluated, clears evaluatedInput, keeps the result`() = runTest {
+        val viewModel = newViewModel()
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Calculate)
+        assertThat(viewModel.state.value.justEvaluated).isTrue()
+        val resultBefore = viewModel.state.value.expression   // "2"
+
+        viewModel.onAction(CalculatorAction.UseAnswer)
+
+        val s = viewModel.state.value
+        assertThat(s.justEvaluated).isFalse()
+        assertThat(s.evaluatedInput).isNull()
+        assertThat(s.expression).isEqualTo(resultBefore)
+    }
+
+    @Test
     fun `Memory value survives process death via DataStore`() = runTest {
         // Shared FakeSettingsRepository simulates DataStore surviving process death:
         // both VM instances observe the same MutableStateFlow<AppSettings>.

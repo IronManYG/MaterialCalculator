@@ -5,6 +5,14 @@
     <!-- Settings screen -->
     <string name="settings_title">الإعدادات</string>
     <string name="settings_back">رجوع</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">المظهر</string>
+    <string name="settings_theme_system_short">النظام</string>
+    <string name="settings_keypad_layout">التخطيط</string>
+    <string name="settings_memory_keys_sub">إظهار مفاتيح الذاكرة فوق لوحة المفاتيح</string>
+    <string name="settings_fraction_results_sub">عرض الكسور الدقيقة عند الإمكان</string>
+    <string name="settings_haptics_sub">اهتزاز عند الضغط على المفاتيح</string>
+    <string name="settings_about_sub">آلة حاسبة هادئة</string>
     <string name="settings_theme_section">الوضع</string>
     <string name="settings_theme_system">حسب النظام</string>
     <string name="settings_theme_light">فاتح</string>
@@ -25,9 +33,14 @@
     <string name="calc_error_domain_error">المدخل خارج نطاق الدالة</string>
     <string name="calc_error_overflow">الناتج كبير جدًا</string>
     <string name="calc_error_syntax_error">خطأ في الصيغة</string>
+    <string name="calc_open_tools">فتح الأدوات</string>
+    <string name="calc_rotate_orientation">تدوير الشاشة</string>
+
     <!-- v1.5 result actions -->
     <string name="calc_action_copy">نسخ</string>
     <string name="calc_action_share">مشاركة</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">الناتج</string>
 
     <!-- v1.5 settings sections -->
     <string name="settings_display_section">العرض</string>
@@ -41,19 +54,20 @@
 
     <!-- Settings screen — appearance/palette -->
     <string name="settings_palette_section">السمة</string>
-    <string name="settings_palette_layl">Layl</string>
-    <string name="settings_palette_bayan">Bayan</string>
-    <string name="settings_palette_raqim">Raqim</string>
-    <string name="settings_palette_farah">Farah</string>
-    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_layl">ليل</string>
+    <string name="settings_palette_bayan">بيان</string>
+    <string name="settings_palette_raqim">رقيم</string>
+    <string name="settings_palette_farah">فرح</string>
+    <string name="settings_palette_mizan">ميزان</string>
     <string name="settings_palette_dynamic">ديناميكي</string>
 
     <!-- v1.6 settings — keypad -->
     <string name="settings_keypad_section">لوحة المفاتيح</string>
     <string name="settings_memory_keys">مفاتيح الذاكرة</string>
-    <string name="settings_keypad_classic">Classic</string>
-    <string name="settings_keypad_remix">Remix</string>
-    <string name="settings_keypad_arc">Arc</string>
+    <string name="settings_keypad_classic">كلاسيكي</string>
+    <string name="settings_keypad_remix">شبكة معدّلة</string>
+    <string name="settings_keypad_arc">قوس الإبهام</string>
+    <string name="settings_keypad_tape">شريط</string>
 
     <!-- History screen -->
     <string name="history_title">السجل</string>

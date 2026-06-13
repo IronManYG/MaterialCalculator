@@ -1,52 +1,52 @@
 package dev.gaddal.sifr.feature.settings.ui
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
-import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
+import dev.gaddal.sifr.core.ui.components.SifrCard
+import dev.gaddal.sifr.core.ui.components.SifrRow
+import dev.gaddal.sifr.core.ui.components.SifrRowDivider
+import dev.gaddal.sifr.core.ui.components.SifrSegmented
+import dev.gaddal.sifr.core.ui.components.SifrToggle
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
+import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
-import dev.gaddal.sifr.core.domain.settings.KeypadLayout
+import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.settings.ui.components.KeypadLayoutPicker
 import dev.gaddal.sifr.feature.settings.ui.components.ThemePicker
 import org.koin.androidx.compose.koinViewModel
@@ -77,7 +77,12 @@ fun SettingsScreen(
     state: SettingsState,
     onAction: (SettingsAction) -> Unit,
 ) {
+    val sifr = SifrTokens.colors
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(sifr.background),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title)) },
@@ -89,6 +94,11 @@ fun SettingsScreen(
                         )
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = sifr.text,
+                    navigationIconContentColor = sifr.text,
+                ),
             )
         },
     ) { padding ->
@@ -101,149 +111,163 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                // Scroll so the form remains usable in short landscape /
-                // foldable / split-screen heights — otherwise the bottom
-                // switches are clipped off-screen with no way to reach them.
+                // Scroll so the form stays usable in short landscape / split-screen heights.
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = 18.dp)
+                .padding(bottom = 26.dp),
         ) {
-            ThemeSection(
-                selected = state.settings.themeMode,
-                onSelect = { onAction(SettingsAction.SetThemeMode(it)) },
-            )
-            SectionLabel(stringResource(R.string.settings_palette_section))
-            ThemePicker(
-                selected = state.settings.palette,
-                dark = dark,
-                onSelect = { onAction(SettingsAction.SetPalette(it)) },
-            )
-            HorizontalDivider()
-            SectionLabel(stringResource(R.string.settings_keypad_section))
-            KeypadLayoutPicker(
-                selected = state.settings.keypadLayout,
-                onSelect = { onAction(SettingsAction.SetKeypadLayout(it)) },
-            )
-            SwitchRow(
-                label = stringResource(R.string.settings_memory_keys),
-                checked = state.settings.memoryKeysVisible,
-                onCheckedChange = { onAction(SettingsAction.ToggleMemoryKeys) },
-            )
-            HorizontalDivider()
-            SectionLabel(stringResource(R.string.settings_display_section))
-            SwitchRow(
-                label = stringResource(R.string.settings_fraction_results),
-                checked = state.settings.fractionResults,
-                onCheckedChange = { onAction(SettingsAction.ToggleFractionResults) },
-            )
-            AngleUnitRow(
-                selected = state.settings.angleUnit,
-                onSelect = { onAction(SettingsAction.SetAngleUnit(it)) },
-            )
-
-            HorizontalDivider()
-            SectionLabel(stringResource(R.string.settings_feedback_section))
-            SwitchRow(
-                label = stringResource(R.string.settings_haptics),
-                checked = state.settings.hapticsEnabled,
-                onCheckedChange = { onAction(SettingsAction.ToggleHaptics) },
-            )
-            SwitchRow(
-                label = stringResource(R.string.settings_sound),
-                checked = state.settings.soundEnabled,
-                onCheckedChange = { onAction(SettingsAction.ToggleSound) },
-            )
-
-            HorizontalDivider()
-            SectionLabel(stringResource(R.string.settings_about_section))
-            Text(
-                text = stringResource(R.string.settings_about_tagline),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ThemeSection(
-    selected: ThemeMode,
-    onSelect: (ThemeMode) -> Unit,
-) {
-    SectionLabel(stringResource(R.string.settings_theme_section))
-    ThemeMode.entries.forEach { mode ->
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .selectable(
-                    selected = mode == selected,
-                    onClick = { onSelect(mode) },
-                    role = Role.RadioButton,
+            // ── Appearance ──────────────────────────────────────────────
+            SectionLabel(stringResource(R.string.settings_appearance_section))
+            SifrCard {
+                SifrRow(
+                    label = stringResource(R.string.settings_theme_section), // "Mode"
+                    trailing = {
+                        SifrSegmented(
+                            options = ThemeMode.entries,
+                            selected = state.settings.themeMode,
+                            label = { stringResource(it.shortLabelRes()) },
+                            onSelect = { onAction(SettingsAction.SetThemeMode(it)) },
+                        )
+                    },
                 )
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            RadioButton(selected = mode == selected, onClick = null)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(text = stringResource(mode.labelRes()))
-        }
-    }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AngleUnitRow(selected: AngleUnit, onSelect: (AngleUnit) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = stringResource(R.string.settings_angle_unit), modifier = Modifier.weight(1f))
-        SingleChoiceSegmentedButtonRow {
-            AngleUnit.entries.forEachIndexed { index, unit ->
-                SegmentedButton(
-                    selected = unit == selected,
-                    onClick = { onSelect(unit) },
-                    shape = SegmentedButtonDefaults.itemShape(index, AngleUnit.entries.size),
-                ) {
-                    Text(stringResource(if (unit == AngleUnit.Degrees) R.string.settings_angle_deg else R.string.settings_angle_rad))
+                SifrRowDivider()
+                CardBlock(stringResource(R.string.settings_palette_section)) { // "Theme"
+                    ThemePicker(
+                        selected = state.settings.palette,
+                        dark = dark,
+                        onSelect = { onAction(SettingsAction.SetPalette(it)) },
+                    )
                 }
+            }
+
+            // ── Keypad ──────────────────────────────────────────────────
+            SectionLabel(stringResource(R.string.settings_keypad_section))
+            SifrCard {
+                CardBlock(stringResource(R.string.settings_keypad_layout)) { // "Layout"
+                    KeypadLayoutPicker(
+                        selected = state.settings.keypadLayout,
+                        onSelect = { onAction(SettingsAction.SetKeypadLayout(it)) },
+                    )
+                }
+                SifrRowDivider()
+                SifrRow(
+                    label = stringResource(R.string.settings_memory_keys),
+                    sub = stringResource(R.string.settings_memory_keys_sub),
+                    trailing = {
+                        SifrToggle(
+                            checked = state.settings.memoryKeysVisible,
+                            onCheckedChange = { onAction(SettingsAction.ToggleMemoryKeys) },
+                        )
+                    },
+                )
+            }
+
+            // ── Display ─────────────────────────────────────────────────
+            SectionLabel(stringResource(R.string.settings_display_section))
+            SifrCard {
+                SifrRow(
+                    label = stringResource(R.string.settings_fraction_results),
+                    sub = stringResource(R.string.settings_fraction_results_sub),
+                    trailing = {
+                        SifrToggle(
+                            checked = state.settings.fractionResults,
+                            onCheckedChange = { onAction(SettingsAction.ToggleFractionResults) },
+                        )
+                    },
+                )
+                SifrRowDivider()
+                SifrRow(
+                    label = stringResource(R.string.settings_angle_unit),
+                    trailing = {
+                        SifrSegmented(
+                            options = AngleUnit.entries,
+                            selected = state.settings.angleUnit,
+                            label = {
+                                stringResource(
+                                    if (it == AngleUnit.Degrees) R.string.settings_angle_deg
+                                    else R.string.settings_angle_rad,
+                                )
+                            },
+                            onSelect = { onAction(SettingsAction.SetAngleUnit(it)) },
+                        )
+                    },
+                )
+            }
+
+            // ── Feedback ────────────────────────────────────────────────
+            SectionLabel(stringResource(R.string.settings_feedback_section))
+            SifrCard {
+                SifrRow(
+                    label = stringResource(R.string.settings_haptics),
+                    sub = stringResource(R.string.settings_haptics_sub),
+                    trailing = {
+                        SifrToggle(
+                            checked = state.settings.hapticsEnabled,
+                            onCheckedChange = { onAction(SettingsAction.ToggleHaptics) },
+                        )
+                    },
+                )
+                SifrRowDivider()
+                SifrRow(
+                    label = stringResource(R.string.settings_sound),
+                    trailing = {
+                        SifrToggle(
+                            checked = state.settings.soundEnabled,
+                            onCheckedChange = { onAction(SettingsAction.ToggleSound) },
+                        )
+                    },
+                )
+            }
+
+            // ── About ───────────────────────────────────────────────────
+            SectionLabel(stringResource(R.string.settings_about_section))
+            SifrCard {
+                SifrRow(
+                    label = "Sifr — صفر",
+                    sub = stringResource(R.string.settings_about_sub),
+                    trailing = {
+                        Text(
+                            text = "٠",
+                            color = sifr.accent,
+                            fontFamily = sifr.displayFamily,
+                            fontSize = 22.sp,
+                        )
+                    },
+                )
             }
         }
     }
 }
 
+/** Section heading above each card: small, dim, wide letter-spacing (prototype sectionTitle). */
 @Composable
-private fun SwitchRow(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = label, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = null)
+private fun SectionLabel(text: String) {
+    val sifr = SifrTokens.colors
+    // Positive letter-spacing breaks Arabic letter-joins — apply the wide tracking in LTR only.
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    Text(
+        text = text,
+        color = sifr.dim,
+        fontFamily = sifr.uiFamily,
+        fontSize = 11.sp,
+        letterSpacing = if (rtl) TextUnit.Unspecified else 0.2.em,
+        modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 8.dp),
+    )
+}
+
+/** A titled block inside a card for the picker grids (Theme swatches, keypad layouts). */
+@Composable
+private fun CardBlock(label: String, content: @Composable () -> Unit) {
+    val sifr = SifrTokens.colors
+    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+        Text(text = label, color = sifr.text, fontFamily = sifr.uiFamily, fontSize = 14.5.sp)
+        Spacer(Modifier.height(10.dp))
+        content()
     }
 }
 
-private fun ThemeMode.labelRes(): Int = when (this) {
-    ThemeMode.System -> R.string.settings_theme_system
+private fun ThemeMode.shortLabelRes(): Int = when (this) {
+    ThemeMode.System -> R.string.settings_theme_system_short
     ThemeMode.Light -> R.string.settings_theme_light
     ThemeMode.Dark -> R.string.settings_theme_dark
 }
@@ -277,10 +301,10 @@ private fun SettingsPreviewDisplayVariant() = SifrTheme(palette = SifrPalette.La
 
 @Preview(name = "Settings — Keypad (Arc / mem off)", showBackground = true)
 @Composable
-private fun SettingsPreviewKeypad() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+private fun SettingsPreviewKeypad() = SifrTheme(palette = SifrPalette.Farah, themeMode = ThemeMode.Light) {
     SettingsScreen(
         state = SettingsState(
-            settings = AppSettings(keypadLayout = KeypadLayout.Arc, memoryKeysVisible = false),
+            settings = AppSettings(keypadLayout = KeypadLayout.Tape, memoryKeysVisible = false),
             isLoading = false,
         ),
         onAction = {},

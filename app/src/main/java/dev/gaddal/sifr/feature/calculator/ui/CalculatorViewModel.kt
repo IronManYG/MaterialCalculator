@@ -62,6 +62,12 @@ class CalculatorViewModel(
         viewModelScope.launch {
             settingsRepository.observe().collect { settings ->
                 writer.angleUnit = settings.angleUnit
+                // Update only the settings-derived mirrors. Deliberately DO NOT touch
+                // justEvaluated / evaluatedInput here: settings changes (DEG/RAD via the
+                // chip, ƒ scientific toggle, palette, etc.) must NOT collapse the frozen
+                // two-line result + COPY row after a '=' (the prototype's CalcDisplay is
+                // mode-agnostic — display.jsx has no scientific branch). Memory ops and
+                // writer actions clear those fields explicitly where they should.
                 _state.update {
                     it.copy(
                         mode = settings.calculatorMode,
@@ -71,7 +77,6 @@ class CalculatorViewModel(
                         keypadLayout = settings.keypadLayout,
                         memoryKeysVisible = settings.memoryKeysVisible,
                         livePreview = computePreview(),
-                        justEvaluated = false,
                     )
                 }
             }
@@ -113,6 +118,13 @@ class CalculatorViewModel(
                 val text = _state.value.expression
                 if (text.isNotBlank()) emit(CalculatorEvent.ShareText(text))
             }
+            CalculatorAction.UseAnswer -> {
+                // ANS→ : commit the just-evaluated result as the editable working
+                // expression (it already IS the result after '='), dismissing the
+                // result-actions affordance and collapsing the two-line view back to
+                // the single editable line. Prototype: setExpr(result); setJE(false).
+                _state.update { it.copy(justEvaluated = false, evaluatedInput = null) }
+            }
             else -> applyToWriter(action)
         }
     }
@@ -130,7 +142,7 @@ class CalculatorViewModel(
     }
 
     private fun updateMemory(newValue: Double?) {
-        _state.update { it.copy(memoryValue = newValue, justEvaluated = false) }
+        _state.update { it.copy(memoryValue = newValue, justEvaluated = false, evaluatedInput = null) }
         viewModelScope.launch { settingsRepository.update { copy(memoryValue = newValue) } }
     }
 
@@ -146,6 +158,10 @@ class CalculatorViewModel(
         writer.processAction(action)
             .onSuccess {
                 val post = writer.expression
+                // Same "a real calc happened" guard drives history/feedback in
+                // onSuccessSideEffects — keep the two in sync if it changes.
+                val justEvaluatedNow =
+                    action == CalculatorAction.Calculate && pre.isNotBlank() && pre != post
                 _state.update {
                     it.copy(
                         expression = post,
@@ -153,14 +169,17 @@ class CalculatorViewModel(
                         selectionStart = writer.selectionStart,
                         livePreview = computePreview(),
                         error = null,
-                        justEvaluated = action == CalculatorAction.Calculate && pre.isNotBlank() && pre != post,
+                        justEvaluated = justEvaluatedNow,
+                        evaluatedInput = if (justEvaluatedNow) pre else null,
                     )
                 }
                 persistForRestore(post, writer.cursor)
                 onSuccessSideEffects(action, pre, post)
             }
             .onFailure { error ->
-                _state.update { it.copy(livePreview = null, error = error.toUiText(), justEvaluated = false) }
+                _state.update {
+                    it.copy(livePreview = null, error = error.toUiText(), justEvaluated = false, evaluatedInput = null)
+                }
                 emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
             }
     }

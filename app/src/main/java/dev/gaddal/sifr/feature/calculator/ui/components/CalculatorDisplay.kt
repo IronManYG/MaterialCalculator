@@ -1,11 +1,9 @@
 package dev.gaddal.sifr.feature.calculator.ui.components
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,36 +12,35 @@ import androidx.compose.foundation.text.contextmenu.data.TextContextMenuKeys
 import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
+import dev.gaddal.sifr.core.ui.components.SifrChip
+import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.UiText
+import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.toFraction
-
-private const val PROMOTION_ANIMATION_MS = 340
 
 // Default preview-slot height keeps the Column's total height — and
 // therefore the outer Box's vertical centering — stable when the preview
@@ -61,262 +58,358 @@ fun CalculatorDisplay(
     error: UiText?,
     onSelectionChange: (start: Int, end: Int) -> Unit,
     modifier: Modifier = Modifier,
-    maxFontSize: TextUnit = 64.sp,
-    previewSlotHeight: androidx.compose.ui.unit.Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
+    evaluatedInput: String? = null,
+    justEvaluated: Boolean = false,
+    angleUnit: AngleUnit? = null,
+    memoryValue: Double? = null,
+    onToggleAngleUnit: () -> Unit = {},
+    resultActions: (@Composable () -> Unit)? = null,
+    maxFontSize: TextUnit = 50.sp,
+    previewSlotHeight: Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
     fractionResults: Boolean = false,
+    // Scientific mode squeezes the display; `compact` shaves the inter-line gaps in
+    // the two-line result state so the COPY row stops clipping there.
+    compact: Boolean = false,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val sifr = SifrTokens.colors
     val mainColor = if (error != null) sifr.displayError else sifr.displayExpression
+    val resultColor = sifr.displayResult
     val previewColor = sifr.displayResult.copy(alpha = 0.85f)
+    // Input/expression weight is palette-specific (prototype display.jsx:66 —
+    // Bayan extra-bold, Raqim light, everything else medium).
+    val displayWeight = when (SifrTokens.palette) {
+        SifrPalette.Bayan -> FontWeight.W900
+        SifrPalette.Raqim -> FontWeight.W300
+        else -> FontWeight.W500
+    }
     val mainStyle = TextStyle(
         color = mainColor,
         textAlign = TextAlign.End,
         fontFamily = sifr.displayFamily,
+        fontWeight = displayWeight,
     )
-    val previewFontSizeSp = 22f
 
-    // Detect a calculate-promotion transition: the expression that just landed
-    // equals the live preview the user was seeing on the previous frame. We
-    // bump promotionKey on detection and drive the animation off that key in a
-    // separate effect, so any state change during the animation cancels the
-    // animator cleanly without losing detection state.
-    val previousPreviewState = remember { mutableStateOf<String?>(null) }
-    var promotionKey by remember { mutableIntStateOf(0) }
-    LaunchedEffect(expression, livePreview, error) {
-        val oldPreview = previousPreviewState.value
-        previousPreviewState.value = livePreview
-        if (error == null &&
-            livePreview == null &&
-            expression.isNotBlank() &&
-            expression == oldPreview
-        ) {
-            promotionKey++
-        }
+    // While justEvaluated the 50sp line shows the INPUT the user typed (kept in
+    // evaluatedInput) and the result drops to its own 30sp line below — matching
+    // the prototype (display.jsx:66-89). Otherwise the line is the live editable
+    // expression. Landscape passes evaluatedInput=null/justEvaluated=false, so it
+    // shows the plain expression (the writer's value, = the result after '=').
+    val showResult = justEvaluated && error == null && evaluatedInput != null
+    val mainText = if (showResult) evaluatedInput else expression
+
+    // Fraction shared by the result / preview / bare-number lines: only when the
+    // toggle is on AND the whole expression is a bare finite number with a
+    // representable fraction (toFraction returns null for integers / non-reducible).
+    val fraction = remember(expression, fractionResults) {
+        if (!fractionResults) null else expression.toDoubleOrNull()?.toFraction()
     }
 
-    val promotionProgress = remember { Animatable(initialValue = 1f) }
-    LaunchedEffect(promotionKey) {
-        if (promotionKey > 0) {
-            promotionProgress.snapTo(0f)
-            promotionProgress.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(PROMOTION_ANIMATION_MS, easing = FastOutSlowInEasing),
-            )
-        }
-    }
-
-    // Composition-level read of progress is gated to a coarse boolean so we
-    // recompose only when the animation begins or ends. Continuous reads of
-    // `promotionProgress.value` happen inside `graphicsLayer` blocks below,
-    // which observe state via the deferred-read API — those re-run per frame
-    // without invalidating the surrounding composition.
-    val isAnimating by remember {
-        derivedStateOf { promotionProgress.value < 1f }
-    }
-
-    // Geometry captured while the layout is idle, used to drive the morph.
-    // We only update these while !isAnimating so the targets stay fixed
-    // throughout the transition.
-    //   * mainTextCenterYPx — the *text's* visual center, not the slot's: the
-    //     auto-sized field's slot wraps the text tightly so the two coincide.
-    //   * previewSlotCenterYPx — the preview row's slot center; the BasicText
-    //     inside is vertically centered in this slot via the Box wrapper, so
-    //     scaling around its own pivotFractionY=0.5 lands the text right on
-    //     the slot center.
-    var mainTextCenterYPx by remember { mutableFloatStateOf(0f) }
-    var previewSlotCenterYPx by remember { mutableFloatStateOf(0f) }
-    var mainFontSizeSp by remember { mutableFloatStateOf(80f) }
-
-    // Hold the most recent non-blank preview so the in-flight text still has
-    // content to render once livePreview flips to null on Calculate.
-    var lastShownPreview by remember { mutableStateOf("") }
-    LaunchedEffect(livePreview) {
-        val current = livePreview
-        if (current != null && current.isNotBlank()) lastShownPreview = current
-    }
-
+    // Scientific (compact) tightens the inter-line gaps so the two-line result + COPY
+    // row fits the squeezed display without clipping — even in the airy palettes.
+    val lineGap = if (compact) 2.dp else 4.dp
     Box(
         modifier = modifier,
-        contentAlignment = if (isRtl) Alignment.CenterEnd else Alignment.CenterStart,
+        contentAlignment = if (isRtl) Alignment.BottomEnd else Alignment.BottomStart,
     ) {
-        // Force math content to render LTR regardless of system locale.
-        // The outer Box already picked the locale-correct anchor above; this
-        // inner scope stops the Unicode bidi algorithm from flipping trailing
-        // weak operators (e.g. `+` in `10+`) to the visual leading edge.
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalAlignment = Alignment.End,
-            ) {
-                if (error != null) {
-                    // Error strings range from "Syntax error" (12 chars) to
-                    // "Input outside function domain" (29 chars, English) and
-                    // "المدخل خارج نطاق الدالة" (Arabic). At a fixed 56sp,
-                    // single-line, the longer ones got clipped on phones —
-                    // QA on Honor 400 Pro saw the overflow result text run
-                    // off-screen. Wrap up to two lines at a smaller size so
-                    // every string fits without sacrificing readability.
-                    BasicText(
-                        text = error.asString(),
-                        style = mainStyle.copy(
-                            fontSize = 28.sp,
-                            textAlign = TextAlign.End,
-                            lineHeight = 32.sp,
-                        ),
-                        maxLines = 2,
-                        softWrap = true,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                } else {
-                    val fieldValue = remember(expression, cursor, selectionStart) {
-                        val maxLen = expression.length
-                        TextFieldValue(
-                            text = expression,
-                            selection = TextRange(
-                                start = selectionStart.coerceIn(0, maxLen),
-                                end = cursor.coerceIn(0, maxLen),
-                            ),
-                        )
-                    }
-                    // `rememberUpdatedState` keeps the filter lambda seeing
-                    // the freshest "is a range selected?" answer without
-                    // rebuilding the modifier chain on every state change.
-                    val hasRangeNow = rememberUpdatedState(cursor != selectionStart)
-                    AutoSizingExpressionField(
-                        value = fieldValue,
-                        onValueChange = { newValue ->
-                            // IME is blocked at the platform-input layer inside
-                            // AutoSizingExpressionField and the field also drops
-                            // text mutations defensively; we react to selection
-                            // changes driven by tap or long-press + drag.
-                            val newStart = newValue.selection.start
-                            val newEnd = newValue.selection.end
-                            if (newStart != selectionStart || newEnd != cursor) {
-                                onSelectionChange(newStart, newEnd)
-                            }
-                        },
-                        style = mainStyle,
-                        // Cap configurable by caller: portrait uses the 64sp
-                        // default; landscape lowers it to ~40sp so the preview
-                        // slot still fits in the shorter display strip.
-                        maxFontSize = maxFontSize,
-                        onFontSizePicked = { mainFontSizeSp = it.value },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { coords ->
-                                if (!isAnimating) {
-                                    mainTextCenterYPx =
-                                        coords.positionInParent().y + coords.size.height / 2f
-                                }
-                            }
-                            .graphicsLayer {
-                                // Main fades in only in the second half of the
-                                // promotion, after the preview has finished its
-                                // trip up. Until then, it's invisible so the
-                                // preview text is the sole visual actor.
-                                alpha = if (isAnimating) {
-                                    val p = promotionProgress.value
-                                    ((p - 0.55f) / 0.45f).coerceIn(0f, 1f)
-                                } else {
-                                    1f
-                                }
-                            }
-                            // Filter the long-press toolbar: when a range is
-                            // selected expose only Copy (the calculator's writer
-                            // ignores text mutations, so Cut/Paste are no-ops we
-                            // shouldn't surface); a collapsed selection falls
-                            // through to the system's default menu (Paste +
-                            // Select All).
-                            .filterTextContextMenuComponents { component ->
-                                if (hasRangeNow.value) {
-                                    component.key == TextContextMenuKeys.CopyKey
-                                } else {
-                                    true
-                                }
-                            },
-                    )
-                }
-
-                // Fixed-height preview slot — always rendered so the Column
-                // height stays constant. The text content is centered inside
-                // (contentAlignment = Center) so the graphicsLayer pivot at
-                // (1f, 0.5f) on the text lines up with the slot's center,
-                // making translationY land the morph exactly on the main row.
-                Box(
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(lineGap),
+            horizontalAlignment = Alignment.End,
+        ) {
+            // 1) Mode-chips band — kept in the AMBIENT layout direction (outside the
+            // forced-LTR math block below) so it sits on the leading edge and mirrors
+            // to the right in RTL, matching the prototype (only display.jsx's math
+            // lines are dir="ltr"; the chip band follows the locale, display.jsx:61).
+            if (angleUnit != null) {
+                Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(previewSlotHeight)
-                        .onGloballyPositioned { coords ->
-                            if (!isAnimating) {
-                                previewSlotCenterYPx =
-                                    coords.positionInParent().y + coords.size.height / 2f
-                            }
-                        },
-                    contentAlignment = Alignment.CenterEnd,
+                        .align(Alignment.Start)
+                        .padding(bottom = if (compact) 3.dp else 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    val showPreviewContent =
-                        error == null && (!livePreview.isNullOrBlank() || isAnimating)
-                    if (showPreviewContent) {
-                        BasicText(
-                            text = if (isAnimating) lastShownPreview else (livePreview ?: ""),
-                            style = TextStyle(
-                                fontSize = previewFontSizeSp.sp,
-                                color = previewColor,
-                            ),
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.StartEllipsis,
-                            modifier = Modifier.graphicsLayer {
-                                if (isAnimating) {
-                                    val p = promotionProgress.value
-                                    val deltaY = mainTextCenterYPx - previewSlotCenterYPx
-                                    val targetScale = mainFontSizeSp / previewFontSizeSp
-                                    val scaleAmount = 1f + (targetScale - 1f) * p
-                                    // Pivot at the text's right edge / vertical
-                                    // center. Because the BasicText is wrap-
-                                    // content here (no fillMaxWidth), the layer
-                                    // bounds equal the text bounds, so the
-                                    // pivot lands on the text's actual center.
-                                    transformOrigin = TransformOrigin(
-                                        pivotFractionX = 1f,
-                                        pivotFractionY = 0.5f,
-                                    )
-                                    scaleX = scaleAmount
-                                    scaleY = scaleAmount
-                                    translationY = deltaY * p
-                                    // Stay opaque through the first half of
-                                    // the trip so the eye tracks the moving
-                                    // text; then crossfade out as main fades
-                                    // in (main starts fading in at p=0.55).
-                                    alpha =
-                                        (1f - ((p - 0.5f) / 0.5f).coerceAtLeast(0f))
-                                }
-                            },
-                        )
+                    val angleLabel = when (angleUnit) {
+                        AngleUnit.Radians -> stringResource(R.string.settings_angle_rad)
+                        AngleUnit.Degrees -> stringResource(R.string.settings_angle_deg)
+                    }
+                    SifrChip(
+                        label = angleLabel,
+                        active = angleUnit == AngleUnit.Radians,
+                        onClick = onToggleAngleUnit,
+                    )
+                    if (memoryValue != null) {
+                        SifrChip(label = stringResource(R.string.calc_mode_chip_memory), active = true)
                     }
                 }
+            }
 
-                // Fraction row — shown only when fractionResults is on AND
-                // the whole expression is a single bare finite number that
-                // has a representable fraction (toFraction returns null for
-                // integers, so 17 or 42 correctly show nothing here).
-                val fraction = remember(expression, fractionResults) {
-                    if (!fractionResults) null
-                    else expression.toDoubleOrNull()?.toFraction()
-                }
-                if (error == null && fraction != null) {
-                    FractionLabel(
-                        fraction = fraction,
-                        color = previewColor,
-                        fontFamily = sifr.displayFamily,
-                        fontSize = 22.sp,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
+            // Force math content LTR regardless of system locale (keeps trailing weak
+            // operators like the '+' in "10+" — and the result — on the visual
+            // trailing/right edge).
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(lineGap),
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    // 2) Expression / input line.
+                    if (error != null) {
+                        // Wrap up to two lines at 28sp so long localized error strings
+                        // fit without clipping (QA: Honor 400 Pro overflow).
+                        BasicText(
+                            text = error.asString(),
+                            style = mainStyle.copy(fontSize = 28.sp, textAlign = TextAlign.End, lineHeight = 32.sp),
+                            maxLines = 2,
+                            softWrap = true,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        val fieldValue = if (showResult) {
+                            remember(mainText) {
+                                TextFieldValue(text = mainText, selection = TextRange(mainText.length))
+                            }
+                        } else {
+                            remember(mainText, cursor, selectionStart) {
+                                val maxLen = mainText.length
+                                TextFieldValue(
+                                    text = mainText,
+                                    selection = TextRange(
+                                        start = selectionStart.coerceIn(0, maxLen),
+                                        end = cursor.coerceIn(0, maxLen),
+                                    ),
+                                )
+                            }
+                        }
+                        val hasRangeNow = rememberUpdatedState(!showResult && cursor != selectionStart)
+                        AutoSizingExpressionField(
+                            value = fieldValue,
+                            onValueChange = { newValue ->
+                                // Frozen result line is non-editable; only react to
+                                // tap/drag selection changes while editing.
+                                if (!showResult) {
+                                    val newStart = newValue.selection.start
+                                    val newEnd = newValue.selection.end
+                                    if (newStart != selectionStart || newEnd != cursor) {
+                                        onSelectionChange(newStart, newEnd)
+                                    }
+                                }
+                            },
+                            style = mainStyle,
+                            maxFontSize = maxFontSize,
+                            // Hide the caret while showing a frozen result (prototype
+                            // hides the blink on justEvaluated, display.jsx:68).
+                            cursorBrush = if (showResult) SolidColor(Color.Transparent) else SolidColor(sifr.accent),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                // Long-press toolbar: with a range selected expose only
+                                // Copy (writer ignores text mutations); collapsed
+                                // selection falls through to the default menu.
+                                .filterTextContextMenuComponents { component ->
+                                    if (hasRangeNow.value) component.key == TextContextMenuKeys.CopyKey else true
+                                },
+                        )
+                    }
+
+                    // 3) Result / preview line — fraction renders INLINE to its right
+                    // (prototype display.jsx:77 & 87), not on its own line.
+                    if (error == null) {
+                        if (showResult) {
+                            // Dedicated 30sp result line + inline fraction.
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = if (compact) 4.dp else 8.dp),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.Bottom,
+                            ) {
+                                BasicText(
+                                    text = "= $expression",
+                                    style = TextStyle(
+                                        fontSize = if (compact) 26.sp else 30.sp,
+                                        color = resultColor,
+                                        fontFamily = sifr.displayFamily,
+                                        textAlign = TextAlign.End,
+                                    ),
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.StartEllipsis,
+                                    modifier = Modifier.weight(1f, fill = false),
+                                )
+                                if (fraction != null) {
+                                    FractionLabel(
+                                        fraction = fraction,
+                                        color = resultColor,
+                                        fontFamily = sifr.displayFamily,
+                                        fontSize = 22.sp,
+                                        modifier = Modifier.padding(start = 12.dp),
+                                    )
+                                }
+                            }
+                        } else if (!livePreview.isNullOrBlank()) {
+                            // Live preview at 22sp in a fixed-height slot, prefixed with
+                            // '= ' (prototype display.jsx:87) + inline fraction.
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(previewSlotHeight),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.Bottom,
+                                ) {
+                                    BasicText(
+                                        text = "= $livePreview",
+                                        style = TextStyle(
+                                            fontSize = 22.sp,
+                                            color = previewColor,
+                                            fontFamily = sifr.displayFamily,
+                                            textAlign = TextAlign.End,
+                                        ),
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.StartEllipsis,
+                                        modifier = Modifier.weight(1f, fill = false),
+                                    )
+                                    if (fraction != null) {
+                                        FractionLabel(
+                                            fraction = fraction,
+                                            color = previewColor,
+                                            fontFamily = sifr.displayFamily,
+                                            fontSize = 17.sp,
+                                            modifier = Modifier.padding(start = 10.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        } else if (fraction != null) {
+                            // Bare number with no result/preview line: fraction stands alone.
+                            FractionLabel(
+                                fraction = fraction,
+                                color = previewColor,
+                                fontFamily = sifr.displayFamily,
+                                fontSize = 22.sp,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
+
+                        // 4) In-flow result-actions (COPY · SHARE [· ANS]) — portrait
+                        // passes the slot; landscape leaves it null and keeps its own.
+                        if (showResult && resultActions != null) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .padding(top = if (compact) 6.dp else 12.dp),
+                            ) {
+                                resultActions()
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Previews — every reachable display state
+// ---------------------------------------------------------------------------
+
+// State 1: Live typing — DEG chip + 50sp expression + 22sp live-preview line.
+@Preview(name = "CalculatorDisplay — live typing", showBackground = true)
+@Composable
+private fun PreviewCalculatorDisplayLiveTyping() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "12+5",
+            cursor = 4,
+            selectionStart = 4,
+            livePreview = "17",
+            error = null,
+            onSelectionChange = { _, _ -> },
+            angleUnit = AngleUnit.Degrees,
+        )
+    }
+}
+
+// State 2: Two-line result (HEADLINE state) — evaluatedInput on top, = result below,
+// COPY · SHARE · ANS in-flow. @PreviewLightDark + SifrTheme(palette) with default
+// themeMode=ThemeMode.System lets the preview framework flip isSystemInDarkTheme()
+// per variant, producing one light and one dark render from a single annotation.
+@PreviewLightDark
+@Composable
+private fun PreviewCalculatorDisplayResult() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "512",
+            cursor = 3,
+            selectionStart = 3,
+            livePreview = null,
+            error = null,
+            onSelectionChange = { _, _ -> },
+            evaluatedInput = "128 x 4",
+            justEvaluated = true,
+            angleUnit = AngleUnit.Degrees,
+            resultActions = {
+                ResultActionsRow(onCopy = {}, onShare = {}, onAns = {})
+            },
+        )
+    }
+}
+
+// State 3: Error — 28sp two-line error text; no chips needed.
+@Preview(name = "CalculatorDisplay — error", showBackground = true)
+@Composable
+private fun PreviewCalculatorDisplayError() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "log(0)",
+            cursor = 6,
+            selectionStart = 6,
+            livePreview = null,
+            error = UiText.StringResource(R.string.calc_error_domain_error),
+            onSelectionChange = { _, _ -> },
+            angleUnit = AngleUnit.Degrees,
+        )
+    }
+}
+
+// State 4: Chips band — RAD active + memory chip visible.
+@Preview(name = "CalculatorDisplay — RAD + memory", showBackground = true)
+@Composable
+private fun PreviewCalculatorDisplayRadMemory() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "sin(1)",
+            cursor = 6,
+            selectionStart = 6,
+            livePreview = "1.5",
+            error = null,
+            onSelectionChange = { _, _ -> },
+            angleUnit = AngleUnit.Radians,
+            memoryValue = 42.0,
+        )
     }
 }

@@ -16,6 +16,7 @@ data class CalculatorState(
     val memoryValue: Double? = null,
     val fractionResults: Boolean = false, // v1.5 — mirror of AppSettings.fractionResults
     val justEvaluated: Boolean = false,   // v1.5 — true only right after a successful '='
+    val evaluatedInput: String? = null,   // v1.7 — input expression kept while justEvaluated (D3); null otherwise
     val keypadLayout: KeypadLayout = KeypadLayout.Classic, // v1.6 — mirror of AppSettings
     val memoryKeysVisible: Boolean = true,                 // v1.6 — mirror of AppSettings
 )

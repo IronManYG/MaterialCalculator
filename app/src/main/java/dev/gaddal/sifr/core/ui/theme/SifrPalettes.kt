@@ -205,7 +205,10 @@ fun dynamicToSifrColors(scheme: M3ColorScheme, dark: Boolean): SifrColors {
         statusBarLightIcons = dark,
         text = scheme.onBackground, dim = scheme.onSurfaceVariant,
         accent = accent, accentInk = scheme.onPrimary,
-        hairline = scheme.outlineVariant, surface = scheme.surfaceVariant, surfaceBorder = scheme.outlineVariant,
+        // `outlineVariant` is near-invisible against the variant surfaces (especially in
+        // dark Material You) — card / swatch / picker / chip borders vanished. `outline`
+        // is the higher-contrast role meant for visible decorative borders.
+        hairline = scheme.outline, surface = scheme.surfaceVariant, surfaceBorder = scheme.outline,
         displayExpression = scheme.onSurface, displayResult = accent, displayError = scheme.error,
         keyNum = SifrKeyStyle(SolidColor(scheme.surfaceVariant), scheme.onSurfaceVariant),
         keyOp = SifrKeyStyle(SolidColor(scheme.secondaryContainer), scheme.onSecondaryContainer),

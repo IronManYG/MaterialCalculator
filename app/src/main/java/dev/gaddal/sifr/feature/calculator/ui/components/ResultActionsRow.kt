@@ -15,18 +15,15 @@ import dev.gaddal.sifr.core.ui.components.SifrChip
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 
 /**
- * A row of hairline-bordered chips shown bottom-end in the display surface
- * right after a successful '=' evaluation (`justEvaluated && error == null`).
- *
- * Ships COPY and SHARE only. ANS was evaluated and dropped: after '=' the
- * expression IS already the result, so RestoreExpression(result) would write
- * back the identical string — a pure no-op under the no-engine-changes
- * constraint. No UseAnswer action or calc_action_ans string is added.
+ * Post-`=` result actions: COPY · SHARE · ANS→ (spec §5.1 / D2). ANS→ commits the
+ * just-evaluated result as the editable working expression (clears justEvaluated),
+ * letting the user continue from the answer.
  */
 @Composable
 fun ResultActionsRow(
     onCopy: () -> Unit,
     onShare: () -> Unit,
+    onAns: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -35,6 +32,7 @@ fun ResultActionsRow(
     ) {
         SifrChip(label = stringResource(R.string.calc_action_copy), onClick = onCopy)
         SifrChip(label = stringResource(R.string.calc_action_share), onClick = onShare)
+        SifrChip(label = stringResource(R.string.calc_action_ans), onClick = onAns)
     }
 }
 
@@ -44,6 +42,7 @@ private fun PreviewResultActionsRow() = SifrTheme(palette = SifrPalette.Layl, th
     ResultActionsRow(
         onCopy = {},
         onShare = {},
+        onAns = {},
         modifier = Modifier.padding(12.dp),
     )
 }

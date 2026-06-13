@@ -119,6 +119,7 @@ class ExpressionWriter {
             CalculatorAction.HistoryClicked -> Result.Success(Unit)
             CalculatorAction.CopyResult,
             CalculatorAction.ShareResult -> Result.Success(Unit) // handled by VM via events
+            CalculatorAction.UseAnswer -> Result.Success(Unit)   // handled by VM via _state.update
             is CalculatorAction.RestoreExpression -> {
                 expression = action.value
                 cursor = expression.length

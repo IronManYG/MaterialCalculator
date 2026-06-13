@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,12 +23,12 @@ import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
-import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.feature.calculator.ui.KeypadCell
+import dev.gaddal.sifr.feature.calculator.ui.KeypadRowSpec
 import dev.gaddal.sifr.feature.calculator.ui.arcEquals
-import dev.gaddal.sifr.feature.calculator.ui.arcNumberPadRows
+import dev.gaddal.sifr.feature.calculator.ui.arcNumberPadRowSpecs
 import dev.gaddal.sifr.feature.calculator.ui.arcOperators
 import dev.gaddal.sifr.feature.calculator.ui.memoryRow
 import dev.gaddal.sifr.feature.calculator.ui.scientificCells
@@ -42,42 +43,43 @@ import dev.gaddal.sifr.feature.calculator.ui.scientificCells
 @Composable
 fun ArcKeypad(
     mode: CalculatorMode,
-    angleUnit: AngleUnit,
     memoryKeysVisible: Boolean,
     onAction: (CalculatorAction) -> Unit,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 32.sp,
+    // Capped in scientific (see CalculatorButtonGrid.scientificGap) so the taller
+    // Arc keypad doesn't crush the display above it.
+    gap: Dp = SifrTokens.colors.keyGap,
 ) {
-    val gap = SifrTokens.colors.keyGap
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(gap),
     ) {
         if (mode == CalculatorMode.Scientific) {
-            val sci = remember(angleUnit) {
+            val sci = remember {
                 scientificCells
-                    .filterNot { cell ->
-                        val text = cell.text
-                        (text == "deg" && angleUnit == AngleUnit.Radians) ||
-                            (text == "rad" && angleUnit == AngleUnit.Degrees)
-                    }
                     .chunked(4)
-                    .map { row -> row.map { KeypadCell(it) } }
+                    // 0.6 fontScale matches the portrait keypad: multi-glyph sci labels
+                    // read smaller than the 27sp number keys (≈16sp), constant across modes.
+                    .map { row -> KeypadRowSpec(row.map { KeypadCell(it) }, fontScale = 0.6f) }
             }
             WeightedCellGrid(
                 rows = sci,
                 columns = 4,
                 onAction = onAction,
                 fontSize = fontSize,
+                gap = gap,
                 modifier = Modifier.fillMaxWidth().weight(sci.size.toFloat()),
             )
         }
         if (memoryKeysVisible) {
             WeightedCellGrid(
-                rows = remember { listOf(memoryRow.map { KeypadCell(it) }) },
+                // 0.6 fontScale → ≈16sp keys, matching the portrait memory row (N2).
+                rows = remember { listOf(KeypadRowSpec(memoryRow.map { KeypadCell(it) }, fontScale = 0.6f)) },
                 columns = 4,
                 onAction = onAction,
                 fontSize = fontSize,
+                gap = gap,
                 modifier = Modifier.fillMaxWidth().weight(1f),
             )
         }
@@ -86,6 +88,7 @@ fun ArcKeypad(
         ArcBasicBlock(
             onAction = onAction,
             fontSize = fontSize,
+            gap = gap,
             modifier = Modifier.fillMaxWidth().weight(5f),
         )
     }
@@ -95,10 +98,10 @@ fun ArcKeypad(
 private fun ArcBasicBlock(
     onAction: (CalculatorAction) -> Unit,
     fontSize: TextUnit,
+    gap: Dp,
     modifier: Modifier = Modifier,
 ) {
     val sifr = SifrTokens.colors
-    val gap = sifr.keyGap
     BoxWithConstraints(modifier = modifier) {
         val h = maxHeight
         val keyH = (h - gap * 4) / 5
@@ -123,7 +126,7 @@ private fun ArcBasicBlock(
 
         // 3-col number pad on the leading 63%.
         WeightedCellGrid(
-            rows = arcNumberPadRows,
+            rows = arcNumberPadRowSpecs,
             columns = 3,
             onAction = onAction,
             fontSize = fontSize,
@@ -168,7 +171,6 @@ private fun ArcBasicBlock(
 private fun PreviewArcLayl() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
     ArcKeypad(
         mode = CalculatorMode.Basic,
-        angleUnit = AngleUnit.Degrees,
         memoryKeysVisible = true,
         onAction = {},
         modifier = Modifier.fillMaxWidth(),
@@ -180,7 +182,6 @@ private fun PreviewArcLayl() = SifrTheme(palette = SifrPalette.Layl, themeMode =
 private fun PreviewArcSmall() = SifrTheme(palette = SifrPalette.Farah, themeMode = ThemeMode.Light) {
     ArcKeypad(
         mode = CalculatorMode.Basic,
-        angleUnit = AngleUnit.Degrees,
         memoryKeysVisible = false,
         onAction = {},
         modifier = Modifier.fillMaxWidth(),
@@ -192,7 +193,6 @@ private fun PreviewArcSmall() = SifrTheme(palette = SifrPalette.Farah, themeMode
 private fun PreviewArcTall() = SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
     ArcKeypad(
         mode = CalculatorMode.Basic,
-        angleUnit = AngleUnit.Degrees,
         memoryKeysVisible = true,
         onAction = {},
         modifier = Modifier.fillMaxWidth(),
@@ -204,7 +204,6 @@ private fun PreviewArcTall() = SifrTheme(palette = SifrPalette.Mizan, themeMode 
 private fun PreviewArcScientific() = SifrTheme(palette = SifrPalette.Raqim, themeMode = ThemeMode.Light) {
     ArcKeypad(
         mode = CalculatorMode.Scientific,
-        angleUnit = AngleUnit.Degrees,
         memoryKeysVisible = true,
         onAction = {},
         modifier = Modifier.fillMaxWidth(),

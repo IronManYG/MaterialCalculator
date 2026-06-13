@@ -4,6 +4,14 @@
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_back">Back</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">Appearance</string>
+    <string name="settings_theme_system_short">System</string>
+    <string name="settings_keypad_layout">Layout</string>
+    <string name="settings_memory_keys_sub">Show memory keys above the keypad</string>
+    <string name="settings_fraction_results_sub">Show exact fractions when possible</string>
+    <string name="settings_haptics_sub">Vibrate on key press</string>
+    <string name="settings_about_sub">A calmer calculator.</string>
     <string name="settings_theme_section">Mode</string>
     <string name="settings_theme_system">Follow system</string>
     <string name="settings_theme_light">Light</string>
@@ -24,9 +32,14 @@
     <string name="calc_error_domain_error">Input outside function domain</string>
     <string name="calc_error_overflow">Result too large</string>
     <string name="calc_error_syntax_error">Syntax error</string>
+    <string name="calc_open_tools">Open tools</string>
+    <string name="calc_rotate_orientation">Rotate screen</string>
+
     <!-- v1.5 result actions -->
     <string name="calc_action_copy">COPY</string>
     <string name="calc_action_share">SHARE</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">ANS →</string>
 
     <!-- v1.5 settings sections -->
     <string name="settings_display_section">Display</string>
@@ -53,6 +66,7 @@
     <string name="settings_keypad_classic">Classic</string>
     <string name="settings_keypad_remix">Remix</string>
     <string name="settings_keypad_arc">Arc</string>
+    <string name="settings_keypad_tape">Tape</string>
 
     <!-- History screen -->
     <string name="history_title">History</string>

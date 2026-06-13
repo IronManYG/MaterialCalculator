@@ -39,16 +39,20 @@ fun ThemePicker(
     modifier: Modifier = Modifier,
 ) {
     val tokens = SifrTokens.colors
+    // 3 swatches per row (prototype screens.jsx:38 — flex 1 1 30%): the 6 palettes
+    // land as 3 + 3. weight(1f) keeps the columns equal width.
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
+        maxItemsInEachRow = 3,
     ) {
         SifrPalette.entries.forEach { palette ->
             val swatch = sifrColorsFor(palette, dark)
             val isSelected = palette == selected
             Column(
                 modifier = Modifier
+                    .weight(1f)
                     .clip(RoundedCornerShape(14.dp))
                     .background(swatch.backgroundFlat)
                     .border(
@@ -60,19 +64,29 @@ fun ThemePicker(
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("صفر", color = swatch.accent, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Spacer(Modifier.size(6.dp))
+                // One name per swatch (prototype ThemeSwatch leads with the palette's
+                // own name): the localized label — Arabic script in ar, romanized in en —
+                // in the palette's accent. The redundant generic "صفر"/dim label is dropped.
+                Text(
+                    text = stringResource(palette.labelRes()),
+                    color = swatch.accent,
+                    fontWeight = FontWeight.Bold,
+                    // 15sp keeps the longest name ("Dynamic") on a single line in the
+                    // narrow 3-per-row swatch; shorter names still read clearly.
+                    fontSize = 15.sp,
+                    maxLines = 1,
+                )
+                Spacer(Modifier.size(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                     Dot(swatch.displayExpression); Dot(swatch.accent); Dot(swatch.keyEq.content)
                 }
-                Spacer(Modifier.size(6.dp))
-                Text(stringResource(palette.labelRes()), color = swatch.dim, fontSize = 11.sp)
             }
         }
     }
 }
 
-/** Localized swatch label. Brand names stay Latin in every locale; only Dynamic translates. */
+/** Localized swatch label. AR renders the palette names in Arabic script to match the
+ *  prototype (i18n.js — ليل/بيان/رقيم/فرح/ميزان); EN keeps the romanized forms. */
 private fun SifrPalette.labelRes(): Int = when (this) {
     SifrPalette.Layl -> R.string.settings_palette_layl
     SifrPalette.Bayan -> R.string.settings_palette_bayan
