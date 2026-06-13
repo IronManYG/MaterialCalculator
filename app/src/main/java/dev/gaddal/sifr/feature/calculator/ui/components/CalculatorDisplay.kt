@@ -25,13 +25,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.ui.components.SifrChip
+import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.UiText
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
@@ -241,5 +245,106 @@ fun CalculatorDisplay(
                 }
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Previews — every reachable display state
+// ---------------------------------------------------------------------------
+
+// State 1: Live typing — DEG chip + 50sp expression + 22sp live-preview line.
+@Preview(name = "CalculatorDisplay — live typing", showBackground = true)
+@Composable
+private fun PreviewCalculatorDisplayLiveTyping() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "12+5",
+            cursor = 4,
+            selectionStart = 4,
+            livePreview = "17",
+            error = null,
+            onSelectionChange = { _, _ -> },
+            angleUnit = AngleUnit.Degrees,
+        )
+    }
+}
+
+// State 2: Two-line result (HEADLINE state) — evaluatedInput on top, = result below,
+// COPY · SHARE · ANS in-flow. @PreviewLightDark + SifrTheme(palette) with default
+// themeMode=ThemeMode.System lets the preview framework flip isSystemInDarkTheme()
+// per variant, producing one light and one dark render from a single annotation.
+@PreviewLightDark
+@Composable
+private fun PreviewCalculatorDisplayResult() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "512",
+            cursor = 3,
+            selectionStart = 3,
+            livePreview = null,
+            error = null,
+            onSelectionChange = { _, _ -> },
+            evaluatedInput = "128 x 4",
+            justEvaluated = true,
+            angleUnit = AngleUnit.Degrees,
+            resultActions = {
+                ResultActionsRow(onCopy = {}, onShare = {}, onAns = {})
+            },
+        )
+    }
+}
+
+// State 3: Error — 28sp two-line error text; no chips needed.
+@Preview(name = "CalculatorDisplay — error", showBackground = true)
+@Composable
+private fun PreviewCalculatorDisplayError() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "log(0)",
+            cursor = 6,
+            selectionStart = 6,
+            livePreview = null,
+            error = UiText.StringResource(R.string.calc_error_domain_error),
+            onSelectionChange = { _, _ -> },
+            angleUnit = AngleUnit.Degrees,
+        )
+    }
+}
+
+// State 4: Chips band — RAD active + memory chip visible.
+@Preview(name = "CalculatorDisplay — RAD + memory", showBackground = true)
+@Composable
+private fun PreviewCalculatorDisplayRadMemory() = SifrTheme(palette = SifrPalette.Layl) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+            .padding(18.dp),
+    ) {
+        CalculatorDisplay(
+            expression = "sin(1)",
+            cursor = 6,
+            selectionStart = 6,
+            livePreview = "1.5",
+            error = null,
+            onSelectionChange = { _, _ -> },
+            angleUnit = AngleUnit.Radians,
+            memoryValue = 42.0,
+        )
     }
 }

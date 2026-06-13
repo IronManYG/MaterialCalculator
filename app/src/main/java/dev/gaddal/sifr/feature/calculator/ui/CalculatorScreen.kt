@@ -382,3 +382,15 @@ private fun PreviewRemixNoMemory() = SifrTheme(palette = SifrPalette.Bayan) {
         onAction = {},
     )
 }
+
+// Light-mode coverage of the two-line result state so the resultColor /
+// displayResult token is verified in light theme (complement to PreviewResultActions
+// which covers dark only).
+@Preview(name = "Result actions (Bayan light)", showBackground = true)
+@Composable
+private fun PreviewResultActionsLight() = SifrTheme(palette = SifrPalette.Bayan) {
+    CalculatorScreen(
+        state = CalculatorState(expression = "512", cursor = 3, justEvaluated = true, evaluatedInput = "128 x 4"),
+        onAction = {},
+    )
+}
