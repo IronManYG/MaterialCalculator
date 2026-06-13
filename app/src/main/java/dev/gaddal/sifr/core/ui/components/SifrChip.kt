@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,10 +57,21 @@ fun SifrChip(
     Text(
         text = label,
         color = content,
-        fontSize = 11.sp,
-        letterSpacing = 0.1.sp,
-        textAlign = TextAlign.Center,
-        fontFamily = sifr.uiFamily,
+        // Drop legacy font padding and center the single glyph line within its own
+        // line height — without this the monospace palettes (Mizan = IBM Plex Mono)
+        // sat the label a few dp low in the pill (device-measured ~3dp off).
+        style = TextStyle(
+            fontSize = 11.sp,
+            lineHeight = 14.sp,
+            letterSpacing = 0.1.sp,
+            textAlign = TextAlign.Center,
+            fontFamily = sifr.uiFamily,
+            platformStyle = PlatformTextStyle(includeFontPadding = false),
+            lineHeightStyle = LineHeightStyle(
+                alignment = LineHeightStyle.Alignment.Center,
+                trim = LineHeightStyle.Trim.None,
+            ),
+        ),
         modifier = m,
     )
 }
