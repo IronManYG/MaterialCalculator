@@ -146,18 +146,6 @@ fun CalculatorButton(
             .clickable(interactionSource = interaction, indication = null) { onClick() },
         contentAlignment = Alignment.Center,
     ) {
-        // Ghost Arabic-Indic numeral, top-end on number keys (Layl/Farah)
-        val digit = action.text?.singleOrNull()
-        if (sifr.ghostNumeral != null && action.role == SifrKeyRole.Num && digit != null && digit.isDigit()) {
-            Text(
-                text = arabicIndicDigit(digit),
-                color = sifr.ghostNumeral,
-                fontSize = 11.sp,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(6.dp),
-            )
-        }
         if (action.text != null) {
             Text(
                 text = action.text,
@@ -172,9 +160,6 @@ fun CalculatorButton(
         }
     }
 }
-
-private fun arabicIndicDigit(c: Char): String =
-    if (c in '0'..'9') ('٠' + (c - '0')).toString() else c.toString()
 
 @Preview(name = "Eq glow (Layl dark)", showBackground = true, backgroundColor = 0xFF070A12)
 @Composable

@@ -21,7 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -128,12 +131,23 @@ fun CalculatorRoot(
         }
     }
     val activity = view.context as? Activity
-    // Manual orientation only (spec §4.9 / D1): lock to portrait on entry so the
-    // OS never sensor-rotates; the Rotate top-bar action toggles. configChanges in
-    // the manifest keeps this composition alive across the orientation change, so
-    // this default does not fight a user-requested landscape.
+    // Manual orientation only (spec §4.9 / D1): lock to portrait so the OS never
+    // sensor-rotates; the Rotate top-bar action toggles. configChanges in the
+    // manifest keeps this composition alive across the orientation change, so this
+    // default does not fight a user-requested landscape.
+    //
+    // Lock portrait only on the FIRST entry, guarded by a saveable flag: opening
+    // Settings/History disposes this composition, and an unguarded LaunchedEffect
+    // would re-lock portrait on the way back — so rotating to landscape, opening
+    // Settings, and pressing Back snapped you back to portrait. The flag survives
+    // the nav round-trip (and resets on a fresh process launch → default portrait),
+    // so the chosen orientation now persists across navigation.
+    var didLockInitialOrientation by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        if (!didLockInitialOrientation) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            didLockInitialOrientation = true
+        }
     }
     val onRotate = remember(isLandscape, activity) {
         {
@@ -143,13 +157,18 @@ fun CalculatorRoot(
         }
     }
     if (isLandscape) {
-        CalculatorScreenLandscape(state = state, onAction = viewModel::onAction)
+        CalculatorScreenLandscape(
+            state = state,
+            onAction = viewModel::onAction,
+            onRotate = onRotate,
+            rotateActive = isLandscape,   // always true in the landscape branch
+        )
     } else {
         CalculatorScreen(
             state = state,
             onAction = viewModel::onAction,
             onRotate = onRotate,
-            rotateActive = isLandscape,   // always false in portrait branch; Phase C wires landscape→true
+            rotateActive = isLandscape,   // always false in the portrait branch
         )
     }
 }
