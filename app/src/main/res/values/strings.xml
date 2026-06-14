@@ -69,7 +69,7 @@
     <string name="settings_keypad_tape">Tape</string>
 
     <!-- v1.7.x settings — restore target (history / tape tap) -->
-    <string name="settings_restore_target">Restore from history</string>
+    <string name="settings_restore_target">Restore as</string>
     <string name="settings_restore_target_sub">Insert result or full expression</string>
     <string name="settings_restore_target_result">Result</string>
     <string name="settings_restore_target_expression">Expression</string>
