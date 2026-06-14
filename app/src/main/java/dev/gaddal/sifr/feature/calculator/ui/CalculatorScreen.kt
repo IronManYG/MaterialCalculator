@@ -143,13 +143,18 @@ fun CalculatorRoot(
         }
     }
     if (isLandscape) {
-        CalculatorScreenLandscape(state = state, onAction = viewModel::onAction)
+        CalculatorScreenLandscape(
+            state = state,
+            onAction = viewModel::onAction,
+            onRotate = onRotate,
+            rotateActive = isLandscape,   // always true in the landscape branch
+        )
     } else {
         CalculatorScreen(
             state = state,
             onAction = viewModel::onAction,
             onRotate = onRotate,
-            rotateActive = isLandscape,   // always false in portrait branch; Phase C wires landscape→true
+            rotateActive = isLandscape,   // always false in the portrait branch
         )
     }
 }

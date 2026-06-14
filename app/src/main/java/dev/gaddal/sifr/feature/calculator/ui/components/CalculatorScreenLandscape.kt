@@ -6,30 +6,34 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.contextmenu.data.TextContextMenuKeys
+import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
-import androidx.compose.ui.AbsoluteAlignment
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
@@ -39,11 +43,14 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.core.ui.components.SifrCalcTopBar
+import dev.gaddal.sifr.core.ui.components.SifrChip
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
+import dev.gaddal.sifr.feature.calculator.domain.toFraction
 import dev.gaddal.sifr.feature.calculator.ui.CalculatorState
 import dev.gaddal.sifr.feature.calculator.ui.CalculatorUiAction
 import dev.gaddal.sifr.feature.calculator.ui.basicRows
@@ -51,21 +58,27 @@ import dev.gaddal.sifr.feature.calculator.ui.memoryRow
 import dev.gaddal.sifr.feature.calculator.ui.scientificCells
 
 /**
- * Restructured landscape layout. Display strip spans the top; the body is
- * split into a scientific block (leading edge) and a basic block (trailing
- * edge). Under RTL (`LayoutDirection.Rtl`) Compose's Row flips the children
- * order automatically, so the basic block ends up on the leading (right)
- * edge — matching the SPEC's RTL mirroring requirement.
+ * Restructured landscape layout (v1.7 Phase C). A shared [SifrCalcTopBar] spans
+ * the top (brand + History · Tools · Rotate · Settings — the ƒ toggle is hidden
+ * since scientific cells are always present here, and Rotate is the active icon
+ * so the user can always get back to portrait). Below it: a compact display that
+ * reuses the portrait two-line model (angle/memory chips, expression, live
+ * preview, and the `= result` morph with COPY · SHARE · ANS), then a two-column
+ * body split into a scientific block (leading edge) and a basic block (trailing
+ * edge). Under RTL (`LayoutDirection.Rtl`) Compose's Row flips the children order
+ * automatically, so the basic block ends up on the leading (right) edge —
+ * matching the SPEC's RTL mirroring requirement.
  *
- * The scientific block is always visible in landscape regardless of
- * `state.mode` — rotation is opportunistic, not a forced mode change. The
- * toolbar toggle still applies; flipping back to portrait honors the
- * persisted mode.
+ * The scientific block is always visible in landscape regardless of `state.mode`
+ * — rotation is opportunistic, not a forced mode change. The persisted mode is
+ * honored again on flipping back to portrait.
  */
 @Composable
 fun CalculatorScreenLandscape(
     state: CalculatorState,
     onAction: (CalculatorAction) -> Unit,
+    onRotate: () -> Unit = {},
+    rotateActive: Boolean = true,
 ) {
     val sifr = SifrTokens.colors
     Scaffold(
@@ -73,148 +86,62 @@ fun CalculatorScreenLandscape(
             .fillMaxSize()
             .background(sifr.background),
         containerColor = Color.Transparent,
+        topBar = {
+            SifrCalcTopBar(
+                onHistory = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
+                onTools = {},                              // gated: Tools screen ships in a later milestone
+                onScientific = {},                         // sci cells always visible in landscape
+                scientificActive = false,
+                onRotate = onRotate,
+                rotateActive = rotateActive,
+                onSettings = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
+                // ƒ toggle hidden in landscape (sci is always on here) — matches the
+                // prototype top bar (ui-bits.jsx:128, !land gate).
+                showScientific = false,
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .displayCutoutPadding(),
+                historyCd = stringResource(R.string.calc_open_history),
+                toolsCd = stringResource(R.string.calc_open_tools),
+                scientificCd = stringResource(R.string.calc_toggle_mode),
+                rotateCd = stringResource(R.string.calc_rotate_orientation),
+                settingsCd = stringResource(R.string.calc_open_settings),
+            )
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .displayCutoutPadding()
+                .padding(horizontal = 14.dp),
         ) {
-            // Top: display strip, weight-bound so the body has room for the
-            // 10 keypad rows. Without a weight, the Box took its intrinsic
-            // content height and grew to ~50% of the landscape height in
-            // testing, squashing the keypad.
-            Box(
+            // Top: compact two-row display in the palette surface (block/card/inset/
+            // flat). `LandscapeDisplay` collapses the portrait's vertical stack into
+            // two rows — [chips · input] and [actions · = result] — so it fits the
+            // short strip without spilling into the keypad, and frees vertical room
+            // for the keypad. `compact` trims the surface's vertical insets.
+            CalculatorDisplaySurface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.30f)
-                    .clip(RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp))
-                    .background(sifr.surface),
+                    .weight(0.36f),
+                compact = true,
             ) {
-                CalculatorDisplaySurface(modifier = Modifier.fillMaxSize()) {
-                    CalculatorDisplay(
-                        expression = state.expression,
-                        cursor = state.cursor,
-                        selectionStart = state.selectionStart,
-                        livePreview = state.livePreview,
-                        error = state.error,
-                        onSelectionChange = { start, end ->
-                            onAction(CalculatorAction.SelectionChanged(start, end))
-                        },
-                        // Landscape display strip is short. Lower the main-text
-                        // cap and shrink the preview slot so both fit comfortably
-                        // in a ~100dp box.
-                        maxFontSize = 36.sp,
-                        previewSlotHeight = 28.dp,
-                        fractionResults = state.fractionResults,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            // Reserve horizontal space on the leading edge for
-                            // the toolbar icons (forced top-left below). 104dp =
-                            // 8dp margin + 2 × 48dp IconButton. Right-aligned
-                            // expression text grows leftward and stops *before*
-                            // the icons' x-range, so they can't collide
-                            // regardless of expression length. Vertical padding
-                            // stays tight so the preview slot fits.
-                            .padding(
-                                top = 8.dp,
-                                bottom = 8.dp,
-                                start = 104.dp,
-                                end = 16.dp,
-                            ),
-                    )
-                }
-                // Toolbar overlay anchored to the visual top-left in both
-                // locales. `AbsoluteAlignment.TopLeft` (unlike `TopStart`)
-                // does not flip under RTL — `TopStart` was being resolved
-                // against the outer Box's system layout direction and ended
-                // up at the visual top-right under Arabic, contradicting the
-                // 104.dp horizontal reservation in the display padding.
-                //
-                // The inner LTR scope still applies so the Column's children
-                // (icon Row + memory chip) lay out left-to-right regardless
-                // of locale.
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    Column(
-                        modifier = Modifier
-                            .align(AbsoluteAlignment.TopLeft)
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Row {
-                            IconButton(
-                                onClick = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.History,
-                                    contentDescription = stringResource(R.string.calc_open_history),
-                                    tint = sifr.dim,
-                                )
-                            }
-                            // Mode toggle hidden in landscape: scientific
-                            // cells are always visible here, so the toggle
-                            // has no observable effect on this screen.
-                            IconButton(
-                                onClick = dropUnlessResumed { onAction(CalculatorAction.SettingsClicked) },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = stringResource(R.string.calc_open_settings),
-                                    tint = sifr.dim,
-                                )
-                            }
-                        }
-                        // Memory chip sits on a second line, centered under
-                        // the icon column. Keeps the toolbar visually
-                        // anchored together while leaving the chip discoverable.
-                        if (state.memoryValue != null) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(sifr.accent)
-                                    .padding(horizontal = 10.dp, vertical = 4.dp),
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.calc_mode_chip_memory),
-                                    color = sifr.accentInk,
-                                    fontSize = 12.sp,
-                                )
-                            }
-                        }
-                    }
-                }
-                // Thin low-opacity vertical divider at the right edge of the
-                // toolbar's reserved 104.dp band — gives the expression a
-                // clear visual break from the icon zone without dominating
-                // the display strip. `absolutePadding(left = ...)` is
-                // direction-independent (regular `padding(start = ...)` flips
-                // to the right edge under Arabic RTL), so the divider lines
-                // up with the visual top-left toolbar in both locales.
-                Box(
+                LandscapeDisplay(
+                    state = state,
+                    onAction = onAction,
                     modifier = Modifier
-                        .align(AbsoluteAlignment.CenterLeft)
-                        .absolutePadding(left = 96.dp, top = 8.dp, bottom = 8.dp)
-                        .width(1.dp)
-                        .fillMaxHeight()
-                        .background(sifr.hairline),
+                        .fillMaxSize()
+                        .padding(vertical = 4.dp),
                 )
-                if (state.justEvaluated && state.error == null) {
-                    ResultActionsRow(
-                        onCopy = { onAction(CalculatorAction.CopyResult) },
-                        onShare = { onAction(CalculatorAction.ShareResult) },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(8.dp),
-                    )
-                }
             }
-            // Body: two-column split. Weight complements the display's 0.30
-            // so the keypad rows have proportional vertical room.
+            // Body: two-column split. Weight complements the display's 0.36 so the
+            // keypad rows have proportional vertical room.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.70f)
-                    .padding(8.dp),
+                    .weight(0.64f)
+                    .padding(top = 6.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 ScientificBlockLandscape(
@@ -232,6 +159,198 @@ fun CalculatorScreenLandscape(
                         .fillMaxHeight(),
                 )
             }
+        }
+    }
+}
+
+/**
+ * Compact two-row display for the short landscape strip. Unlike the portrait
+ * [CalculatorDisplay] (which stacks chips → input → result → actions vertically),
+ * this collapses to two rows so it fits without spilling into the keypad:
+ *
+ *   row 1:  [DEG · M chips]            ............  [input / error]
+ *   row 2:  [COPY · SHARE · ANS]       ............  [= result / = preview]
+ *
+ * Each row weight-splits its width: the chips/actions take the visual LEFT, the
+ * math takes a weighted slot on the visual RIGHT — so the right-aligned text can
+ * never overlap the left chips, and the two rows can never overlap each other.
+ *
+ * The whole thing is forced LTR (like the prototype's `dir="ltr"` landscape root,
+ * landscape.jsx:51): chips/actions stay on the visual left and the expression /
+ * result stay on the visual right in both locales (each Text still shapes its own
+ * Arabic glyphs correctly). The keypad block-order still mirrors in RTL — that's
+ * handled by the outer landscape Row, not here.
+ */
+@Composable
+private fun LandscapeDisplay(
+    state: CalculatorState,
+    onAction: (CalculatorAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val sifr = SifrTokens.colors
+    val showResult = state.justEvaluated && state.error == null && state.evaluatedInput != null
+    val mainText = if (showResult) state.evaluatedInput.orEmpty() else state.expression
+    val mainColor = if (state.error != null) sifr.displayError else sifr.displayExpression
+    val resultColor = sifr.displayResult
+    val previewColor = resultColor.copy(alpha = 0.85f)
+    // Input/expression weight is palette-specific (prototype display.jsx:61 — Bayan
+    // extra-bold, Raqim light, everything else medium).
+    val displayWeight = when (SifrTokens.palette) {
+        SifrPalette.Bayan -> FontWeight.W900
+        SifrPalette.Raqim -> FontWeight.W300
+        else -> FontWeight.W500
+    }
+    // includeFontPadding=false trims the field's vertical dead-space so the input
+    // line is tight enough for the two compact rows.
+    val mainStyle = TextStyle(
+        color = mainColor,
+        textAlign = TextAlign.End,
+        fontFamily = sifr.displayFamily,
+        fontWeight = displayWeight,
+        platformStyle = PlatformTextStyle(includeFontPadding = false),
+    )
+    val fraction = remember(state.expression, state.fractionResults) {
+        if (!state.fractionResults) null else state.expression.toDoubleOrNull()?.toFraction()
+    }
+    val shownText = when {
+        showResult -> "= ${state.expression}"
+        !state.livePreview.isNullOrBlank() -> "= ${state.livePreview}"
+        else -> null
+    }
+    val shownColor = if (showResult) resultColor else previewColor
+
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Column(modifier = modifier) {
+            // ── ROW 1: chips (left) · input / error (right) ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                LandscapeChips(state = state, onAction = onAction)
+                Spacer(Modifier.width(12.dp))
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    if (state.error != null) {
+                        BasicText(
+                            text = state.error.asString(),
+                            style = mainStyle.copy(fontSize = 20.sp, lineHeight = 24.sp),
+                            maxLines = 2,
+                            softWrap = true,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        val fieldValue = if (showResult) {
+                            remember(mainText) {
+                                TextFieldValue(text = mainText, selection = TextRange(mainText.length))
+                            }
+                        } else {
+                            remember(mainText, state.cursor, state.selectionStart) {
+                                val maxLen = mainText.length
+                                TextFieldValue(
+                                    text = mainText,
+                                    selection = TextRange(
+                                        start = state.selectionStart.coerceIn(0, maxLen),
+                                        end = state.cursor.coerceIn(0, maxLen),
+                                    ),
+                                )
+                            }
+                        }
+                        val hasRangeNow = rememberUpdatedState(!showResult && state.cursor != state.selectionStart)
+                        AutoSizingExpressionField(
+                            value = fieldValue,
+                            onValueChange = { newValue ->
+                                if (!showResult) {
+                                    val newStart = newValue.selection.start
+                                    val newEnd = newValue.selection.end
+                                    if (newStart != state.selectionStart || newEnd != state.cursor) {
+                                        onAction(CalculatorAction.SelectionChanged(newStart, newEnd))
+                                    }
+                                }
+                            },
+                            style = mainStyle,
+                            // Lower cap + floor than portrait so the input line is short
+                            // enough for the two compact rows of the landscape strip.
+                            maxFontSize = 24.sp,
+                            minFontSize = 18.sp,
+                            cursorBrush = if (showResult) SolidColor(Color.Transparent) else SolidColor(sifr.accent),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .filterTextContextMenuComponents { component ->
+                                    if (hasRangeNow.value) component.key == TextContextMenuKeys.CopyKey else true
+                                },
+                        )
+                    }
+                }
+            }
+            // ── ROW 2: result actions (left) · result / preview (right) ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (showResult) {
+                    ResultActionsRow(
+                        onCopy = { onAction(CalculatorAction.CopyResult) },
+                        onShare = { onAction(CalculatorAction.ShareResult) },
+                        onAns = { onAction(CalculatorAction.UseAnswer) },
+                    )
+                    Spacer(Modifier.width(12.dp))
+                }
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    if (shownText != null) {
+                        BasicText(
+                            text = shownText,
+                            style = TextStyle(
+                                fontSize = if (showResult) 26.sp else 22.sp,
+                                color = shownColor,
+                                fontFamily = sifr.displayFamily,
+                                textAlign = TextAlign.End,
+                            ),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.StartEllipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                    }
+                    if (fraction != null && (showResult || !state.livePreview.isNullOrBlank())) {
+                        FractionLabel(
+                            fraction = fraction,
+                            color = shownColor,
+                            fontFamily = sifr.displayFamily,
+                            fontSize = if (showResult) 20.sp else 16.sp,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LandscapeChips(
+    state: CalculatorState,
+    onAction: (CalculatorAction) -> Unit,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val angleLabel = when (state.angleUnit) {
+            AngleUnit.Radians -> stringResource(R.string.settings_angle_rad)
+            AngleUnit.Degrees -> stringResource(R.string.settings_angle_deg)
+        }
+        SifrChip(
+            label = angleLabel,
+            active = state.angleUnit == AngleUnit.Radians,
+            onClick = { onAction(CalculatorAction.ToggleAngleUnit) },
+        )
+        if (state.memoryValue != null) {
+            SifrChip(label = stringResource(R.string.calc_mode_chip_memory), active = true)
         }
     }
 }
@@ -396,6 +515,32 @@ private fun PreviewLandscapeNoMemory() = SifrTheme(palette = SifrPalette.Bayan, 
             angleUnit = AngleUnit.Degrees,
             livePreview = "56",
             memoryKeysVisible = false,
+        ),
+        onAction = {},
+    )
+}
+
+// Two-line result morph (justEvaluated) + COPY · SHARE · ANS on Farah's card
+// surface — the worst-case for the compact landscape strip (the card insets eat
+// the most vertical room). Locks the result-state fit as the visual contract,
+// the landscape analogue of CalculatorScreen's "Scientific result (Farah card)".
+@Preview(
+    name = "Landscape — result (Farah card)",
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 360,
+)
+@Composable
+private fun PreviewLandscapeResult() = SifrTheme(palette = SifrPalette.Farah, themeMode = ThemeMode.Dark) {
+    CalculatorScreenLandscape(
+        state = CalculatorState(
+            expression = "0.5",
+            cursor = 3,
+            mode = CalculatorMode.Scientific,
+            angleUnit = AngleUnit.Degrees,
+            justEvaluated = true,
+            evaluatedInput = "sin(30)",
+            memoryValue = 42.0,
         ),
         onAction = {},
     )
