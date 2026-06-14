@@ -60,6 +60,14 @@ class CalculatorViewModel(
             }
         }
         viewModelScope.launch {
+            // Last 3 entries (newest-first; the DAO orders timestampMs DESC) feed the
+            // Tape in-display receipt. Always collected — the receipt only reads this
+            // under the keypadLayout == Tape guard, and the Room flow is cheap.
+            historyRepository.observe().collect { entries ->
+                _state.update { it.copy(recentHistory = entries.take(3)) }
+            }
+        }
+        viewModelScope.launch {
             settingsRepository.observe().collect { settings ->
                 writer.angleUnit = settings.angleUnit
                 // Update only the settings-derived mirrors. Deliberately DO NOT touch

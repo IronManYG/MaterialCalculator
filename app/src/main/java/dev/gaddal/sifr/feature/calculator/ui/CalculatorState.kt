@@ -1,5 +1,6 @@
 package dev.gaddal.sifr.feature.calculator.ui
 
+import dev.gaddal.sifr.core.domain.history.HistoryEntry
 import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.ui.util.UiText
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
@@ -19,4 +20,5 @@ data class CalculatorState(
     val evaluatedInput: String? = null,   // v1.7 — input expression kept while justEvaluated (D3); null otherwise
     val keypadLayout: KeypadLayout = KeypadLayout.Classic, // v1.6 — mirror of AppSettings
     val memoryKeysVisible: Boolean = true,                 // v1.6 — mirror of AppSettings
+    val recentHistory: List<HistoryEntry> = emptyList(),   // v1.7 — last 3 entries for the Tape receipt
 )
