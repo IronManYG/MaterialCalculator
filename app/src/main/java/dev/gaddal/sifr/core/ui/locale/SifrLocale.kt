@@ -1,6 +1,9 @@
 package dev.gaddal.sifr.core.ui.locale
 
+import android.content.ContextWrapper
+import android.content.res.AssetManager
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.text.TextUtils
 import android.view.View
 import androidx.compose.runtime.Composable
@@ -24,6 +27,15 @@ import java.util.Locale
  * No `key(locale){}` is used: Android `stringResource(R.string)` reads LocalContext/
  * LocalConfiguration, so providing them re-resolves strings in place — ViewModels,
  * scroll, and SavedStateHandle survive the switch.
+ *
+ * The override is a [ContextWrapper] around the Activity that swaps ONLY resources/
+ * assets. A bare `createConfigurationContext()` returns a `ContextImpl` that is no
+ * longer the Activity, which breaks every `LocalContext.current` consumer that needs
+ * the Activity — `context.startActivity()` (the share sheet) throws without
+ * FLAG_ACTIVITY_NEW_TASK, and `context as Activity` (Pulsar haptics) ClassCasts.
+ * Wrapping the Activity keeps those delegations working while still localizing
+ * resources. (A wrapper is still not `is Activity`, so consumers needing the literal
+ * Activity must read it from `LocalView.current.context` instead — see FeedbackController.)
  */
 @Composable
 fun SifrLocale(language: AppLanguage, content: @Composable () -> Unit) {
@@ -35,12 +47,16 @@ fun SifrLocale(language: AppLanguage, content: @Composable () -> Unit) {
     val configuration = LocalConfiguration.current
     val baseContext = LocalContext.current
     val locale = remember(tag) { Locale.forLanguageTag(tag) }
-    val localizedContext = remember(configuration, tag) {
+    val localizedContext = remember(configuration, tag, baseContext) {
         val config = Configuration(configuration).apply {
             setLocale(locale)
             setLayoutDirection(locale)
         }
-        baseContext.createConfigurationContext(config)
+        val localizedResources = baseContext.createConfigurationContext(config).resources
+        object : ContextWrapper(baseContext) {       // delegates to the Activity, serves localized resources
+            override fun getResources(): Resources = localizedResources
+            override fun getAssets(): AssetManager = localizedResources.assets
+        }
     }
     val rtl = TextUtils.getLayoutDirectionFromLocale(locale) == View.LAYOUT_DIRECTION_RTL
     CompositionLocalProvider(
