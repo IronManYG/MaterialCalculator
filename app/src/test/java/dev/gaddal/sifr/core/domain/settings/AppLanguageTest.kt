@@ -19,4 +19,23 @@ class AppLanguageTest {
         assertThat(AppLanguage.English.tag).isEqualTo("en")
         assertThat(AppLanguage.Arabic.tag).isEqualTo("ar")
     }
+
+    @Test fun `tier-1 Latin language tags are valid BCP-47`() {
+        assertThat(AppLanguage.Spanish.tag).isEqualTo("es")
+        assertThat(AppLanguage.Portuguese.tag).isEqualTo("pt-BR")
+        assertThat(AppLanguage.French.tag).isEqualTo("fr")
+        assertThat(AppLanguage.German.tag).isEqualTo("de")
+        assertThat(AppLanguage.Indonesian.tag).isEqualTo("id")
+        assertThat(AppLanguage.Turkish.tag).isEqualTo("tr")
+        assertThat(AppLanguage.Italian.tag).isEqualTo("it")
+        assertThat(AppLanguage.Vietnamese.tag).isEqualTo("vi")
+    }
+
+    @Test fun `every non-System language carries a non-null tag`() {
+        // System follows the device locale (no tag of its own); every other language
+        // must carry a tag so SifrLocale can resolve a Locale + a values-<tag> folder.
+        AppLanguage.entries.filter { it != AppLanguage.System }.forEach { l ->
+            assertThat(l.tag).isNotNull()
+        }
+    }
 }

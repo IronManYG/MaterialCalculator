@@ -320,6 +320,15 @@ private fun AppLanguage.displayLabel(): String = when (this) {
     AppLanguage.System -> stringResource(R.string.settings_language_system)
     AppLanguage.English -> "English"
     AppLanguage.Arabic -> "العربية"
+    // Endonyms — each language names itself, independent of the active locale.
+    AppLanguage.Spanish -> "Español"
+    AppLanguage.Portuguese -> "Português (Brasil)"
+    AppLanguage.French -> "Français"
+    AppLanguage.German -> "Deutsch"
+    AppLanguage.Indonesian -> "Bahasa Indonesia"
+    AppLanguage.Turkish -> "Türkçe"
+    AppLanguage.Italian -> "Italiano"
+    AppLanguage.Vietnamese -> "Tiếng Việt"
 }
 
 @Preview(name = "Settings — Layl dark", showBackground = true)
