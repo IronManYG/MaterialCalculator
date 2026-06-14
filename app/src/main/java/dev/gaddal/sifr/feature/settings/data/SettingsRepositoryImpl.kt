@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
+import dev.gaddal.sifr.core.domain.settings.AppLanguage
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.domain.settings.RestoreTarget
@@ -41,6 +42,7 @@ class SettingsRepositoryImpl(
             prefs[KEY_KEYPAD_LAYOUT] = updated.keypadLayout.name
             prefs[KEY_MEMORY_KEYS] = updated.memoryKeysVisible
             prefs[KEY_RESTORE_TARGET] = updated.restoreTarget.name
+            prefs[KEY_LANGUAGE] = updated.language.name
             val memory = updated.memoryValue
             if (memory != null) prefs[KEY_MEMORY_VALUE] = memory
             else prefs.remove(KEY_MEMORY_VALUE)
@@ -70,6 +72,9 @@ class SettingsRepositoryImpl(
         restoreTarget = this[KEY_RESTORE_TARGET]
             ?.let { runCatching { RestoreTarget.valueOf(it) }.getOrNull() }
             ?: RestoreTarget.Result,
+        language = this[KEY_LANGUAGE]
+            ?.let { runCatching { AppLanguage.valueOf(it) }.getOrNull() }
+            ?: AppLanguage.System,
         memoryValue = this[KEY_MEMORY_VALUE],
     )
 
@@ -84,6 +89,7 @@ class SettingsRepositoryImpl(
         val KEY_KEYPAD_LAYOUT = stringPreferencesKey("keypad_layout")
         val KEY_MEMORY_KEYS = booleanPreferencesKey("memory_keys_visible")
         val KEY_RESTORE_TARGET = stringPreferencesKey("restore_target")
+        val KEY_LANGUAGE = stringPreferencesKey("app_language")
         val KEY_MEMORY_VALUE = doublePreferencesKey("memory_value")
     }
 }
