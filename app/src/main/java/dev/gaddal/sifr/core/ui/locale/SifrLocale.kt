@@ -36,33 +36,45 @@ import java.util.Locale
  * Wrapping the Activity keeps those delegations working while still localizing
  * resources. (A wrapper is still not `is Activity`, so consumers needing the literal
  * Activity must read it from `LocalView.current.context` instead — see FeedbackController.)
+ *
+ * [content] is ALWAYS emitted through the same [CompositionLocalProvider], even for
+ * System (where the provided values are no-op passthroughs). An earlier version skipped
+ * the provider for System via an early return — but that made the composition STRUCTURE
+ * differ between System and non-System, so switching to/from System moved [content] to a
+ * different slot-table position, disposing and recreating the whole subtree (the
+ * Navigation back stack reset to the start destination). One uniform structure keeps
+ * `content` in place across every switch, so nav/scroll/state survive — verified on device.
  */
 @Composable
 fun SifrLocale(language: AppLanguage, content: @Composable () -> Unit) {
-    val tag = language.tag
-    if (tag == null) {            // System → follow device; no override, no forced direction
-        content()
-        return
-    }
     val configuration = LocalConfiguration.current
     val baseContext = LocalContext.current
-    val locale = remember(tag) { Locale.forLanguageTag(tag) }
-    val localizedContext = remember(configuration, tag, baseContext) {
-        val config = Configuration(configuration).apply {
-            setLocale(locale)
-            setLayoutDirection(locale)
-        }
-        val localizedResources = baseContext.createConfigurationContext(config).resources
-        object : ContextWrapper(baseContext) {       // delegates to the Activity, serves localized resources
-            override fun getResources(): Resources = localizedResources
-            override fun getAssets(): AssetManager = localizedResources.assets
+    val inheritedDirection = LocalLayoutDirection.current
+    val locale = remember(language) { language.tag?.let { Locale.forLanguageTag(it) } }
+    val localizedContext = remember(configuration, locale, baseContext) {
+        if (locale == null) {
+            baseContext                              // System → no override (passthrough)
+        } else {
+            val config = Configuration(configuration).apply {
+                setLocale(locale)
+                setLayoutDirection(locale)
+            }
+            val localizedResources = baseContext.createConfigurationContext(config).resources
+            object : ContextWrapper(baseContext) {   // delegates to the Activity, serves localized resources
+                override fun getResources(): Resources = localizedResources
+                override fun getAssets(): AssetManager = localizedResources.assets
+            }
         }
     }
-    val rtl = TextUtils.getLayoutDirectionFromLocale(locale) == View.LAYOUT_DIRECTION_RTL
+    val layoutDirection = when {
+        locale == null -> inheritedDirection         // System → follow the device direction
+        TextUtils.getLayoutDirectionFromLocale(locale) == View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
+        else -> LayoutDirection.Ltr
+    }
     CompositionLocalProvider(
         LocalContext provides localizedContext,
         LocalConfiguration provides localizedContext.resources.configuration,
-        LocalLayoutDirection provides if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+        LocalLayoutDirection provides layoutDirection,
         content = content,
     )
 }
