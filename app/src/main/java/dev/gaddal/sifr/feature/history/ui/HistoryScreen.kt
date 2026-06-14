@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewFontScale
@@ -209,7 +211,7 @@ private fun ClearAllPill(
             .minimumInteractiveComponentSize()
             .clip(shape)
             .border(BorderStroke(1.dp, sifr.hairline), shape)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 7.dp),
     )
 }
@@ -225,12 +227,15 @@ private fun HistoryEmptyState(
         verticalArrangement = Arrangement.Center,
     ) {
         // Sifr's "٠" (zero) wordmark glyph — the empty-state hero (prototype noCalcs state).
+        // Decorative: clearAndSetSemantics hides it from TalkBack (it would otherwise be read as
+        // "Arabic-Indic digit zero") so the screen reader lands straight on the title + body.
         Text(
             text = "٠",
             color = sifr.dim,
             fontFamily = sifr.displayFamily,
             fontSize = 44.sp,
             modifier = Modifier
+                .clearAndSetSemantics { }
                 .alpha(0.4f)
                 .padding(bottom = 10.dp),
         )
