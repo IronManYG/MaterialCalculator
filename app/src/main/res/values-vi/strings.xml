@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sifr</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_back">Quay lại</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">Ngôn ngữ</string>
+    <string name="settings_language_system">Mặc định hệ thống</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">Giao diện</string>
+    <string name="settings_theme_system_short">Hệ thống</string>
+    <string name="settings_keypad_layout">Bố cục</string>
+    <string name="settings_memory_keys_sub">Hiển thị phím nhớ phía trên bàn phím</string>
+    <string name="settings_fraction_results_sub">Hiển thị phân số chính xác khi có thể</string>
+    <string name="settings_haptics_sub">Rung khi nhấn phím</string>
+    <string name="settings_about_sub">Một chiếc máy tính điềm tĩnh hơn.</string>
+    <string name="settings_theme_section">Chế độ</string>
+    <string name="settings_theme_system">Theo hệ thống</string>
+    <string name="settings_theme_light">Sáng</string>
+    <string name="settings_theme_dark">Tối</string>
+    <string name="settings_haptics">Phản hồi rung</string>
+    <string name="settings_sound">Âm báo lỗi</string>
+
+    <!-- Calculator screen -->
+    <string name="calc_open_settings">Mở cài đặt</string>
+    <!-- Scientific mode -->
+    <string name="calc_toggle_mode">Bật/tắt chế độ khoa học</string>
+    <string name="calc_mode_chip_memory">M</string>
+    <string name="calc_angle_unit_degrees">deg</string>
+    <string name="calc_angle_unit_radians">rad</string>
+    <string name="calc_open_history">Mở lịch sử</string>
+    <string name="calc_error_division_by_zero">Không thể chia cho 0</string>
+    <string name="calc_error_invalid_expression">Biểu thức không hợp lệ</string>
+    <string name="calc_error_domain_error">Giá trị nhập ngoài miền xác định</string>
+    <string name="calc_error_overflow">Kết quả quá lớn</string>
+    <string name="calc_error_syntax_error">Lỗi cú pháp</string>
+    <string name="calc_open_tools">Mở công cụ</string>
+    <string name="calc_rotate_orientation">Xoay màn hình</string>
+
+    <!-- v1.5 result actions -->
+    <string name="calc_action_copy">SAO CHÉP</string>
+    <string name="calc_action_share">CHIA SẺ</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">ANS →</string>
+
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">Hiển thị</string>
+    <string name="settings_fraction_results">Kết quả phân số</string>
+    <string name="settings_angle_unit">Đơn vị góc</string>
+    <string name="settings_angle_deg">DEG</string>
+    <string name="settings_angle_rad">RAD</string>
+    <string name="settings_feedback_section">Phản hồi</string>
+    <string name="settings_about_section">Giới thiệu</string>
+    <string name="settings_about_tagline">Sifr — صفر · một chiếc máy tính điềm tĩnh hơn.</string>
+
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_palette_section">Chủ đề</string>
+    <string name="settings_palette_layl">Layl</string>
+    <string name="settings_palette_bayan">Bayan</string>
+    <string name="settings_palette_raqim">Raqim</string>
+    <string name="settings_palette_farah">Farah</string>
+    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_dynamic">Động</string>
+
+    <!-- v1.6 settings — keypad -->
+    <string name="settings_keypad_section">Bàn phím</string>
+    <string name="settings_memory_keys">Phím nhớ</string>
+    <string name="settings_keypad_classic">Cổ điển</string>
+    <string name="settings_keypad_remix">Remix</string>
+    <string name="settings_keypad_arc">Vòng cung</string>
+    <string name="settings_keypad_tape">Băng giấy</string>
+
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">Khôi phục dưới dạng</string>
+    <string name="settings_restore_target_sub">Chèn kết quả hoặc toàn bộ biểu thức</string>
+    <string name="settings_restore_target_result">Kết quả</string>
+    <string name="settings_restore_target_expression">Biểu thức</string>
+
+    <!-- History screen -->
+    <string name="history_title">Lịch sử</string>
+    <string name="history_back">Quay lại</string>
+    <string name="history_clear_all">Xóa tất cả</string>
+    <string name="history_clear_confirm_title">Xóa lịch sử?</string>
+    <string name="history_clear_confirm_message">Thao tác này sẽ xóa vĩnh viễn tất cả mục.</string>
+    <string name="history_clear_confirm_yes">Xóa</string>
+    <string name="history_clear_confirm_cancel">Hủy</string>
+    <string name="history_delete_entry">Xóa mục</string>
+    <string name="history_empty_title">Chưa có lịch sử</string>
+    <string name="history_empty_body">Các phép tính bạn kết thúc bằng = sẽ xuất hiện ở đây.</string>
+</resources>
