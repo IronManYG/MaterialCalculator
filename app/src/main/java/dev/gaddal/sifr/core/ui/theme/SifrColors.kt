@@ -55,7 +55,6 @@ data class SifrColors(
     val mosaicLine: Color = Color.Transparent,
     val hairlineGrid: Boolean = false,
     val gridLine: Color = Color.Transparent,
-    val ghostNumeral: Color? = null,  // Arabic-Indic glyph on number keys (Layl/Farah)
     val eqGlow: Color? = null,        // Layl: blurred accent glow behind '='
     val raisedKeys: Boolean = false,  // Farah/Mizan: press translates down instead of scaling
     // fonts

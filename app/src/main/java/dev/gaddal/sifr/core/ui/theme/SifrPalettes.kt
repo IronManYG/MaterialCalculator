@@ -25,7 +25,6 @@ internal fun laylDark(accent: Color = Color(0xFF5CE8D4)): SifrColors = SifrColor
     keyEq = SifrKeyStyle(SolidColor(accent), Color(0xFF03201B)),
     keyFn = SifrKeyStyle(SolidColor(Color.White.copy(0.02f)), Color(0xFF8B94A8), border = Color.White.copy(0.05f)),
     keyRadius = 20.dp, keyGap = 10.dp,
-    ghostNumeral = accent.copy(0.35f),
     eqGlow = accent.copy(0.45f),
     displayFamily = SpaceGrotesk, keyFamily = SpaceGrotesk, uiFamily = SpaceGrotesk,
 )
@@ -45,7 +44,6 @@ internal fun laylLight(accent: Color = Color(0xFF0E9C8C)): SifrColors = SifrColo
     keyEq = SifrKeyStyle(SolidColor(accent), Color(0xFFF2FBF9)),
     keyFn = SifrKeyStyle(SolidColor(Color.White.copy(0.40f)), Color(0xFF6A7689), border = Color(0xFF16202E).copy(0.05f)),
     keyRadius = 20.dp, keyGap = 10.dp,
-    ghostNumeral = accent.copy(0.5f),
     eqGlow = accent.copy(0.40f),
     displayFamily = SpaceGrotesk, keyFamily = SpaceGrotesk, uiFamily = SpaceGrotesk,
 )
@@ -133,7 +131,7 @@ internal fun farahLight(accent: Color = Color(0xFFF2683C)): SifrColors = SifrCol
     keyOp = SifrKeyStyle(SolidColor(accent), Color(0xFFFFF6EC), dropShadow = accent.copy(0.55f)),
     keyEq = SifrKeyStyle(SolidColor(Color(0xFF4A3326)), Color(0xFFFFE9CF), dropShadow = Color(0xFF2E1E14)),
     keyFn = SifrKeyStyle(SolidColor(Color(0xFFFFD66B)), Color(0xFF4A3326), dropShadow = Color(0xFFE3B945)),
-    keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true, ghostNumeral = accent.copy(0.75f),
+    keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true,
     displayFamily = Baloo2, keyFamily = Baloo2, uiFamily = Baloo2,
 )
 
@@ -148,7 +146,7 @@ internal fun farahDark(accent: Color = Color(0xFFFF7A4D)): SifrColors = SifrColo
     keyOp = SifrKeyStyle(SolidColor(accent), Color(0xFF2A1D13), dropShadow = Color(0xFF000000).copy(0.40f)),
     keyEq = SifrKeyStyle(SolidColor(Color(0xFFFFE9CF)), Color(0xFF4A3326), dropShadow = Color(0xFFC9A87E)),
     keyFn = SifrKeyStyle(SolidColor(Color(0xFFE8B84B)), Color(0xFF3A2914), dropShadow = Color(0xFFA87F26)),
-    keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true, ghostNumeral = accent.copy(0.8f),
+    keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true,
     displayFamily = Baloo2, keyFamily = Baloo2, uiFamily = Baloo2,
 )
 
