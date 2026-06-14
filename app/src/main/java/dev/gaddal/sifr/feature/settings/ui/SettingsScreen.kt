@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.R
+import dev.gaddal.sifr.core.domain.settings.AppLanguage
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.domain.settings.RestoreTarget
@@ -117,6 +119,27 @@ fun SettingsScreen(
                 .padding(horizontal = 18.dp)
                 .padding(bottom = 26.dp),
         ) {
+            // ── Language ────────────────────────────────────────────────
+            SectionLabel(stringResource(R.string.settings_language_section))
+            SifrCard {
+                AppLanguage.entries.forEachIndexed { index, lang ->
+                    if (index > 0) SifrRowDivider()
+                    SifrRow(
+                        label = lang.displayLabel(),
+                        onClick = { onAction(SettingsAction.SetLanguage(lang)) },
+                        trailing = {
+                            if (lang == state.settings.language) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = sifr.accent,
+                                )
+                            }
+                        },
+                    )
+                }
+            }
+
             // ── Appearance ──────────────────────────────────────────────
             SectionLabel(stringResource(R.string.settings_appearance_section))
             SifrCard {
@@ -289,6 +312,13 @@ private fun ThemeMode.shortLabelRes(): Int = when (this) {
     ThemeMode.System -> R.string.settings_theme_system_short
     ThemeMode.Light -> R.string.settings_theme_light
     ThemeMode.Dark -> R.string.settings_theme_dark
+}
+
+@Composable
+private fun AppLanguage.displayLabel(): String = when (this) {
+    AppLanguage.System -> stringResource(R.string.settings_language_system)
+    AppLanguage.English -> "English"
+    AppLanguage.Arabic -> "العربية"
 }
 
 @Preview(name = "Settings — Layl dark", showBackground = true)
