@@ -22,11 +22,16 @@ private data class CachedRates(
 
 data class CacheEntry(val snapshot: RatesSnapshot, val fetchedAtEpochMs: Long)
 
+interface RatesCacheContract {
+    suspend fun read(): CacheEntry?
+    suspend fun write(snapshot: RatesSnapshot, fetchedAtEpochMs: Long)
+}
+
 class RatesCache(
     private val dataStore: DataStore<Preferences>,
     private val json: Json,
-) {
-    suspend fun read(): CacheEntry? {
+) : RatesCacheContract {
+    override suspend fun read(): CacheEntry? {
         val raw = dataStore.data.first()[KEY_RATES_JSON] ?: return null
         return runCatching {
             val c = json.decodeFromString<CachedRates>(raw)
@@ -41,7 +46,7 @@ class RatesCache(
         }.getOrNull()
     }
 
-    suspend fun write(snapshot: RatesSnapshot, fetchedAtEpochMs: Long) {
+    override suspend fun write(snapshot: RatesSnapshot, fetchedAtEpochMs: Long) {
         val payload = json.encodeToString(
             CachedRates(
                 base = snapshot.base,
