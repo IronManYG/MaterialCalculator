@@ -34,6 +34,10 @@ ksp = "2.3.7"
 # Serialization
 kotlinxSerialization = "1.11.0"
 
+# Networking
+ktor = "3.5.0"
+desugarJdkLibs = "2.1.5"
+
 # Test
 junit = "4.13.2"
 kotlinxCoroutines = "1.11.0"
@@ -84,6 +88,16 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 
 # Serialization
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# Networking (Ktor)
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+# Desugaring
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
 # Haptics
 pulsar = { group = "com.swmansion", name = "pulsar", version.ref = "pulsar" }
