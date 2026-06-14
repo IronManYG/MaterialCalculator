@@ -73,6 +73,7 @@ fun CalculatorRoot(
     windowSizeClass: WindowSizeClass,
     onNavigateToSettings: () -> Unit,
     onNavigateToHistory: () -> Unit,
+    onNavigateToTools: () -> Unit,
     viewModel: CalculatorViewModel = koinViewModel(),
     settingsRepository: SettingsRepository = koinInject(),
 ) {
@@ -88,6 +89,7 @@ fun CalculatorRoot(
         when (event) {
             CalculatorEvent.NavigateToSettings -> onNavigateToSettings()
             CalculatorEvent.NavigateToHistory -> onNavigateToHistory()
+            CalculatorEvent.NavigateToTools -> onNavigateToTools()
             is CalculatorEvent.PlayFeedback -> feedback.play(event.intent)
             is CalculatorEvent.CopyToClipboard -> {
                 ContextCompat.getSystemService(context, ClipboardManager::class.java)
@@ -214,7 +216,7 @@ fun CalculatorScreen(
         topBar = {
             SifrCalcTopBar(
                 onHistory = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
-                onTools = {},                              // gated: Tools screen ships in a later milestone
+                onTools = dropUnlessResumed { onAction(CalculatorAction.ToolsClicked) },
                 onScientific = dropUnlessResumed { onAction(CalculatorAction.ToggleMode) },
                 scientificActive = state.mode == CalculatorMode.Scientific,
                 onRotate = onRotate,

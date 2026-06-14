@@ -17,6 +17,7 @@ import androidx.navigation3.ui.NavDisplay
 import dev.gaddal.sifr.feature.calculator.ui.CalculatorRoot
 import dev.gaddal.sifr.feature.history.ui.HistoryRoot
 import dev.gaddal.sifr.feature.settings.ui.SettingsRoot
+import dev.gaddal.sifr.feature.tools.ui.ToolsRoot
 
 private const val SLIDE_DURATION_MS = 300
 private const val FADE_IN_DURATION_MS = 300
@@ -68,6 +69,7 @@ fun NavRoot(windowSizeClass: WindowSizeClass) {
                         windowSizeClass = windowSizeClass,
                         onNavigateToSettings = { backStack.add(SettingsRoute) },
                         onNavigateToHistory = { backStack.add(HistoryRoute) },
+                        onNavigateToTools = { backStack.add(ToolsRoute) },
                     )
                 }
                 entry<SettingsRoute> {
@@ -75,6 +77,12 @@ fun NavRoot(windowSizeClass: WindowSizeClass) {
                 }
                 entry<HistoryRoute> {
                     HistoryRoot(onNavigateBack = { backStack.removeLastOrNull() })
+                }
+                entry<ToolsRoute> {
+                    ToolsRoot(
+                        windowSizeClass = windowSizeClass,
+                        onNavigateBack = { backStack.removeLastOrNull() },
+                    )
                 }
             },
         )
