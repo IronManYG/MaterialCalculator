@@ -63,6 +63,7 @@ import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplay
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorDisplaySurface
 import dev.gaddal.sifr.feature.calculator.ui.components.CalculatorScreenLandscape
 import dev.gaddal.sifr.feature.calculator.ui.components.ResultActionsRow
+import dev.gaddal.sifr.feature.calculator.ui.components.TapeReceipt
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -186,6 +187,10 @@ fun CalculatorScreen(
     // 46dp floor (handled in CalculatorButtonGrid) before the display collapses.
     val sifr = SifrTokens.colors
     val isScientific = state.mode == CalculatorMode.Scientific
+    // Tape layout adds the in-display receipt at the top of the display; it tightens the
+    // display's top padding and merges the DEG/M chips onto the handle row so the
+    // input + result + COPY block still fits (worst case: scientific on a surface palette).
+    val isTape = state.keypadLayout == KeypadLayout.Tape
     // Card / inset / block palettes draw their own container with 18–20dp of inner
     // padding; the display then added ANOTHER 18dp on top (≈38dp total vs the
     // prototype's ~7dp). In the two-line result state that double-pad squeezed the
@@ -235,7 +240,15 @@ fun CalculatorScreen(
             // otherwise squeeze the frozen two-line result + COPY row, dropping the
             // "= result" line (N3) — so reserve more there and let the keypad clamp a
             // touch shorter in return.
-            val minDisplayHeight = if (isScientific) 240.dp else 160.dp
+            // Tape parks an ~80–110dp history strip at the top of the display; reserve more
+            // so the input + result + COPY block still clears the surface palettes' card/inset
+            // clip (the keypad clamps its rows a touch shorter toward the 46dp floor in return).
+            val minDisplayHeight = when {
+                isScientific && isTape -> 288.dp
+                isScientific -> 240.dp
+                isTape -> 240.dp
+                else -> 160.dp
+            }
             val keypadMaxHeight = (maxHeight - minDisplayHeight).coerceAtLeast(0.dp)
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -278,13 +291,45 @@ fun CalculatorScreen(
                                     onAns = { onAction(CalculatorAction.UseAnswer) },
                                 )
                             },
+                            tapeReceipt = if (isTape) {
+                                { chips ->
+                                    TapeReceipt(
+                                        entries = state.recentHistory,
+                                        onOpenHistory = { onAction(CalculatorAction.HistoryClicked) },
+                                        onRestore = { onAction(CalculatorAction.RestoreExpression(it.result)) },
+                                        chips = chips,
+                                        compact = isScientific,
+                                        // 3 rows in basic, 2 in scientific — uniform across every palette.
+                                        // The tightened tape/line gaps keep all 3 clear of the surface
+                                        // palettes' card/inset edge in basic mode.
+                                        maxRows = if (isScientific) 2 else 3,
+                                    )
+                                }
+                            } else {
+                                null
+                            },
                             fractionResults = state.fractionResults,
                             compact = isScientific,
-                            maxFontSize = if (isScientific) 32.sp else 50.sp,
+                            // Tape's 3-row receipt steals ~one input-line of height; trim the
+                            // basic input cap 50→44sp so input+result+COPY still clear the
+                            // surface palettes' card edge. Scientific keeps its own 32sp cap.
+                            maxFontSize = when {
+                                isScientific -> 32.sp
+                                isTape -> 44.sp
+                                else -> 50.sp
+                            },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(
-                                    vertical = when {
+                                    // Tape parks the receipt at the very top, so shave the
+                                    // display's top pad there; keep the bottom airy.
+                                    top = when {
+                                        isScientific -> 4.dp
+                                        isTape -> 6.dp
+                                        hasSurface && resultShown -> 2.dp
+                                        else -> 18.dp
+                                    },
+                                    bottom = when {
                                         isScientific -> 4.dp
                                         hasSurface && resultShown -> 2.dp
                                         else -> 18.dp

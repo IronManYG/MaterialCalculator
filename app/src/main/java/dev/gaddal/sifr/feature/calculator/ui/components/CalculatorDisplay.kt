@@ -64,6 +64,11 @@ fun CalculatorDisplay(
     memoryValue: Double? = null,
     onToggleAngleUnit: () -> Unit = {},
     resultActions: (@Composable () -> Unit)? = null,
+    // Tape in-display receipt (keypadLayout == Tape): renders at the top of the display
+    // and is HANDED the mode-chips composable so it can tuck DEG/M onto its pull-handle
+    // row (reclaiming the standalone chips band). Manages its own RTL mirroring, so it
+    // sits outside the forced-LTR math block below. Null for every other layout.
+    tapeReceipt: (@Composable (chips: @Composable () -> Unit) -> Unit)? = null,
     maxFontSize: TextUnit = 50.sp,
     previewSlotHeight: Dp = DEFAULT_PREVIEW_SLOT_HEIGHT,
     fractionResults: Boolean = false,
@@ -106,8 +111,10 @@ fun CalculatorDisplay(
     }
 
     // Scientific (compact) tightens the inter-line gaps so the two-line result + COPY
-    // row fits the squeezed display without clipping — even in the airy palettes.
-    val lineGap = if (compact) 2.dp else 4.dp
+    // row fits the squeezed display without clipping — even in the airy palettes. Tape
+    // (tapeReceipt != null) tightens the same way so all 3 history rows + the input +
+    // result + COPY clear the surface palettes' card/inset edge in basic mode.
+    val lineGap = if (compact || tapeReceipt != null) 2.dp else 4.dp
     Box(
         modifier = modifier,
         contentAlignment = if (isRtl) Alignment.BottomEnd else Alignment.BottomStart,
@@ -117,29 +124,41 @@ fun CalculatorDisplay(
             verticalArrangement = Arrangement.spacedBy(lineGap),
             horizontalAlignment = Alignment.End,
         ) {
-            // 1) Mode-chips band — kept in the AMBIENT layout direction (outside the
-            // forced-LTR math block below) so it sits on the leading edge and mirrors
-            // to the right in RTL, matching the prototype (only display.jsx's math
-            // lines are dir="ltr"; the chip band follows the locale, display.jsx:61).
-            if (angleUnit != null) {
-                Row(
+            // Mode-chips (DEG/RAD + M) — kept in the AMBIENT layout direction (outside the
+            // forced-LTR math block below) so they sit on the leading edge and mirror to
+            // the right in RTL, matching the prototype (only display.jsx's math lines are
+            // dir="ltr"; the chip band follows the locale, display.jsx:61).
+            val chips: @Composable () -> Unit = {
+                if (angleUnit != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val angleLabel = when (angleUnit) {
+                            AngleUnit.Radians -> stringResource(R.string.settings_angle_rad)
+                            AngleUnit.Degrees -> stringResource(R.string.settings_angle_deg)
+                        }
+                        SifrChip(
+                            label = angleLabel,
+                            active = angleUnit == AngleUnit.Radians,
+                            onClick = onToggleAngleUnit,
+                        )
+                        if (memoryValue != null) {
+                            SifrChip(label = stringResource(R.string.calc_mode_chip_memory), active = true)
+                        }
+                    }
+                }
+            }
+
+            if (tapeReceipt != null) {
+                // 0) Tape receipt — last-3 history strip + pull-handle (Tape layout only).
+                // It hosts the chips on its handle row, so we don't render a separate band.
+                tapeReceipt(chips)
+            } else {
+                // Standalone chips band above the math block (every non-Tape layout).
+                Box(
                     modifier = Modifier
                         .align(Alignment.Start)
                         .padding(bottom = if (compact) 3.dp else 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    val angleLabel = when (angleUnit) {
-                        AngleUnit.Radians -> stringResource(R.string.settings_angle_rad)
-                        AngleUnit.Degrees -> stringResource(R.string.settings_angle_deg)
-                    }
-                    SifrChip(
-                        label = angleLabel,
-                        active = angleUnit == AngleUnit.Radians,
-                        onClick = onToggleAngleUnit,
-                    )
-                    if (memoryValue != null) {
-                        SifrChip(label = stringResource(R.string.calc_mode_chip_memory), active = true)
-                    }
+                    chips()
                 }
             }
 
@@ -219,7 +238,7 @@ fun CalculatorDisplay(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = if (compact) 4.dp else 8.dp),
+                                    .padding(top = if (compact || tapeReceipt != null) 4.dp else 8.dp),
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.Bottom,
                             ) {
