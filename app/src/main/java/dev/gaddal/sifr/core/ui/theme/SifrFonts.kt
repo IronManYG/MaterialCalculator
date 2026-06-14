@@ -24,6 +24,14 @@ val Baloo2 = family("Baloo 2", 500, 600, 700)
 val PlexMono = family("IBM Plex Mono", 400, 500)
 val Amiri = family("Amiri", 400, 700) // Arabic wordmark صفر (used from v1.5+)
 
+// v1.8 — per-palette Arabic chrome fonts (translated UI text only). Weights chosen to exist
+// on the Google Fonts provider; re-verify with the dependency-version-lookup skill if a weight
+// fails to download (Tajawal has no 600; IBM Plex Sans Arabic / Cairo / Baloo Bhaijaan 2 do).
+val Cairo = family("Cairo", 400, 500, 600, 700)
+val Tajawal = family("Tajawal", 400, 500, 700)
+val BalooBhaijaan2 = family("Baloo Bhaijaan 2", 400, 500, 600, 700)
+val IBMPlexArabic = family("IBM Plex Sans Arabic", 400, 500, 600)
+
 /** Material Typography keyed to the active palette's UI font family. */
 @Composable
 fun sifrTypography(sifr: SifrColors): Typography {

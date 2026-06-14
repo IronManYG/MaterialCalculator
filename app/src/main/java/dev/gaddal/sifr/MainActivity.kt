@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.ui.locale.SifrLocale
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.navigation.NavRoot
 import org.koin.compose.koinInject
@@ -25,8 +26,10 @@ class MainActivity : ComponentActivity() {
             val settings by settingsRepo.observe()
                 .collectAsStateWithLifecycle(initialValue = AppSettings())
             val windowSizeClass = calculateWindowSizeClass(this)
-            SifrTheme(palette = settings.palette, themeMode = settings.themeMode) {
-                NavRoot(windowSizeClass = windowSizeClass)
+            SifrLocale(language = settings.language) {
+                SifrTheme(palette = settings.palette, themeMode = settings.themeMode) {
+                    NavRoot(windowSizeClass = windowSizeClass)
+                }
             }
         }
     }

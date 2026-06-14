@@ -15,4 +15,5 @@ data class AppSettings(
     val keypadLayout: KeypadLayout = KeypadLayout.Classic,   // v1.6
     val memoryKeysVisible: Boolean = true,                   // v1.6 — Memory-keys toggle, default ON
     val restoreTarget: RestoreTarget = RestoreTarget.Result, // v1.7.x — history/tape tap → result vs expression
+    val language: AppLanguage = AppLanguage.System,          // v1.8 — in-app UI language; System = follow device
 )

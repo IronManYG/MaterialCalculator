@@ -5,6 +5,9 @@
     <!-- Settings screen -->
     <string name="settings_title">الإعدادات</string>
     <string name="settings_back">رجوع</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">اللغة</string>
+    <string name="settings_language_system">حسب النظام</string>
     <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
     <string name="settings_appearance_section">المظهر</string>
     <string name="settings_theme_system_short">النظام</string>

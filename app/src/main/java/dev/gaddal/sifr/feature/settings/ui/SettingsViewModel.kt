@@ -50,6 +50,7 @@ class SettingsViewModel(
             is SettingsAction.SetKeypadLayout -> updateSettings { copy(keypadLayout = action.layout) }
             SettingsAction.ToggleMemoryKeys -> updateSettings { copy(memoryKeysVisible = !memoryKeysVisible) }
             is SettingsAction.SetRestoreTarget -> updateSettings { copy(restoreTarget = action.target) }
+            is SettingsAction.SetLanguage -> updateSettings { copy(language = action.language) }
         }
     }
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.ConfigurationCompat
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.ui.components.SifrChip
@@ -78,6 +80,7 @@ fun CalculatorDisplay(
     compact: Boolean = false,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val isArabic = ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language == "ar"
     val sifr = SifrTokens.colors
     val mainColor = if (error != null) sifr.displayError else sifr.displayExpression
     val resultColor = sifr.displayResult
@@ -180,7 +183,12 @@ fun CalculatorDisplay(
                         // fit without clipping (QA: Honor 400 Pro overflow).
                         BasicText(
                             text = error.asString(),
-                            style = mainStyle.copy(fontSize = 28.sp, textAlign = TextAlign.End, lineHeight = 32.sp),
+                            style = mainStyle.copy(
+                                fontSize = 28.sp,
+                                textAlign = TextAlign.End,
+                                lineHeight = 32.sp,
+                                fontFamily = if (isArabic) sifr.uiFamily else sifr.displayFamily,
+                            ),
                             maxLines = 2,
                             softWrap = true,
                             overflow = TextOverflow.Ellipsis,

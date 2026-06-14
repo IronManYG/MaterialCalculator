@@ -1,5 +1,6 @@
 package dev.gaddal.sifr.feature.settings.ui
 
+import dev.gaddal.sifr.core.domain.settings.AppLanguage
 import dev.gaddal.sifr.core.domain.settings.KeypadLayout
 import dev.gaddal.sifr.core.domain.settings.RestoreTarget
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
@@ -17,4 +18,5 @@ sealed interface SettingsAction {
     data class SetKeypadLayout(val layout: KeypadLayout) : SettingsAction
     data object ToggleMemoryKeys : SettingsAction
     data class SetRestoreTarget(val target: RestoreTarget) : SettingsAction
+    data class SetLanguage(val language: AppLanguage) : SettingsAction
 }

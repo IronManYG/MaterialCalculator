@@ -4,6 +4,9 @@
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_back">Back</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">Language</string>
+    <string name="settings_language_system">System default</string>
     <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
     <string name="settings_appearance_section">Appearance</string>
     <string name="settings_theme_system_short">System</string>
