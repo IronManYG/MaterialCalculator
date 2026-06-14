@@ -9,6 +9,8 @@ import dev.gaddal.sifr.feature.tools.data.RatesCache
 import dev.gaddal.sifr.feature.tools.data.RatesCacheContract
 import dev.gaddal.sifr.feature.tools.domain.CurrencyRepository
 import dev.gaddal.sifr.feature.tools.domain.SeedRatesProvider
+import dev.gaddal.sifr.feature.tools.ui.ToolsViewModel
+import org.koin.core.module.dsl.viewModelOf
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpTimeout
@@ -35,4 +37,5 @@ val toolsModule = module {
     single<RatesCacheContract> { RatesCache(dataStore = get(), json = get()) }
     single<SeedRatesProvider> { AssetSeedRatesProvider(context = androidContext(), json = get()) }
     single<CurrencyRepository> { CurrencyRepositoryImpl(api = get(), cache = get(), seed = get()) }
+    viewModelOf(::ToolsViewModel)
 }
