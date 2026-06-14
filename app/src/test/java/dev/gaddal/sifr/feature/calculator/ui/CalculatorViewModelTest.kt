@@ -152,6 +152,39 @@ class CalculatorViewModelTest {
     }
 
     @Test
+    fun `recentHistory exposes the newest 3 entries from the repository`() = runTest {
+        // Seeded newest-first, like the real DAO (ORDER BY timestampMs DESC).
+        val seeded = listOf(
+            HistoryEntry(4, "4+4", "8", 400L),
+            HistoryEntry(3, "3+3", "6", 300L),
+            HistoryEntry(2, "2+2", "4", 200L),
+            HistoryEntry(1, "1+1", "2", 100L),
+        )
+        val viewModel = newViewModel(history = FakeHistoryRepository(initial = seeded))
+        advanceUntilIdle()
+
+        val recent = viewModel.state.value.recentHistory
+        assertThat(recent).hasSize(3)
+        assertThat(recent.map { it.result }).containsExactly("8", "6", "4").inOrder()
+    }
+
+    @Test
+    fun `recentHistory updates after a successful Calculate`() = runTest {
+        val viewModel = newViewModel(history = FakeHistoryRepository())
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+        viewModel.onAction(CalculatorAction.Calculate)
+        advanceUntilIdle()
+
+        val recent = viewModel.state.value.recentHistory
+        assertThat(recent).hasSize(1)
+        assertThat(recent.first().expression).isEqualTo("2+3")
+        assertThat(recent.first().result).isEqualTo("5")
+    }
+
+    @Test
     fun `Successful Calculate emits CalculateSuccess feedback`() = runTest {
         val viewModel = newViewModel()
 
@@ -566,15 +599,18 @@ private class FakeSettingsRepository(
     }
 }
 
-private class FakeHistoryRepository : HistoryRepository {
+private class FakeHistoryRepository(
+    initial: List<HistoryEntry> = emptyList(),
+) : HistoryRepository {
     val added = mutableListOf<Pair<String, String>>()
-    private val flow = MutableStateFlow<List<HistoryEntry>>(emptyList())
+    private val flow = MutableStateFlow(initial)
 
     override fun observe(): Flow<List<HistoryEntry>> = flow
 
     override suspend fun add(expression: String, result: String) {
         added += expression to result
-        flow.update { it + HistoryEntry(it.size + 1L, expression, result, 0L) }
+        // Prepend so observe() is newest-first, mirroring the real DAO (ORDER BY timestampMs DESC).
+        flow.update { listOf(HistoryEntry(it.size + 1L, expression, result, 0L)) + it }
     }
 
     override suspend fun delete(id: Long) {
