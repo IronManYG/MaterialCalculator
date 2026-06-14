@@ -135,4 +135,78 @@ class ToolsViewModelTest {
         assertThat(s.cFrom).isEqualTo("EUR")
         assertThat(s.cVal).isEqualTo("50")
     }
+
+    @Test
+    fun `currency conversion uses snapshot rates`() = runTest {
+        val v = vm()
+        advanceUntilIdle() // FakeRepo.refresh() pushes SeedFallback (USD=1.0, SAR=3.75)
+        v.onAction(ToolsAction.SelectTab(ToolTab.Currency))
+        // defaults cFrom=USD, cTo=SAR
+        v.onAction(ToolsAction.NumKey('1'))
+        v.onAction(ToolsAction.NumKey('0'))
+        v.onAction(ToolsAction.NumKey('0'))
+        // 100 USD / 1.0 * 3.75 = 375
+        assertThat(v.state.value.cResult).isEqualTo("375")
+    }
+
+    @Test
+    fun `second decimal point is rejected`() = runTest {
+        val v = vm()
+        advanceUntilIdle()
+        v.onAction(ToolsAction.NumKey('1'))
+        v.onAction(ToolsAction.NumKey('.'))
+        v.onAction(ToolsAction.NumKey('5'))
+        v.onAction(ToolsAction.NumKey('.')) // rejected
+        v.onAction(ToolsAction.NumKey('2'))
+        assertThat(v.state.value.uVal).isEqualTo("1.52")
+    }
+
+    @Test
+    fun `leading decimal yields 0 dot`() = runTest {
+        val v = vm()
+        advanceUntilIdle()
+        v.onAction(ToolsAction.NumKey('.'))
+        v.onAction(ToolsAction.NumKey('5'))
+        assertThat(v.state.value.uVal).isEqualTo("0.5")
+    }
+
+    @Test
+    fun `field length is capped at 12 chars`() = runTest {
+        val v = vm()
+        advanceUntilIdle()
+        "1234567890123".forEach { v.onAction(ToolsAction.NumKey(it)) } // 13 digits
+        assertThat(v.state.value.uVal).isEqualTo("123456789012")
+    }
+
+    @Test
+    fun `SetDate1 recomputes diff days and weeks`() = runTest {
+        val v = vm()
+        advanceUntilIdle()
+        v.onAction(ToolsAction.SetDate1(LocalDate.of(2026, 1, 1)))
+        v.onAction(ToolsAction.SetDate2(LocalDate.of(2026, 1, 22)))
+        val s = v.state.value
+        assertThat(s.diffDays).isEqualTo(21L)
+        assertThat(s.diffWeeks).isEqualTo(3)
+        assertThat(s.diffRemainingDays).isEqualTo(0)
+    }
+
+    @Test
+    fun `DecrementSplit floors at 1`() = runTest {
+        val v = vm()
+        advanceUntilIdle()
+        v.onAction(ToolsAction.SelectTab(ToolTab.Tip))
+        v.onAction(ToolsAction.DecrementSplit) // already at 1, must stay 1
+        assertThat(v.state.value.split).isEqualTo(1)
+    }
+
+    @Test
+    fun `BackClicked emits NavigateBack`() = runTest {
+        val v = vm()
+        advanceUntilIdle()
+        v.events.test {
+            v.onAction(ToolsAction.BackClicked)
+            assertThat(awaitItem()).isEqualTo(ToolsEvent.NavigateBack)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

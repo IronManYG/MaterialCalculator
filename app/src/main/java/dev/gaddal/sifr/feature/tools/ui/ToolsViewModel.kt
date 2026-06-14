@@ -47,8 +47,10 @@ class ToolsViewModel(
     init {
         viewModelScope.launch {
             repository.rates.collect { resource ->
-                _state.update { it.copy(rates = resource) }
-                _state.update { it.copy(cResult = computeCurrencyResult(it)) }
+                _state.update { s ->
+                    val updated = s.copy(rates = resource)
+                    updated.copy(cResult = computeCurrencyResult(updated))
+                }
             }
         }
         viewModelScope.launch { repository.refresh() }
@@ -113,6 +115,9 @@ class ToolsViewModel(
             ToolsAction.RefreshRates -> viewModelScope.launch {
                 val prevRates = _state.value.rates
                 repository.refresh(force = true)
+                // Heuristic failure detection: if the rates reference is unchanged after a forced
+                // refresh, treat it as a no-op/failure. Not user-triggered yet (no refresh button in
+                // this milestone); revisit when a manual refresh affordance is added.
                 if (_state.value.rates === prevRates) {
                     _events.send(ToolsEvent.RatesRefreshFailed)
                 }
@@ -167,6 +172,7 @@ class ToolsViewModel(
         val current = getField(field)
         if (char == '.' && current.contains('.')) return
         val next = when {
+            char == '.' && current.isEmpty() -> "0."
             char.isDigit() && current == "0" -> char.toString()
             else -> if (current.length >= 12) current else current + char
         }
@@ -189,28 +195,19 @@ class ToolsViewModel(
     private fun setField(field: FocusedField, value: String) {
         _state.update { s ->
             when (field) {
-                FocusedField.UVal -> {
-                    val updated = s.copy(uVal = value)
-                    updated.copy(uResult = computeUnitResult(updated)).also { persist(KEY_U_VAL, value) }
-                }
-                FocusedField.CVal -> {
-                    val updated = s.copy(cVal = value)
-                    updated.copy(cResult = computeCurrencyResult(updated)).also { persist(KEY_C_VAL, value) }
-                }
-                FocusedField.Bill -> {
-                    val updated = s.copy(bill = value)
-                    updated.copy(
-                        tipOut = computeTipOut(updated),
-                        totalOut = computeTotalOut(updated),
-                        eachOut = computeEachOut(updated),
-                    ).also { persist(KEY_BILL, value) }
-                }
-                FocusedField.AddDays -> {
-                    val updated = s.copy(addDays = value)
-                    updated.copy(addResult = computeAddResult(updated)).also { persist(KEY_ADD_DAYS, value) }
-                }
+                FocusedField.UVal -> { val u = s.copy(uVal = value); u.copy(uResult = computeUnitResult(u)) }
+                FocusedField.CVal -> { val u = s.copy(cVal = value); u.copy(cResult = computeCurrencyResult(u)) }
+                FocusedField.Bill -> { val u = s.copy(bill = value); u.copy(tipOut = computeTipOut(u), totalOut = computeTotalOut(u), eachOut = computeEachOut(u)) }
+                FocusedField.AddDays -> { val u = s.copy(addDays = value); u.copy(addResult = computeAddResult(u)) }
             }
         }
+        val key = when (field) {
+            FocusedField.UVal -> KEY_U_VAL
+            FocusedField.CVal -> KEY_C_VAL
+            FocusedField.Bill -> KEY_BILL
+            FocusedField.AddDays -> KEY_ADD_DAYS
+        }
+        persist(key, value)
     }
 
     private fun computeUnitResult(s: ToolsState): String {
@@ -250,15 +247,12 @@ class ToolsViewModel(
     }
 
     private fun changeSplit(delta: Int) {
+        val newSplit = (_state.value.split + delta).coerceAtLeast(1)
         _state.update { s ->
-            val newSplit = (s.split + delta).coerceAtLeast(1)
-            val updated = s.copy(split = newSplit)
-            updated.copy(
-                tipOut = computeTipOut(updated),
-                totalOut = computeTotalOut(updated),
-                eachOut = computeEachOut(updated),
-            ).also { persist(KEY_SPLIT, newSplit) }
+            val u = s.copy(split = newSplit)
+            u.copy(tipOut = computeTipOut(u), totalOut = computeTotalOut(u), eachOut = computeEachOut(u))
         }
+        persist(KEY_SPLIT, newSplit)
     }
 
     private fun restoreState(): ToolsState {

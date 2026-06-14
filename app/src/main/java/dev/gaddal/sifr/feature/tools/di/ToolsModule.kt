@@ -10,7 +10,6 @@ import dev.gaddal.sifr.feature.tools.data.RatesCacheContract
 import dev.gaddal.sifr.feature.tools.domain.CurrencyRepository
 import dev.gaddal.sifr.feature.tools.domain.SeedRatesProvider
 import dev.gaddal.sifr.feature.tools.ui.ToolsViewModel
-import org.koin.core.module.dsl.viewModelOf
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpTimeout
@@ -18,6 +17,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val toolsModule = module {
