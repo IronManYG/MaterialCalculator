@@ -46,6 +46,7 @@ import dev.gaddal.sifr.core.ui.components.SifrSegmented
 import dev.gaddal.sifr.core.ui.components.SifrToggle
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.feedback.rememberFeedbackController
+import dev.gaddal.sifr.core.ui.locale.SifrLocale
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.ObserveAsEvents
@@ -358,4 +359,18 @@ private fun SettingsPreviewKeypad() = SifrTheme(palette = SifrPalette.Farah, the
         ),
         onAction = {},
     )
+}
+
+@Preview(name = "Settings — Arabic (Farah)", showBackground = true)
+@Composable
+private fun SettingsPreviewArabic() = SifrLocale(language = AppLanguage.Arabic) {
+    SifrTheme(palette = SifrPalette.Farah, themeMode = ThemeMode.Light) {
+        SettingsScreen(
+            state = SettingsState(
+                settings = AppSettings(palette = SifrPalette.Farah, language = AppLanguage.Arabic),
+                isLoading = false,
+            ),
+            onAction = {},
+        )
+    }
 }
