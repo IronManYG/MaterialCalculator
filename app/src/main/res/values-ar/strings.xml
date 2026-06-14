@@ -69,6 +69,12 @@
     <string name="settings_keypad_arc">قوس الإبهام</string>
     <string name="settings_keypad_tape">شريط</string>
 
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">استعادة من السجل</string>
+    <string name="settings_restore_target_sub">إدراج الناتج أو الصيغة الكاملة</string>
+    <string name="settings_restore_target_result">الناتج</string>
+    <string name="settings_restore_target_expression">الصيغة</string>
+
     <!-- History screen -->
     <string name="history_title">السجل</string>
     <string name="history_back">رجوع</string>

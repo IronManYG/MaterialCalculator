@@ -84,6 +84,7 @@ class CalculatorViewModel(
                         fractionResults = settings.fractionResults,
                         keypadLayout = settings.keypadLayout,
                         memoryKeysVisible = settings.memoryKeysVisible,
+                        restoreTarget = settings.restoreTarget,
                         livePreview = computePreview(),
                     )
                 }

@@ -44,6 +44,7 @@ import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.components.SifrChip
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
+import dev.gaddal.sifr.core.ui.util.toDisplayExpression
 
 /**
  * Tape in-display receipt (prototype display.jsx `isTape` branch): a centered pull-handle that opens
@@ -164,7 +165,7 @@ private fun TapeRow(
         horizontalArrangement = Arrangement.Start,
     ) {
         Text(
-            text = entry.expression,
+            text = entry.expression.toDisplayExpression(),
             modifier = Modifier
                 .weight(1f)
                 .alignByBaseline(),

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.history.HistoryEntry
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
+import dev.gaddal.sifr.core.ui.util.toDisplayExpression
 
 /**
  * One history entry rendered as a row inside the History [dev.gaddal.sifr.core.ui.components.SifrCard]
@@ -77,7 +78,7 @@ fun HistoryItem(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = entry.expression,
+                text = entry.expression.toDisplayExpression(),
                 modifier = Modifier.fillMaxWidth(),
                 color = sifr.dim,
                 fontFamily = sifr.displayFamily,

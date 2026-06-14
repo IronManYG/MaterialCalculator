@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaddal.sifr.R
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.KeypadLayout
+import dev.gaddal.sifr.core.domain.settings.RestoreTarget
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.components.SifrCard
@@ -189,6 +190,24 @@ fun SettingsScreen(
                                 )
                             },
                             onSelect = { onAction(SettingsAction.SetAngleUnit(it)) },
+                        )
+                    },
+                )
+                SifrRowDivider()
+                SifrRow(
+                    label = stringResource(R.string.settings_restore_target),
+                    sub = stringResource(R.string.settings_restore_target_sub),
+                    trailing = {
+                        SifrSegmented(
+                            options = RestoreTarget.entries,
+                            selected = state.settings.restoreTarget,
+                            label = {
+                                stringResource(
+                                    if (it == RestoreTarget.Result) R.string.settings_restore_target_result
+                                    else R.string.settings_restore_target_expression,
+                                )
+                            },
+                            onSelect = { onAction(SettingsAction.SetRestoreTarget(it)) },
                         )
                     },
                 )

@@ -14,4 +14,5 @@ data class AppSettings(
     val memoryValue: Double? = null,        // v1.5 — persisted M register (survives force-stop)
     val keypadLayout: KeypadLayout = KeypadLayout.Classic,   // v1.6
     val memoryKeysVisible: Boolean = true,                   // v1.6 — Memory-keys toggle, default ON
+    val restoreTarget: RestoreTarget = RestoreTarget.Result, // v1.7.x — history/tape tap → result vs expression
 )

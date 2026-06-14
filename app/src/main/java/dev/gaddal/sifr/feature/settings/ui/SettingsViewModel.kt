@@ -49,6 +49,7 @@ class SettingsViewModel(
             SettingsAction.BackClicked -> emit(SettingsEvent.NavigateBack)
             is SettingsAction.SetKeypadLayout -> updateSettings { copy(keypadLayout = action.layout) }
             SettingsAction.ToggleMemoryKeys -> updateSettings { copy(memoryKeysVisible = !memoryKeysVisible) }
+            is SettingsAction.SetRestoreTarget -> updateSettings { copy(restoreTarget = action.target) }
         }
     }
 

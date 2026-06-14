@@ -47,6 +47,7 @@ import dev.gaddal.sifr.core.ui.components.SifrCalcTopBar
 import dev.gaddal.sifr.core.ui.components.SifrChip
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
+import dev.gaddal.sifr.core.ui.util.toDisplayExpression
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
@@ -189,7 +190,9 @@ private fun LandscapeDisplay(
 ) {
     val sifr = SifrTokens.colors
     val showResult = state.justEvaluated && state.error == null && state.evaluatedInput != null
-    val mainText = if (showResult) state.evaluatedInput.orEmpty() else state.expression
+    // Render the divide operator as `÷` (the key's glyph) instead of the raw `/`.
+    // Display-only + length-preserving, so the field's selection offsets still map.
+    val mainText = (if (showResult) state.evaluatedInput.orEmpty() else state.expression).toDisplayExpression()
     val mainColor = if (state.error != null) sifr.displayError else sifr.displayExpression
     val resultColor = sifr.displayResult
     val previewColor = resultColor.copy(alpha = 0.85f)

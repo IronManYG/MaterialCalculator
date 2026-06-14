@@ -68,6 +68,12 @@
     <string name="settings_keypad_arc">Arc</string>
     <string name="settings_keypad_tape">Tape</string>
 
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">Restore as</string>
+    <string name="settings_restore_target_sub">Insert result or full expression</string>
+    <string name="settings_restore_target_result">Result</string>
+    <string name="settings_restore_target_expression">Expression</string>
+
     <!-- History screen -->
     <string name="history_title">History</string>
     <string name="history_back">Back</string>
