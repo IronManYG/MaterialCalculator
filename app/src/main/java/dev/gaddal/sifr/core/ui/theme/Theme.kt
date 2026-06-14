@@ -12,8 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.os.ConfigurationCompat
 import androidx.core.view.WindowCompat
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
@@ -31,13 +33,15 @@ fun SifrTheme(
     }
 
     val context = LocalContext.current
-    val sifr = remember(palette, dark, context) {
-        if (palette == SifrPalette.Dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val isArabic = ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language == "ar"
+    val sifr = remember(palette, dark, context, isArabic) {
+        val base = if (palette == SifrPalette.Dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val scheme = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             dynamicToSifrColors(scheme, dark)
         } else {
             sifrColorsFor(palette, dark)
         }
+        if (isArabic && base.arabicUiFamily != null) base.copy(uiFamily = base.arabicUiFamily) else base
     }
 
     val view = LocalView.current

@@ -41,7 +41,7 @@ fun SifrBrand(modifier: Modifier = Modifier) {
     when (SifrTokens.palette) {
         SifrPalette.Bayan -> Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             StarMark(color = sifr.accent)
-            Text("SIFR", color = sifr.text, fontWeight = FontWeight.W900, fontSize = 15.sp, letterSpacing = 0.9.sp, fontFamily = sifr.uiFamily)
+            Text("SIFR", color = sifr.text, fontWeight = FontWeight.W900, fontSize = 15.sp, letterSpacing = 0.9.sp, fontFamily = sifr.displayFamily)
             Text(AR_SIFR, color = sifr.text.copy(alpha = 0.65f), fontFamily = Amiri, fontSize = 16.sp)
         }
         SifrPalette.Raqim -> Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -52,16 +52,16 @@ fun SifrBrand(modifier: Modifier = Modifier) {
             Box(Modifier.size(23.dp).clip(CircleShape).background(sifr.accent), contentAlignment = Alignment.Center) {
                 Text("٠", color = Color.White, fontFamily = Amiri, fontSize = 13.sp, modifier = Modifier.padding(bottom = 2.dp))   // ٠ optical nudge
             }
-            Text("Sifr", color = sifr.text, fontWeight = FontWeight.W700, fontSize = 17.sp, fontFamily = sifr.uiFamily)
+            Text("Sifr", color = sifr.text, fontWeight = FontWeight.W700, fontSize = 17.sp, fontFamily = sifr.displayFamily)
         }
         SifrPalette.Mizan -> Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("SIFR", color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 12.sp, letterSpacing = 3.6.sp)
+            Text("SIFR", color = sifr.dim, fontFamily = sifr.displayFamily, fontSize = 12.sp, letterSpacing = 3.6.sp)
             Text(AR_SIFR, color = sifr.dim.copy(alpha = 0.8f), fontFamily = Amiri, fontSize = 14.sp)
         }
         else -> Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // Layl + Dynamic fallback — baseline-aligned (prototype alignItems: baseline)
             Text(AR_SIFR, color = sifr.accent, fontFamily = Amiri, fontSize = 22.sp, modifier = Modifier.alignByBaseline())
-            Text("SIFR", color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 10.sp, letterSpacing = 2.8.sp, modifier = Modifier.alignByBaseline())
+            Text("SIFR", color = sifr.dim, fontFamily = sifr.displayFamily, fontSize = 10.sp, letterSpacing = 2.8.sp, modifier = Modifier.alignByBaseline())
         }
     }
 }
