@@ -9,6 +9,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
+import io.ktor.serialization.ContentConvertException
 import java.io.IOException
 import kotlinx.serialization.SerializationException
 import java.time.Instant
@@ -46,6 +47,11 @@ class KtorCurrencyApi(
             )
         } catch (e: IOException) {
             Result.Error(CurrencyError.NO_NETWORK)
+        } catch (e: ContentConvertException) {
+            // Ktor wraps deserialization failures (incl. SerializationException) in
+            // ContentConvertException, so this — not the bare catch below — is the path
+            // a malformed JSON body actually takes.
+            Result.Error(CurrencyError.SERIALIZATION)
         } catch (e: SerializationException) {
             Result.Error(CurrencyError.SERIALIZATION)
         } catch (e: Exception) {
