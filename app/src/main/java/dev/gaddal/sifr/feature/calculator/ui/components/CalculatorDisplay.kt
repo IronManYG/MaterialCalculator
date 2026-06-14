@@ -39,6 +39,7 @@ import dev.gaddal.sifr.core.ui.components.SifrChip
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.core.ui.util.UiText
+import dev.gaddal.sifr.core.ui.util.toDisplayExpression
 import dev.gaddal.sifr.feature.calculator.domain.AngleUnit
 import dev.gaddal.sifr.feature.calculator.domain.toFraction
 
@@ -101,7 +102,9 @@ fun CalculatorDisplay(
     // expression. Landscape passes evaluatedInput=null/justEvaluated=false, so it
     // shows the plain expression (the writer's value, = the result after '=').
     val showResult = justEvaluated && error == null && evaluatedInput != null
-    val mainText = if (showResult) evaluatedInput else expression
+    // Render the divide operator as `÷` (the key's glyph) instead of the raw `/`.
+    // Display-only + length-preserving, so the field's selection offsets still map.
+    val mainText = (if (showResult) evaluatedInput else expression).toDisplayExpression()
 
     // Fraction shared by the result / preview / bare-number lines: only when the
     // toggle is on AND the whole expression is a bare finite number with a
