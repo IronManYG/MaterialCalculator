@@ -49,6 +49,7 @@ import dev.gaddal.sifr.feature.calculator.domain.CalculatorMode
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.settings.AppSettings
 import dev.gaddal.sifr.core.domain.settings.KeypadLayout
+import dev.gaddal.sifr.core.domain.settings.RestoreTarget
 import dev.gaddal.sifr.core.domain.settings.SifrPalette
 import dev.gaddal.sifr.core.domain.settings.ThemeMode
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
@@ -296,7 +297,17 @@ fun CalculatorScreen(
                                     TapeReceipt(
                                         entries = state.recentHistory,
                                         onOpenHistory = { onAction(CalculatorAction.HistoryClicked) },
-                                        onRestore = { onAction(CalculatorAction.RestoreExpression(it.result)) },
+                                        onRestore = {
+                                            // Restore the result (default) or the original expression,
+                                            // per the user's Settings choice. Restoring an expression
+                                            // re-shows its `= result` live preview.
+                                            val value = if (state.restoreTarget == RestoreTarget.Expression) {
+                                                it.expression
+                                            } else {
+                                                it.result
+                                            }
+                                            onAction(CalculatorAction.RestoreExpression(value))
+                                        },
                                         chips = chips,
                                         compact = isScientific,
                                         // 3 rows in basic, 2 in scientific — uniform across every palette.

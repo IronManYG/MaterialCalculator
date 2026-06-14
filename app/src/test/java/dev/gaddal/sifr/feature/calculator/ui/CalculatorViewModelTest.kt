@@ -9,6 +9,7 @@ import dev.gaddal.sifr.core.data.history.HistoryRepository
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.history.HistoryEntry
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.RestoreTarget
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.util.MainDispatcherRule
 import dev.gaddal.sifr.core.ui.util.UiText
@@ -492,6 +493,18 @@ class CalculatorViewModelTest {
         viewModel.onAction(CalculatorAction.ToggleMode)
         advanceUntilIdle()
         assertThat(settings.observe().first().calculatorMode).isEqualTo(CalculatorMode.Basic)
+    }
+
+    @Test
+    fun `restoreTarget mirrors the persisted setting and updates reactively`() = runTest {
+        val settings = FakeSettingsRepository(AppSettings(restoreTarget = RestoreTarget.Expression))
+        val viewModel = newViewModel(settings = settings)
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.restoreTarget).isEqualTo(RestoreTarget.Expression)
+
+        settings.update { copy(restoreTarget = RestoreTarget.Result) }
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.restoreTarget).isEqualTo(RestoreTarget.Result)
     }
 
     @Test
