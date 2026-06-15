@@ -57,6 +57,10 @@ fun SifrChip(
     Text(
         text = label,
         color = content,
+        // A chip label is always one token — never let it wrap (a too-narrow chip would
+        // otherwise stack "20%" as "2 0 %"); clip instead if it's ever genuinely squeezed.
+        maxLines = 1,
+        softWrap = false,
         // Drop legacy font padding and center the single glyph line within its own
         // line height — without this the monospace palettes (Mizan = IBM Plex Mono)
         // sat the label a few dp low in the pill (device-measured ~3dp off).
