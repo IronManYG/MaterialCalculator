@@ -60,7 +60,9 @@ fun <T> SifrSegmented(
                         role = Role.RadioButton,
                         onClick = { onSelect(option) },
                     )
-                    .padding(horizontal = 14.dp, vertical = 7.dp),
+                    // Tighter side padding when the segments are forced to even quarters, so a
+                    // longer label (e.g. "Currency") still fits its slot on one line.
+                    .padding(horizontal = if (equalWidth) 8.dp else 14.dp, vertical = 7.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -68,6 +70,8 @@ fun <T> SifrSegmented(
                     color = if (isSelected) sifr.accentInk else sifr.dim,
                     fontFamily = sifr.uiFamily,
                     fontSize = 12.sp,
+                    maxLines = 1,
+                    softWrap = false,
                 )
             }
         }
