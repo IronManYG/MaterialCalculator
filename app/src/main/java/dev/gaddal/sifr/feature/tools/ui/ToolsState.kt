@@ -13,6 +13,12 @@ import java.time.LocalDate
 enum class FocusedField { UVal, CVal, Bill, AddDays }
 
 /**
+ * Which calendar the Date tab renders. Day counts (diff, add) are calendar-independent —
+ * only the rendered chip/result dates change. The DatePicker dialog stays Gregorian for input.
+ */
+enum class CalendarSystem { Gregorian, Hijri }
+
+/**
  * Single source of truth for the Tools screen. All derived output is pre-formatted here
  * (in the ViewModel) so every UI composable is a pure read.
  *
@@ -54,6 +60,7 @@ data class ToolsState(
     val diffWeeks: Int = 0,
     val diffRemainingDays: Int = 0,
     val addResult: LocalDate? = null, // null until addDays is valid
+    val calendar: CalendarSystem = CalendarSystem.Gregorian,
 
     // ── Numpad focus ──────────────────────────────────────────────────────────
     val focusedField: FocusedField? = FocusedField.UVal,

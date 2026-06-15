@@ -129,4 +129,6 @@
     <string name="tools_weeks">أسابيع</string>
     <string name="tools_w">س</string>
     <string name="tools_d">ي</string>
+    <string name="tools_cal_gregorian">ميلادي</string>
+    <string name="tools_cal_hijri">هجري</string>
 </resources>

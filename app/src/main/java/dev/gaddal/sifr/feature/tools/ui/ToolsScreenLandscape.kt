@@ -112,13 +112,16 @@ fun ToolsScreenLandscape(
 
 @Composable
 private fun DateCardsLandscape(state: ToolsState, onAction: (ToolsAction) -> Unit) {
-    // Two date cards side by side in landscape. The Row fills width so the weights split evenly.
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        DateDiffCard(state, onAction, modifier = Modifier.weight(1f))
-        DateAddCard(state, onAction, modifier = Modifier.weight(1f))
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        CalendarToggle(state.calendar, onAction)
+        // Two date cards side by side in landscape. The Row fills width so the weights split evenly.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            DateDiffCard(state, onAction, modifier = Modifier.weight(1f))
+            DateAddCard(state, onAction, modifier = Modifier.weight(1f))
+        }
     }
 }
 

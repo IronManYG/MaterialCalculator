@@ -33,4 +33,5 @@ sealed interface ToolsAction {
     // Date
     data class SetDate1(val date: LocalDate) : ToolsAction
     data class SetDate2(val date: LocalDate) : ToolsAction
+    data class SetCalendar(val calendar: CalendarSystem) : ToolsAction
 }
