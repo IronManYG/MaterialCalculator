@@ -49,7 +49,6 @@ import dev.gaddal.sifr.core.ui.components.SifrRowDivider
 import dev.gaddal.sifr.core.ui.components.SifrSubScreenTopBar
 import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
-import dev.gaddal.sifr.feature.tools.domain.HijriDate
 import dev.gaddal.sifr.feature.tools.domain.RatesResource
 import dev.gaddal.sifr.feature.tools.domain.UnitCategory
 import dev.gaddal.sifr.feature.tools.ui.components.CurrencySelect
@@ -336,27 +335,8 @@ internal fun DateCards(state: ToolsState, onAction: (ToolsAction) -> Unit) {
         Modifier.padding(horizontal = 18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        CalendarToggle(state.calendar, onAction)
         DateDiffCard(state, onAction)
         DateAddCard(state, onAction)
-    }
-}
-
-/** Gregorian ⇄ Hijri toggle for the Date tab. Day counts are unaffected — only the
- *  rendered chip/result dates switch calendar. Shared with the landscape layout. */
-@Composable
-internal fun CalendarToggle(calendar: CalendarSystem, onAction: (ToolsAction) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        SifrChip(
-            label = stringResource(R.string.tools_cal_gregorian),
-            active = calendar == CalendarSystem.Gregorian,
-            onClick = { onAction(ToolsAction.SetCalendar(CalendarSystem.Gregorian)) },
-        )
-        SifrChip(
-            label = stringResource(R.string.tools_cal_hijri),
-            active = calendar == CalendarSystem.Hijri,
-            onClick = { onAction(ToolsAction.SetCalendar(CalendarSystem.Hijri)) },
-        )
     }
 }
 
@@ -383,14 +363,14 @@ internal fun DateDiffCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mo
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.tools_date_diff), color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 11.sp, fontWeight = FontWeight.W600)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                DateChip(date = state.date1, calendar = state.calendar, onClick = { showDate1Picker = true }, modifier = Modifier.weight(1f))
+                DateChip(date = state.date1, onClick = { showDate1Picker = true }, modifier = Modifier.weight(1f))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
                     tint = sifr.dim,
                     modifier = Modifier.size(18.dp),
                 )
-                DateChip(date = state.date2, calendar = state.calendar, onClick = { showDate2Picker = true }, modifier = Modifier.weight(1f))
+                DateChip(date = state.date2, onClick = { showDate2Picker = true }, modifier = Modifier.weight(1f))
             }
             // Two equal-width outputs, top-aligned so the labels sit on one line and the
             // values line up — matches the prototype's `flex:1` columns. (Bottom-aligning a
@@ -427,7 +407,7 @@ internal fun DateAddCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mod
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.tools_date_add), color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 11.sp, fontWeight = FontWeight.W600)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                DateChip(date = state.date1, calendar = state.calendar, onClick = { showDate1Picker = true }, modifier = Modifier.weight(1f))
+                DateChip(date = state.date1, onClick = { showDate1Picker = true }, modifier = Modifier.weight(1f))
                 Text("+", color = sifr.dim, fontSize = 16.sp)
                 ToolField(
                     value = state.addDays,
@@ -439,12 +419,7 @@ internal fun DateAddCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mod
             }
             val locale = LocalConfiguration.current.locales[0]
             val addFormatter = remember(locale) { DateTimeFormatter.ofPattern("EEE, d MMM yyyy", locale) }
-            val resultText = state.addResult?.let { d ->
-                when (state.calendar) {
-                    CalendarSystem.Gregorian -> d.format(addFormatter)
-                    CalendarSystem.Hijri -> HijriDate.format(d, locale)
-                }
-            } ?: "—"
+            val resultText = state.addResult?.format(addFormatter) ?: "—"
             ToolOut(label = stringResource(R.string.tools_result), value = resultText, big = true)
         }
     }
@@ -481,18 +456,13 @@ private fun ToolsDatePickerDialog(
 @Composable
 private fun DateChip(
     date: LocalDate,
-    calendar: CalendarSystem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val locale = LocalConfiguration.current.locales[0]
     val formatter = remember(locale) { DateTimeFormatter.ofPattern("d MMM yyyy", locale) }
-    val label = when (calendar) {
-        CalendarSystem.Gregorian -> date.format(formatter)
-        CalendarSystem.Hijri -> HijriDate.format(date, locale)
-    }
     SifrChip(
-        label = label,
+        label = date.format(formatter),
         onClick = onClick,
         modifier = modifier.minimumInteractiveComponentSize(),
     )
@@ -536,13 +506,12 @@ private fun PreviewToolsDate() = SifrTheme(palette = SifrPalette.Farah) {
     )
 }
 
-@Preview(name = "Tools Date — Hijri (Arabic RTL)", locale = "ar")
+@Preview(name = "Tools Date — Arabic RTL", locale = "ar")
 @Composable
-private fun PreviewToolsDateHijri() = SifrTheme(palette = SifrPalette.Farah) {
+private fun PreviewToolsDateAr() = SifrTheme(palette = SifrPalette.Farah) {
     ToolsScreen(
         state = ToolsState(
             activeTab = ToolTab.Date,
-            calendar = CalendarSystem.Hijri,
             date1 = LocalDate.of(2026, 6, 10), date2 = LocalDate.of(2026, 8, 1),
             diffDays = 52, diffWeeks = 7, diffRemainingDays = 3,
         ),

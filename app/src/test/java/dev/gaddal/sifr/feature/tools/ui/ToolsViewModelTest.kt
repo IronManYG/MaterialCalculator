@@ -191,26 +191,6 @@ class ToolsViewModelTest {
     }
 
     @Test
-    fun `SetCalendar switches calendar while day counts stay calendar-independent`() = runTest {
-        val v = vm()
-        advanceUntilIdle()
-        v.onAction(ToolsAction.SetDate1(LocalDate.of(2026, 1, 1)))
-        v.onAction(ToolsAction.SetDate2(LocalDate.of(2026, 1, 22)))
-        v.onAction(ToolsAction.SetCalendar(CalendarSystem.Hijri))
-        val s = v.state.value
-        assertThat(s.calendar).isEqualTo(CalendarSystem.Hijri)
-        assertThat(s.diffDays).isEqualTo(21L)
-    }
-
-    @Test
-    fun `SavedStateHandle restores the calendar system`() = runTest {
-        val handle = SavedStateHandle(mapOf("tools_cal" to CalendarSystem.Hijri.ordinal))
-        val v = vm(handle = handle)
-        advanceUntilIdle()
-        assertThat(v.state.value.calendar).isEqualTo(CalendarSystem.Hijri)
-    }
-
-    @Test
     fun `DecrementSplit floors at 1`() = runTest {
         val v = vm()
         advanceUntilIdle()

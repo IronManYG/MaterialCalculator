@@ -32,7 +32,6 @@ private const val KEY_SPLIT = "tools_split"
 private const val KEY_DATE1 = "tools_date1"
 private const val KEY_DATE2 = "tools_date2"
 private const val KEY_ADD_DAYS = "tools_add_days"
-private const val KEY_CAL = "tools_cal"
 
 class ToolsViewModel(
     private val repository: CurrencyRepository,
@@ -165,10 +164,6 @@ class ToolsViewModel(
                 }
                 persist(KEY_DATE2, action.date.toEpochDay())
             }
-            is ToolsAction.SetCalendar -> {
-                _state.update { it.copy(calendar = action.calendar) }
-                persist(KEY_CAL, action.calendar.ordinal)
-            }
         }
     }
 
@@ -282,9 +277,6 @@ class ToolsViewModel(
         val date1 = savedStateHandle.get<Long>(KEY_DATE1)?.let { LocalDate.ofEpochDay(it) } ?: today
         val date2 = savedStateHandle.get<Long>(KEY_DATE2)?.let { LocalDate.ofEpochDay(it) } ?: today
         val addDays = savedStateHandle.get<String>(KEY_ADD_DAYS) ?: ""
-        val calendar = CalendarSystem.entries.getOrElse(
-            savedStateHandle.get<Int>(KEY_CAL) ?: 0,
-        ) { CalendarSystem.Gregorian }
 
         val (diffW, diffD) = DateCalculator.weeksAndDays(DateCalculator.daysBetween(date1, date2))
 
@@ -293,7 +285,7 @@ class ToolsViewModel(
             unitsCat = cat, uFrom = uFrom, uTo = uTo, uVal = uVal,
             cFrom = cFrom, cTo = cTo, cVal = cVal,
             bill = bill, tipPct = tipPct, split = split,
-            date1 = date1, date2 = date2, addDays = addDays, calendar = calendar,
+            date1 = date1, date2 = date2, addDays = addDays,
             diffDays = DateCalculator.daysBetween(date1, date2),
             diffWeeks = diffW, diffRemainingDays = diffD,
             focusedField = defaultFocusFor(tab),
