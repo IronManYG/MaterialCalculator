@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -74,7 +75,11 @@ fun ToolSelect(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = sifr.surface,
+            // The `surface` token is glass (e.g. White @ 4% on Layl dark) — fine for cards
+            // that sit on the palette background, but a floating menu rendered over it shows
+            // the background gradient straight through. Composite the same tint over the
+            // opaque `backgroundFlat` so the menu is solid on every palette.
+            containerColor = sifr.surface.compositeOver(sifr.backgroundFlat),
         ) {
             options.forEach { opt ->
                 DropdownMenuItem(
