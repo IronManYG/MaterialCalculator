@@ -89,4 +89,41 @@
     <string name="history_delete_entry">حذف الإدخال</string>
     <string name="history_empty_title">لا يوجد سجل بعد</string>
     <string name="history_empty_body">ستظهر هنا الحسابات التي تنهيها بـ =.</string>
+
+    <!-- Tools screen -->
+    <string name="tools_title">الأدوات</string>
+    <string name="tools_back">رجوع</string>
+    <string name="tools_tab_units">الوحدات</string>
+    <string name="tools_tab_currency">العملات</string>
+    <string name="tools_tab_tip">الإكرامية</string>
+    <string name="tools_tab_date">التاريخ</string>
+
+    <!-- Units tab -->
+    <string name="tools_cat_length">الطول</string>
+    <string name="tools_cat_weight">الوزن</string>
+    <string name="tools_cat_temp">الحرارة</string>
+    <string name="tools_cat_data">البيانات</string>
+    <string name="tools_result">النتيجة</string>
+
+    <!-- Currency tab -->
+    <string name="tools_fx_note">الأسعار بتاريخ %1$s</string>
+    <string name="tools_fx_offline">غير متصل — تستخدم الأسعار المحفوظة (%1$s)</string>
+    <string name="tools_fx_seed">أسعار تقريبية (مدمجة)</string>
+
+    <!-- Tip tab -->
+    <string name="tools_bill">الفاتورة</string>
+    <string name="tools_tip">الإكرامية</string>
+    <string name="tools_split">تقسيم</string>
+    <string name="tools_people">أشخاص</string>
+    <string name="tools_out_tip">إكرامية</string>
+    <string name="tools_out_total">المجموع</string>
+    <string name="tools_out_each">لكل شخص</string>
+
+    <!-- Date tab -->
+    <string name="tools_date_diff">فارق التاريخ</string>
+    <string name="tools_date_add">إضافة أيام</string>
+    <string name="tools_days">أيام</string>
+    <string name="tools_weeks">أسابيع</string>
+    <string name="tools_w">س</string>
+    <string name="tools_d">ي</string>
 </resources>
