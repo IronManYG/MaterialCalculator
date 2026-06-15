@@ -34,16 +34,15 @@ fun NavRoot(windowSizeClass: WindowSizeClass) {
     val backStack = rememberNavBackStack(CalculatorRoute)
 
     // Status-bar visibility is owned HERE, in the one composition that outlives every
-    // navigation — not per-screen. The Calculator and Tools go immersive in landscape (the
-    // keypad reclaims the status-bar strip, enableEdgeToEdge() already draws under it);
-    // Settings/History always keep the bar. Two per-screen DisposableEffects used to fight
-    // over this: the screen being LEFT re-showed the bar in its onDispose, which fires AFTER
-    // the entering screen hid it, so the bar leaked back (rotate→Tools, and on the way back to
-    // the calculator). One owner keyed on (topRoute, orientation) has no such race.
+    // navigation — not per-screen. EVERY screen goes immersive in landscape (the keypad/form
+    // reclaims the status-bar strip, enableEdgeToEdge() already draws under it); portrait always
+    // keeps the bar. Two per-screen DisposableEffects used to fight over this: the screen being
+    // LEFT re-showed the bar in its onDispose, which fires AFTER the entering screen hid it, so
+    // the bar leaked back (rotate→Tools, and on the way back to the calculator). One owner keyed
+    // on orientation has no such race.
     val view = LocalView.current
     val isLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
-    val topRoute = backStack.lastOrNull()
-    val immersive = isLandscape && (topRoute == CalculatorRoute || topRoute == ToolsRoute)
+    val immersive = isLandscape
     DisposableEffect(immersive) {
         val window = (view.context as? Activity)?.window
         if (window != null) {
@@ -113,10 +112,16 @@ fun NavRoot(windowSizeClass: WindowSizeClass) {
                     )
                 }
                 entry<SettingsRoute> {
-                    SettingsRoot(onNavigateBack = { backStack.removeLastOrNull() })
+                    SettingsRoot(
+                        windowSizeClass = windowSizeClass,
+                        onNavigateBack = { backStack.removeLastOrNull() },
+                    )
                 }
                 entry<HistoryRoute> {
-                    HistoryRoot(onNavigateBack = { backStack.removeLastOrNull() })
+                    HistoryRoot(
+                        windowSizeClass = windowSizeClass,
+                        onNavigateBack = { backStack.removeLastOrNull() },
+                    )
                 }
                 entry<ToolsRoute> {
                     ToolsRoot(

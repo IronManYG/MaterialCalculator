@@ -1,5 +1,7 @@
 package dev.gaddal.sifr.feature.history.ui
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.ScreenRotation
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,10 +30,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -63,6 +71,7 @@ import org.koin.compose.koinInject
 
 @Composable
 fun HistoryRoot(
+    windowSizeClass: WindowSizeClass,
     onNavigateBack: () -> Unit,
     viewModel: HistoryViewModel = koinViewModel(),
     settingsRepository: SettingsRepository = koinInject(),
@@ -80,7 +89,27 @@ fun HistoryRoot(
             is HistoryEvent.PlayFeedback -> feedback.play(event.intent)
         }
     }
-    HistoryScreen(state = state, onAction = viewModel::onAction)
+
+    // Manual orientation toggle, mirroring the calculator/Tools Rotate action — the activity
+    // owns the initial lock (CalculatorRoot); History just flips it on demand. NavRoot owns the
+    // landscape status-bar hide for every route.
+    val isLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+    val view = LocalView.current
+    val activity = view.context as? Activity
+    val onRotate = remember(isLandscape, activity) {
+        {
+            activity?.requestedOrientation =
+                if (isLandscape) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+    }
+
+    HistoryScreen(
+        state = state,
+        onAction = viewModel::onAction,
+        onRotate = onRotate,
+        rotateActive = isLandscape,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +117,8 @@ fun HistoryRoot(
 fun HistoryScreen(
     state: HistoryState,
     onAction: (HistoryAction) -> Unit,
+    onRotate: () -> Unit = {},
+    rotateActive: Boolean = false,
 ) {
     val sifr = SifrTokens.colors
     Scaffold(
@@ -103,6 +134,16 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.history_back),
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onRotate) {
+                        Icon(
+                            imageVector = Icons.Outlined.ScreenRotation,
+                            contentDescription = stringResource(R.string.calc_rotate_orientation),
+                            tint = if (rotateActive) sifr.accent else sifr.dim,
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 },
