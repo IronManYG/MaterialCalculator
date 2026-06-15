@@ -218,10 +218,15 @@ fun dynamicToSifrColors(scheme: M3ColorScheme, dark: Boolean): SifrColors {
         // is the higher-contrast role meant for visible decorative borders.
         hairline = scheme.outline, surface = scheme.surfaceVariant, surfaceBorder = scheme.outline,
         displayExpression = scheme.onSurface, displayResult = accent, displayError = scheme.error,
-        keyNum = SifrKeyStyle(SolidColor(scheme.surfaceVariant), scheme.onSurfaceVariant),
-        keyOp = SifrKeyStyle(SolidColor(scheme.secondaryContainer), scheme.onSecondaryContainer),
+        // Material You's key containers (surfaceVariant / secondaryContainer / surface) often sit
+        // a hair off — or dead-equal to — the background, so on some wallpapers the keys render as
+        // bare floating glyphs with no button shape (the 19371cb border fix only covered cards /
+        // chips / pickers). Give every non-accent key a hairline `outline` border so it always
+        // reads as a key; the '=' key keeps its solid accent fill (always visible, no border).
+        keyNum = SifrKeyStyle(SolidColor(scheme.surfaceVariant), scheme.onSurfaceVariant, border = scheme.outline),
+        keyOp = SifrKeyStyle(SolidColor(scheme.secondaryContainer), scheme.onSecondaryContainer, border = scheme.outline),
         keyEq = SifrKeyStyle(SolidColor(accent), scheme.onPrimary),
-        keyFn = SifrKeyStyle(SolidColor(scheme.surface), scheme.onSurfaceVariant),
+        keyFn = SifrKeyStyle(SolidColor(scheme.surface), scheme.onSurfaceVariant, border = scheme.outline),
         keyRadius = 24.dp, keyGap = 8.dp,
         displayFamily = SpaceGrotesk, keyFamily = SpaceGrotesk, uiFamily = SpaceGrotesk,
         arabicUiFamily = Cairo,
