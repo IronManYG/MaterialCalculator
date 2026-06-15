@@ -372,9 +372,9 @@ internal fun DateDiffCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mo
                 )
                 DateChip(date = state.date2, onClick = { showDate2Picker = true }, modifier = Modifier.weight(1f))
             }
-            // Two equal-width outputs, top-aligned so the labels sit on one line and the
-            // values line up — matches the prototype's `flex:1` columns. (Bottom-aligning a
-            // 28sp value next to a 20sp one left them staggered — the round-2 note.)
+            // Two equal-width outputs, top-aligned and BOTH `big` so their labels sit on one
+            // line and their values share one font size (matches the prototype's flex:1 columns;
+            // the staggered/mismatched-size look was the round-2 note).
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
                 ToolOut(
                     label = stringResource(R.string.tools_days),
@@ -385,6 +385,7 @@ internal fun DateDiffCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mo
                 ToolOut(
                     label = stringResource(R.string.tools_weeks),
                     value = "${state.diffWeeks}${stringResource(R.string.tools_w)}  ${state.diffRemainingDays}${stringResource(R.string.tools_d)}",
+                    big = true,
                     modifier = Modifier.weight(1f),
                 )
             }
