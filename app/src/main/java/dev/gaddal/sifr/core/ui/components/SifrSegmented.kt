@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
@@ -61,7 +60,10 @@ fun <T> SifrSegmented(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
+                    // No fillMaxHeight: the segment wraps to its label height so the track stays a
+                    // pill regardless of the height the parent offers. (D2 briefly added fillMaxHeight
+                    // for the equal-width refactor, which made ToolTabBar — unweighted in a fillMaxSize
+                    // Column — stretch the selected pill to the full screen height.)
                     // background before selectable so the tap ripple draws over the fill
                     .background(if (isSelected) sifr.accent else Color.Transparent)
                     .selectable(
