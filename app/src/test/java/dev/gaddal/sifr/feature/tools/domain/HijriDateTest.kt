@@ -34,4 +34,35 @@ class HijriDateTest {
 
         assertThat(HijriDate.format(LocalDate.of(2027, 2, 1), Locale.ENGLISH)).contains(later.toString())
     }
+
+    // 2026-06-15 Gregorian → 29 Dhuʼl-Hijjah 1447 AH. The month NAME must render — the bug
+    // was that the desugared HijrahChronology has no month-name text data on-device, so the
+    // CLDR `MMM` lookup collapsed to nothing. We now render names from a hardcoded table, so
+    // these JVM assertions also hold on the device (no chronology-text dependency left).
+    @Test
+    fun `format renders the full English Hijri month name`() {
+        val out = HijriDate.format(LocalDate.of(2026, 6, 15), Locale.ENGLISH)
+        assertThat(out).contains("Dhu al-Hijjah")
+    }
+
+    @Test
+    fun `format renders the Arabic Hijri month name`() {
+        val out = HijriDate.format(LocalDate.of(2026, 6, 15), Locale("ar"))
+        assertThat(out).contains("ذو الحجة")
+    }
+
+    @Test
+    fun `format renders a distinct name for every Hijri month`() {
+        val names = listOf(
+            "Muharram", "Safar", "Rabi al-Awwal", "Rabi al-Thani", "Jumada al-Ula",
+            "Jumada al-Akhirah", "Rajab", "Shaban", "Ramadan", "Shawwal",
+            "Dhu al-Qadah", "Dhu al-Hijjah",
+        )
+        for (month in 1..12) {
+            // Build the 1st of each Hijri month directly, then convert to Gregorian, so the
+            // expectation can't drift on a month-boundary guess.
+            val gregorian = LocalDate.from(HijrahDate.of(1447, month, 1))
+            assertThat(HijriDate.format(gregorian, Locale.ENGLISH)).contains(names[month - 1])
+        }
+    }
 }
