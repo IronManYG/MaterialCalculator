@@ -17,6 +17,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import dev.gaddal.sifr.core.domain.settings.SifrPalette
+import dev.gaddal.sifr.core.domain.settings.ThemeMode
+import dev.gaddal.sifr.core.ui.theme.SifrTheme
+import java.time.LocalDate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -97,4 +102,30 @@ private fun DateCardsLandscape(state: ToolsState, onAction: (ToolsAction) -> Uni
         DateDiffCard(state, onAction, modifier = Modifier.weight(1f))
         DateAddCard(state, onAction, modifier = Modifier.weight(1f))
     }
+}
+
+// ── Previews ────────────────────────────────────────────────────────────────
+@Preview(name = "ToolsScreenLandscape — Units (Layl dark)", widthDp = 800, heightDp = 360)
+@Composable
+private fun PreviewToolsLandscapeUnits() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+    ToolsScreenLandscape(
+        state = ToolsState(activeTab = ToolTab.Units, uVal = "1", uResult = "1000"),
+        onAction = {},
+    )
+}
+
+@Preview(name = "ToolsScreenLandscape — Date (Bayan light)", widthDp = 800, heightDp = 360)
+@Composable
+private fun PreviewToolsLandscapeDate() = SifrTheme(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light) {
+    ToolsScreenLandscape(
+        state = ToolsState(
+            activeTab = ToolTab.Date,
+            date1 = LocalDate.of(2026, 1, 1),
+            date2 = LocalDate.of(2026, 12, 31),
+            diffDays = 364,
+            diffWeeks = 52,
+            diffRemainingDays = 0,
+        ),
+        onAction = {},
+    )
 }

@@ -36,7 +36,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import dev.gaddal.sifr.feature.tools.domain.RatesSnapshot
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.gaddal.sifr.R
@@ -480,6 +482,35 @@ private fun PreviewToolsDate() = SifrTheme(palette = SifrPalette.Farah) {
             activeTab = ToolTab.Date,
             date1 = LocalDate.of(2026, 6, 10), date2 = LocalDate.of(2026, 8, 1),
             diffDays = 52, diffWeeks = 7, diffRemainingDays = 3,
+        ),
+        onAction = {},
+    )
+}
+
+@Preview(name = "Tools Units — Arabic RTL", locale = "ar")
+@Composable
+private fun PreviewToolsUnitsAr() = SifrTheme(palette = SifrPalette.Layl) {
+    ToolsScreen(
+        state = ToolsState(activeTab = ToolTab.Units, uVal = "١٠٠", uResult = "٠٫١"),
+        onAction = {},
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun PreviewToolsCurrencyOffline() = SifrTheme(palette = SifrPalette.Mizan) {
+    ToolsScreen(
+        state = ToolsState(
+            activeTab = ToolTab.Currency,
+            rates = RatesResource.Success(
+                snapshot = RatesSnapshot(
+                    base = "USD",
+                    rates = mapOf("USD" to 1.0, "SAR" to 3.75),
+                    asOf = LocalDate.of(2026, 6, 1),
+                ),
+                stale = true,
+            ),
+            cVal = "100", cFrom = "USD", cTo = "SAR", cResult = "375",
         ),
         onAction = {},
     )
