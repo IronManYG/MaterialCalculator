@@ -89,4 +89,35 @@
     <string name="history_delete_entry">Supprimer l\'entrée</string>
     <string name="history_empty_title">Aucun historique pour le moment</string>
     <string name="history_empty_body">Les calculs que vous terminez par = apparaîtront ici.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Outils</string>
+    <string name="tools_back">Retour</string>
+    <string name="tools_tab_units">Unités</string>
+    <string name="tools_tab_currency">Devise</string>
+    <string name="tools_tab_tip">Pourboire</string>
+    <string name="tools_tab_date">Date</string>
+    <string name="tools_cat_length">Longueur</string>
+    <string name="tools_cat_weight">Poids</string>
+    <string name="tools_cat_temp">Temp.</string>
+    <string name="tools_cat_data">Données</string>
+    <string name="tools_result">Résultat</string>
+    <string name="tools_fx_note">Taux au %1$s</string>
+    <string name="tools_fx_offline">Hors ligne — taux enregistrés (%1$s)</string>
+    <string name="tools_fx_seed">Taux approx. (intégrés)</string>
+    <string name="tools_currency_pick">Choisir une devise</string>
+    <string name="tools_currency_search">Rechercher une devise</string>
+    <string name="tools_currency_none">Aucun résultat</string>
+    <string name="tools_bill">Addition</string>
+    <string name="tools_tip">Pourboire</string>
+    <string name="tools_split">Diviser</string>
+    <string name="tools_people">personnes</string>
+    <string name="tools_out_tip">Pourboire</string>
+    <string name="tools_out_total">Total</string>
+    <string name="tools_out_each">Chacun</string>
+    <string name="tools_date_diff">Écart entre dates</string>
+    <string name="tools_date_add">Ajouter des jours</string>
+    <string name="tools_days">Jours</string>
+    <string name="tools_weeks">Semaines</string>
+    <string name="tools_w">sem</string>
+    <string name="tools_d">j</string>
 </resources>

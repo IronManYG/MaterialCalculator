@@ -89,4 +89,35 @@
     <string name="history_delete_entry">Kaydı sil</string>
     <string name="history_empty_title">Henüz geçmiş yok</string>
     <string name="history_empty_body">= ile bitirdiğiniz hesaplamalar burada görünür.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Araçlar</string>
+    <string name="tools_back">Geri</string>
+    <string name="tools_tab_units">Birimler</string>
+    <string name="tools_tab_currency">Döviz</string>
+    <string name="tools_tab_tip">Bahşiş</string>
+    <string name="tools_tab_date">Tarih</string>
+    <string name="tools_cat_length">Uzunluk</string>
+    <string name="tools_cat_weight">Ağırlık</string>
+    <string name="tools_cat_temp">Sıcaklık</string>
+    <string name="tools_cat_data">Veri</string>
+    <string name="tools_result">Sonuç</string>
+    <string name="tools_fx_note">%1$s tarihli kurlar</string>
+    <string name="tools_fx_offline">Çevrimdışı — kayıtlı kurlar (%1$s)</string>
+    <string name="tools_fx_seed">Yaklaşık kurlar (yerleşik)</string>
+    <string name="tools_currency_pick">Para birimi seç</string>
+    <string name="tools_currency_search">Para birimi ara</string>
+    <string name="tools_currency_none">Eşleşme yok</string>
+    <string name="tools_bill">Hesap</string>
+    <string name="tools_tip">Bahşiş</string>
+    <string name="tools_split">Böl</string>
+    <string name="tools_people">kişi</string>
+    <string name="tools_out_tip">Bahşiş</string>
+    <string name="tools_out_total">Toplam</string>
+    <string name="tools_out_each">Kişi başı</string>
+    <string name="tools_date_diff">Tarih farkı</string>
+    <string name="tools_date_add">Gün ekle</string>
+    <string name="tools_days">Gün</string>
+    <string name="tools_weeks">Hafta</string>
+    <string name="tools_w">hf</string>
+    <string name="tools_d">g</string>
 </resources>

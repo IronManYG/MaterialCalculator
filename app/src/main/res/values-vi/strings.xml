@@ -89,4 +89,35 @@
     <string name="history_delete_entry">Xóa mục</string>
     <string name="history_empty_title">Chưa có lịch sử</string>
     <string name="history_empty_body">Các phép tính bạn kết thúc bằng = sẽ xuất hiện ở đây.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Công cụ</string>
+    <string name="tools_back">Quay lại</string>
+    <string name="tools_tab_units">Đơn vị</string>
+    <string name="tools_tab_currency">Tiền tệ</string>
+    <string name="tools_tab_tip">Tiền boa</string>
+    <string name="tools_tab_date">Ngày</string>
+    <string name="tools_cat_length">Độ dài</string>
+    <string name="tools_cat_weight">Khối lượng</string>
+    <string name="tools_cat_temp">Nhiệt độ</string>
+    <string name="tools_cat_data">Dữ liệu</string>
+    <string name="tools_result">Kết quả</string>
+    <string name="tools_fx_note">Tỷ giá tính đến %1$s</string>
+    <string name="tools_fx_offline">Ngoại tuyến — tỷ giá đã lưu (%1$s)</string>
+    <string name="tools_fx_seed">Tỷ giá ước tính (tích hợp)</string>
+    <string name="tools_currency_pick">Chọn tiền tệ</string>
+    <string name="tools_currency_search">Tìm tiền tệ</string>
+    <string name="tools_currency_none">Không có kết quả</string>
+    <string name="tools_bill">Hóa đơn</string>
+    <string name="tools_tip">Tiền boa</string>
+    <string name="tools_split">Chia</string>
+    <string name="tools_people">người</string>
+    <string name="tools_out_tip">Tiền boa</string>
+    <string name="tools_out_total">Tổng</string>
+    <string name="tools_out_each">Mỗi người</string>
+    <string name="tools_date_diff">Chênh lệch ngày</string>
+    <string name="tools_date_add">Thêm ngày</string>
+    <string name="tools_days">Ngày</string>
+    <string name="tools_weeks">Tuần</string>
+    <string name="tools_w">t</string>
+    <string name="tools_d">ng</string>
 </resources>

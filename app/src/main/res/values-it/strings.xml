@@ -89,4 +89,35 @@
     <string name="history_delete_entry">Elimina voce</string>
     <string name="history_empty_title">Ancora nessuna cronologia</string>
     <string name="history_empty_body">I calcoli che concludi con = compariranno qui.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Strumenti</string>
+    <string name="tools_back">Indietro</string>
+    <string name="tools_tab_units">Unità</string>
+    <string name="tools_tab_currency">Valuta</string>
+    <string name="tools_tab_tip">Mancia</string>
+    <string name="tools_tab_date">Data</string>
+    <string name="tools_cat_length">Lunghezza</string>
+    <string name="tools_cat_weight">Peso</string>
+    <string name="tools_cat_temp">Temp.</string>
+    <string name="tools_cat_data">Dati</string>
+    <string name="tools_result">Risultato</string>
+    <string name="tools_fx_note">Tassi al %1$s</string>
+    <string name="tools_fx_offline">Offline — tassi salvati (%1$s)</string>
+    <string name="tools_fx_seed">Tassi approssimativi (inclusi)</string>
+    <string name="tools_currency_pick">Seleziona valuta</string>
+    <string name="tools_currency_search">Cerca valuta</string>
+    <string name="tools_currency_none">Nessun risultato</string>
+    <string name="tools_bill">Conto</string>
+    <string name="tools_tip">Mancia</string>
+    <string name="tools_split">Dividi</string>
+    <string name="tools_people">persone</string>
+    <string name="tools_out_tip">Mancia</string>
+    <string name="tools_out_total">Totale</string>
+    <string name="tools_out_each">A testa</string>
+    <string name="tools_date_diff">Differenza tra date</string>
+    <string name="tools_date_add">Aggiungi giorni</string>
+    <string name="tools_days">Giorni</string>
+    <string name="tools_weeks">Settimane</string>
+    <string name="tools_w">set</string>
+    <string name="tools_d">g</string>
 </resources>

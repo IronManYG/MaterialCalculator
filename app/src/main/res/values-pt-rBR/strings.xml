@@ -89,4 +89,35 @@
     <string name="history_delete_entry">Excluir entrada</string>
     <string name="history_empty_title">Nenhum histórico ainda</string>
     <string name="history_empty_body">Os cálculos que você terminar com = vão aparecer aqui.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Ferramentas</string>
+    <string name="tools_back">Voltar</string>
+    <string name="tools_tab_units">Unidades</string>
+    <string name="tools_tab_currency">Moeda</string>
+    <string name="tools_tab_tip">Gorjeta</string>
+    <string name="tools_tab_date">Data</string>
+    <string name="tools_cat_length">Comprimento</string>
+    <string name="tools_cat_weight">Peso</string>
+    <string name="tools_cat_temp">Temp.</string>
+    <string name="tools_cat_data">Dados</string>
+    <string name="tools_result">Resultado</string>
+    <string name="tools_fx_note">Taxas em %1$s</string>
+    <string name="tools_fx_offline">Offline — taxas salvas (%1$s)</string>
+    <string name="tools_fx_seed">Taxas aprox. (inclusas)</string>
+    <string name="tools_currency_pick">Selecionar moeda</string>
+    <string name="tools_currency_search">Buscar moeda</string>
+    <string name="tools_currency_none">Nenhum resultado</string>
+    <string name="tools_bill">Conta</string>
+    <string name="tools_tip">Gorjeta</string>
+    <string name="tools_split">Dividir</string>
+    <string name="tools_people">pessoas</string>
+    <string name="tools_out_tip">Gorjeta</string>
+    <string name="tools_out_total">Total</string>
+    <string name="tools_out_each">Cada um</string>
+    <string name="tools_date_diff">Diferença de datas</string>
+    <string name="tools_date_add">Adicionar dias</string>
+    <string name="tools_days">Dias</string>
+    <string name="tools_weeks">Semanas</string>
+    <string name="tools_w">sem</string>
+    <string name="tools_d">d</string>
 </resources>

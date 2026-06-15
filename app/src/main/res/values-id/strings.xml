@@ -89,4 +89,35 @@
     <string name="history_delete_entry">Hapus entri</string>
     <string name="history_empty_title">Belum ada riwayat</string>
     <string name="history_empty_body">Perhitungan yang Anda selesaikan dengan = akan muncul di sini.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Alat</string>
+    <string name="tools_back">Kembali</string>
+    <string name="tools_tab_units">Satuan</string>
+    <string name="tools_tab_currency">Mata uang</string>
+    <string name="tools_tab_tip">Tip</string>
+    <string name="tools_tab_date">Tanggal</string>
+    <string name="tools_cat_length">Panjang</string>
+    <string name="tools_cat_weight">Berat</string>
+    <string name="tools_cat_temp">Suhu</string>
+    <string name="tools_cat_data">Data</string>
+    <string name="tools_result">Hasil</string>
+    <string name="tools_fx_note">Kurs per %1$s</string>
+    <string name="tools_fx_offline">Offline — kurs tersimpan (%1$s)</string>
+    <string name="tools_fx_seed">Kurs perkiraan (bawaan)</string>
+    <string name="tools_currency_pick">Pilih mata uang</string>
+    <string name="tools_currency_search">Cari mata uang</string>
+    <string name="tools_currency_none">Tidak ada hasil</string>
+    <string name="tools_bill">Tagihan</string>
+    <string name="tools_tip">Tip</string>
+    <string name="tools_split">Bagi</string>
+    <string name="tools_people">orang</string>
+    <string name="tools_out_tip">Tip</string>
+    <string name="tools_out_total">Total</string>
+    <string name="tools_out_each">Per orang</string>
+    <string name="tools_date_diff">Selisih tanggal</string>
+    <string name="tools_date_add">Tambah hari</string>
+    <string name="tools_days">Hari</string>
+    <string name="tools_weeks">Minggu</string>
+    <string name="tools_w">mg</string>
+    <string name="tools_d">h</string>
 </resources>

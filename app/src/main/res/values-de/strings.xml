@@ -89,4 +89,35 @@
     <string name="history_delete_entry">Eintrag löschen</string>
     <string name="history_empty_title">Noch kein Verlauf</string>
     <string name="history_empty_body">Berechnungen, die du mit = abschließt, erscheinen hier.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Werkzeuge</string>
+    <string name="tools_back">Zurück</string>
+    <string name="tools_tab_units">Einheiten</string>
+    <string name="tools_tab_currency">Währung</string>
+    <string name="tools_tab_tip">Trinkgeld</string>
+    <string name="tools_tab_date">Datum</string>
+    <string name="tools_cat_length">Länge</string>
+    <string name="tools_cat_weight">Gewicht</string>
+    <string name="tools_cat_temp">Temp.</string>
+    <string name="tools_cat_data">Daten</string>
+    <string name="tools_result">Ergebnis</string>
+    <string name="tools_fx_note">Kurse vom %1$s</string>
+    <string name="tools_fx_offline">Offline — gespeicherte Kurse (%1$s)</string>
+    <string name="tools_fx_seed">Ungefähre Kurse (integriert)</string>
+    <string name="tools_currency_pick">Währung wählen</string>
+    <string name="tools_currency_search">Währung suchen</string>
+    <string name="tools_currency_none">Keine Treffer</string>
+    <string name="tools_bill">Rechnung</string>
+    <string name="tools_tip">Trinkgeld</string>
+    <string name="tools_split">Teilen</string>
+    <string name="tools_people">Personen</string>
+    <string name="tools_out_tip">Trinkgeld</string>
+    <string name="tools_out_total">Gesamt</string>
+    <string name="tools_out_each">Pro Person</string>
+    <string name="tools_date_diff">Datumsdifferenz</string>
+    <string name="tools_date_add">Tage hinzufügen</string>
+    <string name="tools_days">Tage</string>
+    <string name="tools_weeks">Wochen</string>
+    <string name="tools_w">Wo</string>
+    <string name="tools_d">T</string>
 </resources>
