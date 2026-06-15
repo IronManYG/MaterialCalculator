@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,7 +44,11 @@ fun ToolsScreenLandscape(
             .background(sifr.background),
         containerColor = Color.Transparent,
         topBar = {
-            Column(modifier = Modifier.statusBarsPadding()) {
+            Column(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .displayCutoutPadding(),
+            ) {
                 SifrSubScreenTopBar(
                     title = stringResource(R.string.tools_title),
                     onBack = { onAction(ToolsAction.BackClicked) },
@@ -60,7 +65,8 @@ fun ToolsScreenLandscape(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .displayCutoutPadding(),
         ) {
             Column(
                 modifier = Modifier
