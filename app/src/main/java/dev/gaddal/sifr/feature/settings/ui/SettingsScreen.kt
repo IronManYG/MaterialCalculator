@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -376,7 +377,10 @@ private fun LanguagePickerSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(),
-        containerColor = sifr.surface,
+        // Flatten the glass surface over the opaque background — Layl's surface is
+        // ~transparent (alpha 0.04), so the bare `surface` let the page show through.
+        // Mirrors CurrencyPicker's sheet; opaque on every palette, identical look elsewhere.
+        containerColor = sifr.surface.compositeOver(sifr.backgroundFlat),
         dragHandle = { BottomSheetDefaults.DragHandle(color = sifr.dim) },
     ) {
         LanguageSheetList(selected = selected, onSelect = onSelect)
