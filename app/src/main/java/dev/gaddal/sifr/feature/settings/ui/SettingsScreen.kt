@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,6 +35,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
@@ -163,14 +166,23 @@ fun SettingsScreen(
         ) {
             // ── Language ────────────────────────────────────────────────
             SectionLabel(stringResource(R.string.settings_language_section))
-            SifrCard {
+            // selectableGroup() marks the whole list as one mutually-exclusive radio group.
+            SifrCard(modifier = Modifier.selectableGroup()) {
                 AppLanguage.entries.forEachIndexed { index, lang ->
                     if (index > 0) SifrRowDivider()
+                    val isSelected = lang == state.settings.language
                     SifrRow(
                         label = lang.displayLabel(),
-                        onClick = { onAction(SettingsAction.SetLanguage(lang)) },
+                        // RadioButton role + selected state announces "English, selected" to TalkBack;
+                        // the Check icon stays decorative (contentDescription = null) since the
+                        // selection is already conveyed semantically.
+                        modifier = Modifier.selectable(
+                            selected = isSelected,
+                            role = Role.RadioButton,
+                            onClick = { onAction(SettingsAction.SetLanguage(lang)) },
+                        ),
                         trailing = {
-                            if (lang == state.settings.language) {
+                            if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Filled.Check,
                                     contentDescription = null,
