@@ -10,4 +10,13 @@ enum class AppLanguage(val tag: String?) {
     System(null),
     English("en"),
     Arabic("ar"),
+    // v1.8.x — Tier-1 Latin-script languages (strings only; chrome reuses the default uiFamily).
+    Spanish("es"),
+    Portuguese("pt-BR"),
+    French("fr"),
+    German("de"),
+    Indonesian("id"),
+    Turkish("tr"),
+    Italian("it"),
+    Vietnamese("vi"),
 }

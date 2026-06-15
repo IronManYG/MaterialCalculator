@@ -3,8 +3,11 @@ package dev.gaddal.sifr.core.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -28,9 +31,12 @@ import dev.gaddal.sifr.core.ui.theme.SifrTokens
  * dim. Each segment owns its own `selectable` tap, so indication stays confined to the
  * control (spec §4.7) — there is no whole-row click. Generic over the option type.
  *
- * [equalWidth] makes the segments split the track evenly (each `weight(1f)`) instead of
- * hugging their labels — use it when the control is given a fixed width (e.g. a full-width
- * tab bar) so the segments fill it rather than clustering at the start and leaving a gap.
+ * Segments are always equal width. By default the track is content-sized: `width(IntrinsicSize.Max)`
+ * on the Row + `weight(1f)` per segment makes every segment as wide as the WIDEST label (Compose
+ * computes a weighted Row's intrinsic width as `max(intrinsic/weight) × totalWeight`), so
+ * Mode / Angle / Restore read evenly instead of lopsided. [spanWidth] instead lets the segments
+ * split the width the CALLER gives the control (e.g. a `fillMaxWidth()` tab bar) — no intrinsic
+ * sizing, just weights filling the supplied track.
  */
 @Composable
 fun <T> SifrSegmented(
@@ -39,12 +45,14 @@ fun <T> SifrSegmented(
     label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
-    equalWidth: Boolean = false,
+    spanWidth: Boolean = false,
 ) {
     val sifr = SifrTokens.colors
     val shape = RoundedCornerShape(percent = 50)
     Row(
         modifier = modifier
+            // Content-sized (each segment = widest label) unless the caller supplies the track width.
+            .then(if (spanWidth) Modifier else Modifier.width(IntrinsicSize.Max))
             .clip(shape)
             .border(1.dp, sifr.hairline, shape),
     ) {
@@ -52,7 +60,8 @@ fun <T> SifrSegmented(
             val isSelected = option == selected
             Box(
                 modifier = Modifier
-                    .then(if (equalWidth) Modifier.weight(1f) else Modifier)
+                    .weight(1f)
+                    .fillMaxHeight()
                     // background before selectable so the tap ripple draws over the fill
                     .background(if (isSelected) sifr.accent else Color.Transparent)
                     .selectable(
@@ -60,9 +69,9 @@ fun <T> SifrSegmented(
                         role = Role.RadioButton,
                         onClick = { onSelect(option) },
                     )
-                    // Tighter side padding when the segments are forced to even quarters, so a
-                    // longer label (e.g. "Currency") still fits its slot on one line.
-                    .padding(horizontal = if (equalWidth) 8.dp else 14.dp, vertical = 7.dp),
+                    // Tighter side padding when the caller pins the width (fixed quarters) so a longer
+                    // label still fits; roomier when the track is content-sized.
+                    .padding(horizontal = if (spanWidth) 8.dp else 14.dp, vertical = 7.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

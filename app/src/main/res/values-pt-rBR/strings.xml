@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sifr</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_back">Voltar</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">Idioma</string>
+    <string name="settings_language_system">Padrão do sistema</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">Aparência</string>
+    <string name="settings_theme_system_short">Sistema</string>
+    <string name="settings_keypad_layout">Layout</string>
+    <string name="settings_memory_keys_sub">Mostrar as teclas de memória acima do teclado</string>
+    <string name="settings_fraction_results_sub">Mostrar frações exatas quando possível</string>
+    <string name="settings_haptics_sub">Vibrar ao tocar nas teclas</string>
+    <string name="settings_about_sub">Uma calculadora mais tranquila.</string>
+    <string name="settings_theme_section">Modo</string>
+    <string name="settings_theme_system">Seguir o sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Escuro</string>
+    <string name="settings_haptics">Resposta tátil</string>
+    <string name="settings_sound">Sons de erro</string>
+
+    <!-- Calculator screen -->
+    <string name="calc_open_settings">Abrir configurações</string>
+    <!-- Scientific mode -->
+    <string name="calc_toggle_mode">Alternar modo científico</string>
+    <string name="calc_mode_chip_memory">M</string>
+    <string name="calc_angle_unit_degrees">deg</string>
+    <string name="calc_angle_unit_radians">rad</string>
+    <string name="calc_open_history">Abrir histórico</string>
+    <string name="calc_error_division_by_zero">Não dá para dividir por zero</string>
+    <string name="calc_error_invalid_expression">Expressão inválida</string>
+    <string name="calc_error_domain_error">Valor fora do domínio da função</string>
+    <string name="calc_error_overflow">Resultado muito grande</string>
+    <string name="calc_error_syntax_error">Erro de sintaxe</string>
+    <string name="calc_open_tools">Abrir ferramentas</string>
+    <string name="calc_rotate_orientation">Girar a tela</string>
+
+    <!-- v1.5 result actions -->
+    <string name="calc_action_copy">COPIAR</string>
+    <string name="calc_action_share">COMPARTILHAR</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">ANS →</string>
+
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">Tela</string>
+    <string name="settings_fraction_results">Resultados em fração</string>
+    <string name="settings_angle_unit">Unidade de ângulo</string>
+    <string name="settings_angle_deg">DEG</string>
+    <string name="settings_angle_rad">RAD</string>
+    <string name="settings_feedback_section">Resposta</string>
+    <string name="settings_about_section">Sobre</string>
+    <string name="settings_about_tagline">Sifr — صفر · uma calculadora mais tranquila.</string>
+
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_palette_section">Tema</string>
+    <string name="settings_palette_layl">Layl</string>
+    <string name="settings_palette_bayan">Bayan</string>
+    <string name="settings_palette_raqim">Raqim</string>
+    <string name="settings_palette_farah">Farah</string>
+    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_dynamic">Dinâmico</string>
+
+    <!-- v1.6 settings — keypad -->
+    <string name="settings_keypad_section">Teclado</string>
+    <string name="settings_memory_keys">Teclas de memória</string>
+    <string name="settings_keypad_classic">Clássico</string>
+    <string name="settings_keypad_remix">Remix</string>
+    <string name="settings_keypad_arc">Arco</string>
+    <string name="settings_keypad_tape">Fita</string>
+
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">Restaurar como</string>
+    <string name="settings_restore_target_sub">Inserir o resultado ou a expressão completa</string>
+    <string name="settings_restore_target_result">Resultado</string>
+    <string name="settings_restore_target_expression">Expressão</string>
+
+    <!-- History screen -->
+    <string name="history_title">Histórico</string>
+    <string name="history_back">Voltar</string>
+    <string name="history_clear_all">Limpar tudo</string>
+    <string name="history_clear_confirm_title">Limpar o histórico?</string>
+    <string name="history_clear_confirm_message">Isso vai remover todas as entradas permanentemente.</string>
+    <string name="history_clear_confirm_yes">Limpar</string>
+    <string name="history_clear_confirm_cancel">Cancelar</string>
+    <string name="history_delete_entry">Excluir entrada</string>
+    <string name="history_empty_title">Nenhum histórico ainda</string>
+    <string name="history_empty_body">Os cálculos que você terminar com = vão aparecer aqui.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Ferramentas</string>
+    <string name="tools_back">Voltar</string>
+    <string name="tools_tab_units">Unidades</string>
+    <string name="tools_tab_currency">Moeda</string>
+    <string name="tools_tab_tip">Gorjeta</string>
+    <string name="tools_tab_date">Data</string>
+    <string name="tools_cat_length">Comprimento</string>
+    <string name="tools_cat_weight">Peso</string>
+    <string name="tools_cat_temp">Temp.</string>
+    <string name="tools_cat_data">Dados</string>
+    <string name="tools_result">Resultado</string>
+    <string name="tools_fx_note">Taxas em %1$s</string>
+    <string name="tools_fx_offline">Offline — taxas salvas (%1$s)</string>
+    <string name="tools_fx_seed">Taxas aprox. (inclusas)</string>
+    <string name="tools_currency_pick">Selecionar moeda</string>
+    <string name="tools_currency_search">Buscar moeda</string>
+    <string name="tools_currency_none">Nenhum resultado</string>
+    <string name="tools_bill">Conta</string>
+    <string name="tools_tip">Gorjeta</string>
+    <string name="tools_split">Dividir</string>
+    <string name="tools_people">pessoas</string>
+    <string name="tools_out_tip">Gorjeta</string>
+    <string name="tools_out_total">Total</string>
+    <string name="tools_out_each">Cada um</string>
+    <string name="tools_date_diff">Diferença de datas</string>
+    <string name="tools_date_add">Adicionar dias</string>
+    <string name="tools_days">Dias</string>
+    <string name="tools_weeks">Semanas</string>
+    <string name="tools_w">sem</string>
+    <string name="tools_d">d</string>
+</resources>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sifr</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Setelan</string>
+    <string name="settings_back">Kembali</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">Bahasa</string>
+    <string name="settings_language_system">Default sistem</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">Tampilan</string>
+    <string name="settings_theme_system_short">Sistem</string>
+    <string name="settings_keypad_layout">Tata letak</string>
+    <string name="settings_memory_keys_sub">Tampilkan tombol memori di atas papan tombol</string>
+    <string name="settings_fraction_results_sub">Tampilkan pecahan persis jika memungkinkan</string>
+    <string name="settings_haptics_sub">Getar saat tombol ditekan</string>
+    <string name="settings_about_sub">Kalkulator yang lebih tenang.</string>
+    <string name="settings_theme_section">Mode</string>
+    <string name="settings_theme_system">Ikuti sistem</string>
+    <string name="settings_theme_light">Terang</string>
+    <string name="settings_theme_dark">Gelap</string>
+    <string name="settings_haptics">Umpan balik haptik</string>
+    <string name="settings_sound">Suara kesalahan</string>
+
+    <!-- Calculator screen -->
+    <string name="calc_open_settings">Buka setelan</string>
+    <!-- Scientific mode -->
+    <string name="calc_toggle_mode">Alihkan mode ilmiah</string>
+    <string name="calc_mode_chip_memory">M</string>
+    <string name="calc_angle_unit_degrees">deg</string>
+    <string name="calc_angle_unit_radians">rad</string>
+    <string name="calc_open_history">Buka riwayat</string>
+    <string name="calc_error_division_by_zero">Tidak bisa membagi dengan nol</string>
+    <string name="calc_error_invalid_expression">Ekspresi tidak valid</string>
+    <string name="calc_error_domain_error">Input di luar domain fungsi</string>
+    <string name="calc_error_overflow">Hasil terlalu besar</string>
+    <string name="calc_error_syntax_error">Kesalahan sintaks</string>
+    <string name="calc_open_tools">Buka alat</string>
+    <string name="calc_rotate_orientation">Putar layar</string>
+
+    <!-- v1.5 result actions -->
+    <string name="calc_action_copy">SALIN</string>
+    <string name="calc_action_share">BAGIKAN</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">ANS →</string>
+
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">Layar</string>
+    <string name="settings_fraction_results">Hasil pecahan</string>
+    <string name="settings_angle_unit">Satuan sudut</string>
+    <string name="settings_angle_deg">DEG</string>
+    <string name="settings_angle_rad">RAD</string>
+    <string name="settings_feedback_section">Umpan balik</string>
+    <string name="settings_about_section">Tentang</string>
+    <string name="settings_about_tagline">Sifr — صفر · kalkulator yang lebih tenang.</string>
+
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_palette_section">Tema</string>
+    <string name="settings_palette_layl">Layl</string>
+    <string name="settings_palette_bayan">Bayan</string>
+    <string name="settings_palette_raqim">Raqim</string>
+    <string name="settings_palette_farah">Farah</string>
+    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_dynamic">Dinamis</string>
+
+    <!-- v1.6 settings — keypad -->
+    <string name="settings_keypad_section">Papan tombol</string>
+    <string name="settings_memory_keys">Tombol memori</string>
+    <string name="settings_keypad_classic">Klasik</string>
+    <string name="settings_keypad_remix">Remix</string>
+    <string name="settings_keypad_arc">Busur</string>
+    <string name="settings_keypad_tape">Pita</string>
+
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">Pulihkan sebagai</string>
+    <string name="settings_restore_target_sub">Sisipkan hasil atau ekspresi lengkap</string>
+    <string name="settings_restore_target_result">Hasil</string>
+    <string name="settings_restore_target_expression">Ekspresi</string>
+
+    <!-- History screen -->
+    <string name="history_title">Riwayat</string>
+    <string name="history_back">Kembali</string>
+    <string name="history_clear_all">Hapus semua</string>
+    <string name="history_clear_confirm_title">Hapus riwayat?</string>
+    <string name="history_clear_confirm_message">Tindakan ini akan menghapus semua entri secara permanen.</string>
+    <string name="history_clear_confirm_yes">Hapus</string>
+    <string name="history_clear_confirm_cancel">Batal</string>
+    <string name="history_delete_entry">Hapus entri</string>
+    <string name="history_empty_title">Belum ada riwayat</string>
+    <string name="history_empty_body">Perhitungan yang Anda selesaikan dengan = akan muncul di sini.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Alat</string>
+    <string name="tools_back">Kembali</string>
+    <string name="tools_tab_units">Satuan</string>
+    <string name="tools_tab_currency">Mata uang</string>
+    <string name="tools_tab_tip">Tip</string>
+    <string name="tools_tab_date">Tanggal</string>
+    <string name="tools_cat_length">Panjang</string>
+    <string name="tools_cat_weight">Berat</string>
+    <string name="tools_cat_temp">Suhu</string>
+    <string name="tools_cat_data">Data</string>
+    <string name="tools_result">Hasil</string>
+    <string name="tools_fx_note">Kurs per %1$s</string>
+    <string name="tools_fx_offline">Offline — kurs tersimpan (%1$s)</string>
+    <string name="tools_fx_seed">Kurs perkiraan (bawaan)</string>
+    <string name="tools_currency_pick">Pilih mata uang</string>
+    <string name="tools_currency_search">Cari mata uang</string>
+    <string name="tools_currency_none">Tidak ada hasil</string>
+    <string name="tools_bill">Tagihan</string>
+    <string name="tools_tip">Tip</string>
+    <string name="tools_split">Bagi</string>
+    <string name="tools_people">orang</string>
+    <string name="tools_out_tip">Tip</string>
+    <string name="tools_out_total">Total</string>
+    <string name="tools_out_each">Per orang</string>
+    <string name="tools_date_diff">Selisih tanggal</string>
+    <string name="tools_date_add">Tambah hari</string>
+    <string name="tools_days">Hari</string>
+    <string name="tools_weeks">Minggu</string>
+    <string name="tools_w">mg</string>
+    <string name="tools_d">h</string>
+</resources>

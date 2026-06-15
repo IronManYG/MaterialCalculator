@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sifr</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_back">Geri</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">Dil</string>
+    <string name="settings_language_system">Sistem varsayılanı</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">Görünüm</string>
+    <string name="settings_theme_system_short">Sistem</string>
+    <string name="settings_keypad_layout">Düzen</string>
+    <string name="settings_memory_keys_sub">Bellek tuşlarını tuş takımının üstünde göster</string>
+    <string name="settings_fraction_results_sub">Mümkün olduğunda tam kesirleri göster</string>
+    <string name="settings_haptics_sub">Tuşa basınca titreşim</string>
+    <string name="settings_about_sub">Daha sakin bir hesap makinesi.</string>
+    <string name="settings_theme_section">Mod</string>
+    <string name="settings_theme_system">Sistemi izle</string>
+    <string name="settings_theme_light">Açık</string>
+    <string name="settings_theme_dark">Koyu</string>
+    <string name="settings_haptics">Dokunsal geri bildirim</string>
+    <string name="settings_sound">Hata sesleri</string>
+
+    <!-- Calculator screen -->
+    <string name="calc_open_settings">Ayarları aç</string>
+    <!-- Scientific mode -->
+    <string name="calc_toggle_mode">Bilimsel modu aç/kapat</string>
+    <string name="calc_mode_chip_memory">M</string>
+    <string name="calc_angle_unit_degrees">deg</string>
+    <string name="calc_angle_unit_radians">rad</string>
+    <string name="calc_open_history">Geçmişi aç</string>
+    <string name="calc_error_division_by_zero">Sıfıra bölünemez</string>
+    <string name="calc_error_invalid_expression">Geçersiz ifade</string>
+    <string name="calc_error_domain_error">Giriş, işlev tanım kümesinin dışında</string>
+    <string name="calc_error_overflow">Sonuç çok büyük</string>
+    <string name="calc_error_syntax_error">Sözdizimi hatası</string>
+    <string name="calc_open_tools">Araçları aç</string>
+    <string name="calc_rotate_orientation">Ekranı döndür</string>
+
+    <!-- v1.5 result actions -->
+    <string name="calc_action_copy">KOPYALA</string>
+    <string name="calc_action_share">PAYLAŞ</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">ANS →</string>
+
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">Ekran</string>
+    <string name="settings_fraction_results">Kesir sonuçları</string>
+    <string name="settings_angle_unit">Açı birimi</string>
+    <string name="settings_angle_deg">DEG</string>
+    <string name="settings_angle_rad">RAD</string>
+    <string name="settings_feedback_section">Geri bildirim</string>
+    <string name="settings_about_section">Hakkında</string>
+    <string name="settings_about_tagline">Sifr — صفر · daha sakin bir hesap makinesi.</string>
+
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_palette_section">Tema</string>
+    <string name="settings_palette_layl">Layl</string>
+    <string name="settings_palette_bayan">Bayan</string>
+    <string name="settings_palette_raqim">Raqim</string>
+    <string name="settings_palette_farah">Farah</string>
+    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_dynamic">Dinamik</string>
+
+    <!-- v1.6 settings — keypad -->
+    <string name="settings_keypad_section">Tuş takımı</string>
+    <string name="settings_memory_keys">Bellek tuşları</string>
+    <string name="settings_keypad_classic">Klasik</string>
+    <string name="settings_keypad_remix">Remix</string>
+    <string name="settings_keypad_arc">Yay</string>
+    <string name="settings_keypad_tape">Şerit</string>
+
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">Şu şekilde geri yükle</string>
+    <string name="settings_restore_target_sub">Sonucu veya tam ifadeyi ekle</string>
+    <string name="settings_restore_target_result">Sonuç</string>
+    <string name="settings_restore_target_expression">İfade</string>
+
+    <!-- History screen -->
+    <string name="history_title">Geçmiş</string>
+    <string name="history_back">Geri</string>
+    <string name="history_clear_all">Tümünü temizle</string>
+    <string name="history_clear_confirm_title">Geçmiş temizlensin mi?</string>
+    <string name="history_clear_confirm_message">Bu işlem tüm kayıtları kalıcı olarak siler.</string>
+    <string name="history_clear_confirm_yes">Temizle</string>
+    <string name="history_clear_confirm_cancel">İptal</string>
+    <string name="history_delete_entry">Kaydı sil</string>
+    <string name="history_empty_title">Henüz geçmiş yok</string>
+    <string name="history_empty_body">= ile bitirdiğiniz hesaplamalar burada görünür.</string>
+    <!-- Tools (v1.8.x) -->
+    <string name="tools_title">Araçlar</string>
+    <string name="tools_back">Geri</string>
+    <string name="tools_tab_units">Birimler</string>
+    <string name="tools_tab_currency">Döviz</string>
+    <string name="tools_tab_tip">Bahşiş</string>
+    <string name="tools_tab_date">Tarih</string>
+    <string name="tools_cat_length">Uzunluk</string>
+    <string name="tools_cat_weight">Ağırlık</string>
+    <string name="tools_cat_temp">Sıcaklık</string>
+    <string name="tools_cat_data">Veri</string>
+    <string name="tools_result">Sonuç</string>
+    <string name="tools_fx_note">%1$s tarihli kurlar</string>
+    <string name="tools_fx_offline">Çevrimdışı — kayıtlı kurlar (%1$s)</string>
+    <string name="tools_fx_seed">Yaklaşık kurlar (yerleşik)</string>
+    <string name="tools_currency_pick">Para birimi seç</string>
+    <string name="tools_currency_search">Para birimi ara</string>
+    <string name="tools_currency_none">Eşleşme yok</string>
+    <string name="tools_bill">Hesap</string>
+    <string name="tools_tip">Bahşiş</string>
+    <string name="tools_split">Böl</string>
+    <string name="tools_people">kişi</string>
+    <string name="tools_out_tip">Bahşiş</string>
+    <string name="tools_out_total">Toplam</string>
+    <string name="tools_out_each">Kişi başı</string>
+    <string name="tools_date_diff">Tarih farkı</string>
+    <string name="tools_date_add">Gün ekle</string>
+    <string name="tools_days">Gün</string>
+    <string name="tools_weeks">Hafta</string>
+    <string name="tools_w">hf</string>
+    <string name="tools_d">g</string>
+</resources>
