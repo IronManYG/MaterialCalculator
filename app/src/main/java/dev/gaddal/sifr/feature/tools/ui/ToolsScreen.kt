@@ -9,16 +9,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -315,9 +321,6 @@ internal fun TipCard(state: ToolsState, onAction: (ToolsAction) -> Unit) {
 }
 
 // ── Date tab ────────────────────────────────────────────────────────────────
-private val DATE_DISPLAY_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy")
-private val ADD_RESULT_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE, d MMM yyyy")
-
 @Composable
 internal fun DateCards(state: ToolsState, onAction: (ToolsAction) -> Unit) {
     Column(
@@ -353,7 +356,12 @@ internal fun DateDiffCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mo
             Text(stringResource(R.string.tools_date_diff), color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 11.sp, fontWeight = FontWeight.W600)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 DateChip(date = state.date1, onClick = { showDate1Picker = true }, modifier = Modifier.weight(1f))
-                Text("→", color = sifr.dim, fontSize = 16.sp)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = sifr.dim,
+                    modifier = Modifier.size(18.dp),
+                )
                 DateChip(date = state.date2, onClick = { showDate2Picker = true }, modifier = Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Bottom) {
@@ -392,7 +400,9 @@ internal fun DateAddCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mod
                     modifier = Modifier.weight(1f),
                 )
             }
-            val resultText = state.addResult?.format(ADD_RESULT_FORMAT) ?: "—"
+            val locale = LocalConfiguration.current.locales[0]
+            val addFormatter = remember(locale) { DateTimeFormatter.ofPattern("EEE, d MMM yyyy", locale) }
+            val resultText = state.addResult?.format(addFormatter) ?: "—"
             ToolOut(label = stringResource(R.string.tools_result), value = resultText, big = true)
         }
     }
@@ -428,7 +438,13 @@ private fun ToolsDatePickerDialog(
 
 @Composable
 private fun DateChip(date: LocalDate, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    SifrChip(label = date.format(DATE_DISPLAY_FORMAT), onClick = onClick, modifier = modifier)
+    val locale = LocalConfiguration.current.locales[0]
+    val formatter = remember(locale) { DateTimeFormatter.ofPattern("d MMM yyyy", locale) }
+    SifrChip(
+        label = date.format(formatter),
+        onClick = onClick,
+        modifier = modifier.minimumInteractiveComponentSize(),
+    )
 }
 
 // ── Previews ────────────────────────────────────────────────────────────────
