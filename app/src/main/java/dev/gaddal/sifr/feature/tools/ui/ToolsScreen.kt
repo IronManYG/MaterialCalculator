@@ -51,6 +51,7 @@ import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.feature.tools.domain.RatesResource
 import dev.gaddal.sifr.feature.tools.domain.UnitCategory
+import dev.gaddal.sifr.feature.tools.ui.components.CurrencySelect
 import dev.gaddal.sifr.feature.tools.ui.components.Stepper
 import dev.gaddal.sifr.feature.tools.ui.components.ToolField
 import dev.gaddal.sifr.feature.tools.ui.components.ToolNumPad
@@ -202,9 +203,9 @@ internal fun CurrencyCard(state: ToolsState, onAction: (ToolsAction) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ToolSelect(
+                CurrencySelect(
                     selected = state.cFrom,
-                    options = currencies,
+                    currencies = currencies,
                     onSelect = { onAction(ToolsAction.SelectFromCurrency(it)) },
                     modifier = Modifier.weight(1f),
                 )
@@ -221,9 +222,9 @@ internal fun CurrencyCard(state: ToolsState, onAction: (ToolsAction) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ToolSelect(
+                CurrencySelect(
                     selected = state.cTo,
-                    options = currencies,
+                    currencies = currencies,
                     onSelect = { onAction(ToolsAction.SelectToCurrency(it)) },
                     modifier = Modifier.weight(1f),
                 )

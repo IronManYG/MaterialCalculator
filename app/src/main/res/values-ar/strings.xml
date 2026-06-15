@@ -109,6 +109,9 @@
     <string name="tools_fx_note">الأسعار بتاريخ %1$s</string>
     <string name="tools_fx_offline">غير متصل — تستخدم الأسعار المحفوظة (%1$s)</string>
     <string name="tools_fx_seed">أسعار تقريبية (مدمجة)</string>
+    <string name="tools_currency_pick">اختيار العملة</string>
+    <string name="tools_currency_search">بحث عن عملة</string>
+    <string name="tools_currency_none">لا نتائج</string>
 
     <!-- Tip tab -->
     <string name="tools_bill">الفاتورة</string>

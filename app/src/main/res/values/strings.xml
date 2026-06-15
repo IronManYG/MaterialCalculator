@@ -108,6 +108,9 @@
     <string name="tools_fx_note">Rates as of %1$s</string>
     <string name="tools_fx_offline">Offline — using saved rates (%1$s)</string>
     <string name="tools_fx_seed">Approx rates (bundled)</string>
+    <string name="tools_currency_pick">Select currency</string>
+    <string name="tools_currency_search">Search currency</string>
+    <string name="tools_currency_none">No matches</string>
 
     <!-- Tip tab -->
     <string name="tools_bill">Bill</string>
