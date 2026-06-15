@@ -12,10 +12,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +49,9 @@ import dev.gaddal.sifr.feature.tools.ui.components.ToolNumPad
 import dev.gaddal.sifr.feature.tools.ui.components.ToolOut
 import dev.gaddal.sifr.feature.tools.ui.components.ToolSelect
 import dev.gaddal.sifr.feature.tools.ui.components.ToolTabBar
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -321,13 +332,29 @@ internal fun DateCards(state: ToolsState, onAction: (ToolsAction) -> Unit) {
 @Composable
 internal fun DateDiffCard(state: ToolsState, onAction: (ToolsAction) -> Unit, modifier: Modifier = Modifier) {
     val sifr = SifrTokens.colors
+    var showDate1Picker by remember { mutableStateOf(false) }
+    var showDate2Picker by remember { mutableStateOf(false) }
+    if (showDate1Picker) {
+        ToolsDatePickerDialog(
+            initial = state.date1,
+            onDismiss = { showDate1Picker = false },
+            onConfirm = { onAction(ToolsAction.SetDate1(it)); showDate1Picker = false },
+        )
+    }
+    if (showDate2Picker) {
+        ToolsDatePickerDialog(
+            initial = state.date2,
+            onDismiss = { showDate2Picker = false },
+            onConfirm = { onAction(ToolsAction.SetDate2(it)); showDate2Picker = false },
+        )
+    }
     SifrCard(modifier) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.tools_date_diff), color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 11.sp, fontWeight = FontWeight.W600)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                DateChip(date = state.date1, onClick = {}, modifier = Modifier.weight(1f))
+                DateChip(date = state.date1, onClick = { showDate1Picker = true }, modifier = Modifier.weight(1f))
                 Text("→", color = sifr.dim, fontSize = 16.sp)
-                DateChip(date = state.date2, onClick = {}, modifier = Modifier.weight(1f))
+                DateChip(date = state.date2, onClick = { showDate2Picker = true }, modifier = Modifier.weight(1f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Bottom) {
                 ToolOut(label = stringResource(R.string.tools_days), value = state.diffDays.toString(), big = true)
@@ -343,11 +370,19 @@ internal fun DateDiffCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mo
 @Composable
 internal fun DateAddCard(state: ToolsState, onAction: (ToolsAction) -> Unit, modifier: Modifier = Modifier) {
     val sifr = SifrTokens.colors
+    var showDate1Picker by remember { mutableStateOf(false) }
+    if (showDate1Picker) {
+        ToolsDatePickerDialog(
+            initial = state.date1,
+            onDismiss = { showDate1Picker = false },
+            onConfirm = { onAction(ToolsAction.SetDate1(it)); showDate1Picker = false },
+        )
+    }
     SifrCard(modifier) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.tools_date_add), color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 11.sp, fontWeight = FontWeight.W600)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                DateChip(date = state.date1, onClick = {}, modifier = Modifier.weight(1f))
+                DateChip(date = state.date1, onClick = { showDate1Picker = true }, modifier = Modifier.weight(1f))
                 Text("+", color = sifr.dim, fontSize = 16.sp)
                 ToolField(
                     value = state.addDays,
@@ -361,6 +396,34 @@ internal fun DateAddCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mod
             ToolOut(label = stringResource(R.string.tools_result), value = resultText, big = true)
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ToolsDatePickerDialog(
+    initial: LocalDate,
+    onDismiss: () -> Unit,
+    onConfirm: (LocalDate) -> Unit,
+) {
+    val pickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initial.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+    )
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                val ms = pickerState.selectedDateMillis
+                if (ms != null) {
+                    onConfirm(Instant.ofEpochMilli(ms).atZone(ZoneOffset.UTC).toLocalDate())
+                } else {
+                    onDismiss()
+                }
+            }) { Text(stringResource(android.R.string.ok)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+    ) { DatePicker(state = pickerState) }
 }
 
 @Composable
