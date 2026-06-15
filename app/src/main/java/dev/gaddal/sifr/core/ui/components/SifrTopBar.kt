@@ -90,20 +90,25 @@ fun SifrCalcTopBar(
 }
 
 /**
- * Sub-screen top bar (spec §4.1): back arrow (auto-mirrored for RTL) + title, no end icons.
+ * Sub-screen top bar (spec §4.1): back arrow (auto-mirrored for RTL) + title. An
+ * optional trailing Rotate action (same glyph as [SifrCalcTopBar]) lets sub-screens
+ * toggle orientation; pass [onRotate] to show it. History / Settings omit it.
  */
 @Composable
 fun SifrSubScreenTopBar(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onRotate: (() -> Unit)? = null,
+    rotateActive: Boolean = false,
+    rotateCd: String = "Rotate",
 ) {
     val sifr = SifrTokens.colors
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .padding(start = 8.dp, end = 22.dp),
+            .padding(start = 8.dp, end = if (onRotate != null) 10.dp else 22.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -117,6 +122,15 @@ fun SifrSubScreenTopBar(
             fontWeight = FontWeight.W600,
             fontSize = 16.sp,
         )
+        if (onRotate != null) {
+            Spacer(Modifier.weight(1f))
+            BarIcon(
+                Icons.Outlined.ScreenRotation,
+                rotateCd,
+                if (rotateActive) sifr.accent else sifr.dim,
+                onRotate,
+            )
+        }
     }
 }
 

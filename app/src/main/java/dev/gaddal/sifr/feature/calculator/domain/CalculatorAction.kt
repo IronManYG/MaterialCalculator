@@ -13,6 +13,7 @@ sealed interface CalculatorAction {
     data object Decimal : CalculatorAction
     data object SettingsClicked : CalculatorAction
     data object HistoryClicked : CalculatorAction
+    data object ToolsClicked : CalculatorAction
     data class RestoreExpression(val value: String) : CalculatorAction
     data class CursorChanged(val newPosition: Int) : CalculatorAction
     data class SelectionChanged(val start: Int, val end: Int) : CalculatorAction

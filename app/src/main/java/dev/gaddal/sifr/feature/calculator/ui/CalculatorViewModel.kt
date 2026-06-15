@@ -96,6 +96,7 @@ class CalculatorViewModel(
         when (action) {
             CalculatorAction.SettingsClicked -> emit(CalculatorEvent.NavigateToSettings)
             CalculatorAction.HistoryClicked -> emit(CalculatorEvent.NavigateToHistory)
+            CalculatorAction.ToolsClicked -> emit(CalculatorEvent.NavigateToTools)
             CalculatorAction.ToggleMode -> viewModelScope.launch {
                 settingsRepository.update {
                     copy(
