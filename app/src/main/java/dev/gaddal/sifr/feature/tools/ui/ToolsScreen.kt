@@ -99,7 +99,7 @@ fun ToolsScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            if (state.activeTab != ToolTab.Date) {
+            if (state.activeTab != ToolTab.Date || state.focusedField == FocusedField.AddDays) {
                 ToolNumPad(
                     onNumKey = { onAction(ToolsAction.NumKey(it)) },
                     onBackspace = { onAction(ToolsAction.Backspace) },
