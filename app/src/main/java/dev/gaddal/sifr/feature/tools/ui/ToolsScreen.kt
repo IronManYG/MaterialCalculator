@@ -114,9 +114,13 @@ fun ToolsScreen(
             }
 
             if (state.activeTab != ToolTab.Date || state.focusedField == FocusedField.AddDays) {
+                // The Date tab only shows the pad when AddDays is focused; keep it compact there
+                // (shorter keys) so the scrollable Date cards above don't get crowded (round-4
+                // note E). The pad stays bottom-pinned with the cards scrolling above it.
                 ToolNumPad(
                     onNumKey = { onAction(ToolsAction.NumKey(it)) },
                     onBackspace = { onAction(ToolsAction.Backspace) },
+                    compact = state.activeTab == ToolTab.Date,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
