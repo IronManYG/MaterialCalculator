@@ -36,6 +36,8 @@ import dev.gaddal.sifr.feature.tools.ui.components.ToolTabBar
 fun ToolsScreenLandscape(
     state: ToolsState,
     onAction: (ToolsAction) -> Unit,
+    onRotate: () -> Unit = {},
+    rotateActive: Boolean = true,
 ) {
     val sifr = SifrTokens.colors
     Scaffold(
@@ -52,13 +54,10 @@ fun ToolsScreenLandscape(
                 SifrSubScreenTopBar(
                     title = stringResource(R.string.tools_title),
                     onBack = { onAction(ToolsAction.BackClicked) },
+                    onRotate = onRotate,
+                    rotateActive = rotateActive,
+                    rotateCd = stringResource(R.string.calc_rotate_orientation),
                 )
-                Spacer(Modifier.height(8.dp))
-                ToolTabBar(
-                    selected = state.activeTab,
-                    onSelect = { onAction(ToolsAction.SelectTab(it)) },
-                )
-                Spacer(Modifier.height(8.dp))
             }
         },
     ) { padding ->
@@ -68,20 +67,33 @@ fun ToolsScreenLandscape(
                 .padding(padding)
                 .displayCutoutPadding(),
         ) {
+            // Left = the tool column. The tab bar lives here (not in the top bar) so it
+            // spans only the tool width, not the numpad column on the trailing edge.
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
                     .padding(end = 8.dp),
             ) {
-                when (state.activeTab) {
-                    ToolTab.Units -> UnitsCard(state, onAction)
-                    ToolTab.Currency -> CurrencyCard(state, onAction)
-                    ToolTab.Tip -> TipCard(state, onAction)
-                    ToolTab.Date -> DateCardsLandscape(state, onAction)
+                Spacer(Modifier.height(4.dp))
+                ToolTabBar(
+                    selected = state.activeTab,
+                    onSelect = { onAction(ToolsAction.SelectTab(it)) },
+                )
+                Spacer(Modifier.height(12.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    when (state.activeTab) {
+                        ToolTab.Units -> UnitsCard(state, onAction)
+                        ToolTab.Currency -> CurrencyCard(state, onAction)
+                        ToolTab.Tip -> TipCard(state, onAction)
+                        ToolTab.Date -> DateCardsLandscape(state, onAction)
+                    }
+                    Spacer(Modifier.height(16.dp))
                 }
-                Spacer(Modifier.height(16.dp))
             }
 
             if (state.activeTab != ToolTab.Date || state.focusedField == FocusedField.AddDays) {

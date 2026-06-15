@@ -1,11 +1,13 @@
 package dev.gaddal.sifr.feature.tools.ui
 
 import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -53,9 +55,31 @@ fun ToolsRoot(
         }
     }
 
+    // Manual orientation toggle, mirroring the calculator's Rotate action. The activity
+    // already owns the initial orientation lock (CalculatorRoot), so Tools just flips it
+    // on demand and inherits whatever orientation it was opened in.
+    val activity = view.context as? Activity
+    val onRotate = remember(isLandscape, activity) {
+        {
+            activity?.requestedOrientation =
+                if (isLandscape) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+    }
+
     if (isLandscape) {
-        ToolsScreenLandscape(state = state, onAction = viewModel::onAction)
+        ToolsScreenLandscape(
+            state = state,
+            onAction = viewModel::onAction,
+            onRotate = onRotate,
+            rotateActive = true,
+        )
     } else {
-        ToolsScreen(state = state, onAction = viewModel::onAction)
+        ToolsScreen(
+            state = state,
+            onAction = viewModel::onAction,
+            onRotate = onRotate,
+            rotateActive = false,
+        )
     }
 }

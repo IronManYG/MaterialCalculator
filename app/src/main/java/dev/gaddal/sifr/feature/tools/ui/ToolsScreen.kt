@@ -66,6 +66,8 @@ import java.time.format.DateTimeFormatter
 fun ToolsScreen(
     state: ToolsState,
     onAction: (ToolsAction) -> Unit,
+    onRotate: () -> Unit = {},
+    rotateActive: Boolean = false,
 ) {
     val sifr = SifrTokens.colors
     Scaffold(
@@ -78,6 +80,9 @@ fun ToolsScreen(
                 title = stringResource(R.string.tools_title),
                 onBack = { onAction(ToolsAction.BackClicked) },
                 modifier = Modifier.statusBarsPadding(),
+                onRotate = onRotate,
+                rotateActive = rotateActive,
+                rotateCd = stringResource(R.string.calc_rotate_orientation),
             )
         },
     ) { padding ->
