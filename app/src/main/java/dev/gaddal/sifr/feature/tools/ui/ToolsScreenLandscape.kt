@@ -97,12 +97,16 @@ fun ToolsScreenLandscape(
                 }
 
                 if (state.activeTab != ToolTab.Date || state.focusedField == FocusedField.AddDays) {
+                    // fillHeight + fillMaxHeight so the pad fills the whole side column instead of
+                    // sitting content-tall with empty space below it (round-4 note G).
                     ToolNumPad(
                         onNumKey = { onAction(ToolsAction.NumKey(it)) },
                         onBackspace = { onAction(ToolsAction.Backspace) },
                         compact = true,
+                        fillHeight = true,
                         modifier = Modifier
                             .width(300.dp)
+                            .fillMaxHeight()
                             .padding(bottom = 16.dp),
                     )
                 }
