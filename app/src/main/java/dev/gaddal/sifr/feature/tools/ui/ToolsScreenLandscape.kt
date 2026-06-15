@@ -61,29 +61,30 @@ fun ToolsScreenLandscape(
             }
         },
     ) { padding ->
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .displayCutoutPadding(),
         ) {
-            // Left = the tool column. The tab bar lives here (not in the top bar) so it
-            // spans only the tool width, not the numpad column on the trailing edge.
-            Column(
+            Spacer(Modifier.height(4.dp))
+            // Tab bar spans the FULL width — above both the tool column and the numpad — not
+            // just the tool column.
+            ToolTabBar(
+                selected = state.activeTab,
+                onSelect = { onAction(ToolsAction.SelectTab(it)) },
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(end = 8.dp),
+                    .fillMaxWidth()
+                    .weight(1f),
             ) {
-                Spacer(Modifier.height(4.dp))
-                ToolTabBar(
-                    selected = state.activeTab,
-                    onSelect = { onAction(ToolsAction.SelectTab(it)) },
-                )
-                Spacer(Modifier.height(12.dp))
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .fillMaxHeight()
+                        .padding(end = 8.dp)
                         .verticalScroll(rememberScrollState()),
                 ) {
                     when (state.activeTab) {
@@ -94,17 +95,17 @@ fun ToolsScreenLandscape(
                     }
                     Spacer(Modifier.height(16.dp))
                 }
-            }
 
-            if (state.activeTab != ToolTab.Date || state.focusedField == FocusedField.AddDays) {
-                ToolNumPad(
-                    onNumKey = { onAction(ToolsAction.NumKey(it)) },
-                    onBackspace = { onAction(ToolsAction.Backspace) },
-                    compact = true,
-                    modifier = Modifier
-                        .width(300.dp)
-                        .padding(bottom = 16.dp),
-                )
+                if (state.activeTab != ToolTab.Date || state.focusedField == FocusedField.AddDays) {
+                    ToolNumPad(
+                        onNumKey = { onAction(ToolsAction.NumKey(it)) },
+                        onBackspace = { onAction(ToolsAction.Backspace) },
+                        compact = true,
+                        modifier = Modifier
+                            .width(300.dp)
+                            .padding(bottom = 16.dp),
+                    )
+                }
             }
         }
     }
