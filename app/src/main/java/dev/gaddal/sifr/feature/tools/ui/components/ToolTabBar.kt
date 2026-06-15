@@ -31,9 +31,9 @@ fun ToolTabBar(
             }
         },
         onSelect = onSelect,
-        // Fill the track evenly across the 4 tabs instead of hugging the labels at the start
+        // Span the full-width track evenly across the 4 tabs instead of sizing to the labels
         // (which left an empty trailing slot that read like a missing 5th tab).
-        equalWidth = true,
+        spanWidth = true,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp),
