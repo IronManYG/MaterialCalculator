@@ -1,5 +1,5 @@
 package dev.gaddal.sifr
 
 object Constants {
-    const val BASE_URL = "https://example.com/"
+    const val BASE_URL = "https://open.er-api.com/v6/"
 }

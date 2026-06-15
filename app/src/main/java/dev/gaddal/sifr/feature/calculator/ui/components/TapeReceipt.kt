@@ -145,7 +145,9 @@ private fun TapeRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onRestore)
+            // Button role + clickable merges the expression+result texts into one SR node
+            // ("12+5 17, double-tap to activate") instead of two stray fragments.
+            .clickable(role = Role.Button, onClick = onRestore)
             .alpha(rowAlpha)
             .drawBehind {
                 val stroke = 1.dp.toPx()

@@ -93,6 +93,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -158,8 +159,18 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // Serialization (for @Serializable on Nav3 routes)
+    // Serialization (for @Serializable on Nav3 routes + Tools JSON)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Networking — Ktor (Tools currency rates; the app's first network call)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+
+    // java.time on minSdk 24
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Haptics — Pulsar (Software Mansion)
     implementation(libs.pulsar)

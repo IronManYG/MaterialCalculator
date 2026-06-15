@@ -18,7 +18,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,8 +36,6 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import dev.gaddal.sifr.R
@@ -73,6 +70,7 @@ fun CalculatorRoot(
     windowSizeClass: WindowSizeClass,
     onNavigateToSettings: () -> Unit,
     onNavigateToHistory: () -> Unit,
+    onNavigateToTools: () -> Unit,
     viewModel: CalculatorViewModel = koinViewModel(),
     settingsRepository: SettingsRepository = koinInject(),
 ) {
@@ -88,6 +86,7 @@ fun CalculatorRoot(
         when (event) {
             CalculatorEvent.NavigateToSettings -> onNavigateToSettings()
             CalculatorEvent.NavigateToHistory -> onNavigateToHistory()
+            CalculatorEvent.NavigateToTools -> onNavigateToTools()
             is CalculatorEvent.PlayFeedback -> feedback.play(event.intent)
             is CalculatorEvent.CopyToClipboard -> {
                 ContextCompat.getSystemService(context, ClipboardManager::class.java)
@@ -104,34 +103,10 @@ fun CalculatorRoot(
         }
     }
     val isLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
-    // Hide the status bar in landscape so the keypad gets that vertical
-    // strip back. enableEdgeToEdge() in MainActivity already makes the
-    // window draw under the bars; here we just toggle visibility.
-    // Behavior = SHOW_TRANSIENT_BARS_BY_SWIPE lets users swipe from the
-    // top to peek the status bar if they need it.
+    // Status-bar visibility (hide in landscape, show otherwise) is owned by NavRoot now — a
+    // single owner keyed on (top route, orientation) — so the calculator and Tools no longer
+    // race over it across navigation. This screen only drives the orientation lock below.
     val view = LocalView.current
-    DisposableEffect(isLandscape) {
-        val window = (view.context as? Activity)?.window
-        if (window != null) {
-            val controller = WindowInsetsControllerCompat(window, view)
-            if (isLandscape) {
-                controller.systemBarsBehavior =
-                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                controller.hide(WindowInsetsCompat.Type.statusBars())
-            } else {
-                controller.show(WindowInsetsCompat.Type.statusBars())
-            }
-        }
-        onDispose {
-            // Always restore on leaving the calculator screen so Settings /
-            // History inherit a normal status-bar window.
-            val w = (view.context as? Activity)?.window
-            if (w != null) {
-                WindowInsetsControllerCompat(w, view)
-                    .show(WindowInsetsCompat.Type.statusBars())
-            }
-        }
-    }
     val activity = view.context as? Activity
     // Manual orientation only (spec §4.9 / D1): lock to portrait so the OS never
     // sensor-rotates; the Rotate top-bar action toggles. configChanges in the
@@ -214,7 +189,7 @@ fun CalculatorScreen(
         topBar = {
             SifrCalcTopBar(
                 onHistory = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
-                onTools = {},                              // gated: Tools screen ships in a later milestone
+                onTools = dropUnlessResumed { onAction(CalculatorAction.ToolsClicked) },
                 onScientific = dropUnlessResumed { onAction(CalculatorAction.ToggleMode) },
                 scientificActive = state.mode == CalculatorMode.Scientific,
                 onRotate = onRotate,

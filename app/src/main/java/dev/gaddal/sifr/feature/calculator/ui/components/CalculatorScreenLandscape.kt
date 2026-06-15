@@ -90,7 +90,7 @@ fun CalculatorScreenLandscape(
         topBar = {
             SifrCalcTopBar(
                 onHistory = dropUnlessResumed { onAction(CalculatorAction.HistoryClicked) },
-                onTools = {},                              // gated: Tools screen ships in a later milestone
+                onTools = dropUnlessResumed { onAction(CalculatorAction.ToolsClicked) },
                 onScientific = {},                         // sci cells always visible in landscape
                 scientificActive = false,
                 onRotate = onRotate,

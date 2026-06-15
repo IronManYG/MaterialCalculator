@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -143,7 +144,7 @@ fun CalculatorButton(
             .then(
                 if (style.border != null) Modifier.border(1.dp, style.border, keyShape) else Modifier,
             )
-            .clickable(interactionSource = interaction, indication = null) { onClick() },
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button) { onClick() },
         contentAlignment = Alignment.Center,
     ) {
         if (action.text != null) {

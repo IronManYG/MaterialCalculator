@@ -1,5 +1,7 @@
 package dev.gaddal.sifr.feature.settings.ui
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
@@ -7,11 +9,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.ScreenRotation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,12 +25,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
@@ -57,6 +68,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsRoot(
+    windowSizeClass: WindowSizeClass,
     onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
@@ -72,7 +84,27 @@ fun SettingsRoot(
             SettingsEvent.DemoSound -> feedback.playSound(FeedbackIntent.Error)
         }
     }
-    SettingsScreen(state = state, onAction = viewModel::onAction)
+
+    // Manual orientation toggle, mirroring the calculator/Tools Rotate action — the activity
+    // owns the initial lock (CalculatorRoot); Settings just flips it on demand. NavRoot owns the
+    // landscape status-bar hide for every route, so there is nothing else to wire here.
+    val isLandscape = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+    val view = LocalView.current
+    val activity = view.context as? Activity
+    val onRotate = remember(isLandscape, activity) {
+        {
+            activity?.requestedOrientation =
+                if (isLandscape) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+    }
+
+    SettingsScreen(
+        state = state,
+        onAction = viewModel::onAction,
+        onRotate = onRotate,
+        rotateActive = isLandscape,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +112,8 @@ fun SettingsRoot(
 fun SettingsScreen(
     state: SettingsState,
     onAction: (SettingsAction) -> Unit,
+    onRotate: () -> Unit = {},
+    rotateActive: Boolean = false,
 ) {
     val sifr = SifrTokens.colors
     Scaffold(
@@ -95,6 +129,16 @@ fun SettingsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.settings_back),
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onRotate) {
+                        Icon(
+                            imageVector = Icons.Outlined.ScreenRotation,
+                            contentDescription = stringResource(R.string.calc_rotate_orientation),
+                            tint = if (rotateActive) sifr.accent else sifr.dim,
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 },
@@ -122,14 +166,23 @@ fun SettingsScreen(
         ) {
             // ── Language ────────────────────────────────────────────────
             SectionLabel(stringResource(R.string.settings_language_section))
-            SifrCard {
+            // selectableGroup() marks the whole list as one mutually-exclusive radio group.
+            SifrCard(modifier = Modifier.selectableGroup()) {
                 AppLanguage.entries.forEachIndexed { index, lang ->
                     if (index > 0) SifrRowDivider()
+                    val isSelected = lang == state.settings.language
                     SifrRow(
                         label = lang.displayLabel(),
-                        onClick = { onAction(SettingsAction.SetLanguage(lang)) },
+                        // RadioButton role + selected state announces "English, selected" to TalkBack;
+                        // the Check icon stays decorative (contentDescription = null) since the
+                        // selection is already conveyed semantically.
+                        modifier = Modifier.selectable(
+                            selected = isSelected,
+                            role = Role.RadioButton,
+                            onClick = { onAction(SettingsAction.SetLanguage(lang)) },
+                        ),
                         trailing = {
-                            if (lang == state.settings.language) {
+                            if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Filled.Check,
                                     contentDescription = null,
