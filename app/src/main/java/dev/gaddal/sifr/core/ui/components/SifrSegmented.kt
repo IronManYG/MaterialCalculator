@@ -27,6 +27,10 @@ import dev.gaddal.sifr.core.ui.theme.SifrTokens
  * track where the selected segment fills with accent + accentInk text and the rest stay
  * dim. Each segment owns its own `selectable` tap, so indication stays confined to the
  * control (spec §4.7) — there is no whole-row click. Generic over the option type.
+ *
+ * [equalWidth] makes the segments split the track evenly (each `weight(1f)`) instead of
+ * hugging their labels — use it when the control is given a fixed width (e.g. a full-width
+ * tab bar) so the segments fill it rather than clustering at the start and leaving a gap.
  */
 @Composable
 fun <T> SifrSegmented(
@@ -35,6 +39,7 @@ fun <T> SifrSegmented(
     label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    equalWidth: Boolean = false,
 ) {
     val sifr = SifrTokens.colors
     val shape = RoundedCornerShape(percent = 50)
@@ -47,6 +52,7 @@ fun <T> SifrSegmented(
             val isSelected = option == selected
             Box(
                 modifier = Modifier
+                    .then(if (equalWidth) Modifier.weight(1f) else Modifier)
                     // background before selectable so the tap ripple draws over the fill
                     .background(if (isSelected) sifr.accent else Color.Transparent)
                     .selectable(
