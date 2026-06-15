@@ -4,9 +4,12 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,20 +19,28 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.ScreenRotation
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.Color
@@ -165,33 +176,46 @@ fun SettingsScreen(
                 .padding(bottom = 26.dp),
         ) {
             // ── Language ────────────────────────────────────────────────
+            // The list grew to 11 languages — collapse it to one row that opens a bottom-sheet
+            // picker. Sheet open/closed is ephemeral UI state, so it lives here (rememberSaveable),
+            // not in the ViewModel.
             SectionLabel(stringResource(R.string.settings_language_section))
-            // selectableGroup() marks the whole list as one mutually-exclusive radio group.
-            SifrCard(modifier = Modifier.selectableGroup()) {
-                AppLanguage.entries.forEachIndexed { index, lang ->
-                    if (index > 0) SifrRowDivider()
-                    val isSelected = lang == state.settings.language
-                    SifrRow(
-                        label = lang.displayLabel(),
-                        // RadioButton role + selected state announces "English, selected" to TalkBack;
-                        // the Check icon stays decorative (contentDescription = null) since the
-                        // selection is already conveyed semantically.
-                        modifier = Modifier.selectable(
-                            selected = isSelected,
-                            role = Role.RadioButton,
-                            onClick = { onAction(SettingsAction.SetLanguage(lang)) },
-                        ),
-                        trailing = {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = null,
-                                    tint = sifr.accent,
-                                )
-                            }
-                        },
-                    )
-                }
+            var languageSheetOpen by rememberSaveable { mutableStateOf(false) }
+            SifrCard {
+                SifrRow(
+                    label = stringResource(R.string.settings_language_section),
+                    onClick = { languageSheetOpen = true },
+                    trailing = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            // Endonym of the current language — a literal, not a resource.
+                            Text(
+                                text = state.settings.language.displayLabel(),
+                                color = sifr.dim,
+                                fontFamily = sifr.uiFamily,
+                                fontSize = 14.sp,
+                            )
+                            // Auto-mirrored so the chevron points the reading-exit way under RTL.
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = sifr.dim,
+                            )
+                        }
+                    },
+                )
+            }
+            if (languageSheetOpen) {
+                LanguagePickerSheet(
+                    selected = state.settings.language,
+                    onSelect = {
+                        onAction(SettingsAction.SetLanguage(it))
+                        languageSheetOpen = false
+                    },
+                    onDismiss = { languageSheetOpen = false },
+                )
             }
 
             // ── Appearance ──────────────────────────────────────────────
@@ -335,6 +359,84 @@ fun SettingsScreen(
     }
 }
 
+/**
+ * Bottom-sheet language picker. One scrollable mutually-exclusive radio group over
+ * [AppLanguage.entries], a Check on the selected language. String-free a11y: each row is a
+ * `selectable(role = RadioButton)` inside a `selectableGroup()`, so the framework localizes
+ * "selected" / "double-tap to activate" in every locale. Sheet open/closed is owned by the caller.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguagePickerSheet(
+    selected: AppLanguage,
+    onSelect: (AppLanguage) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sifr = SifrTokens.colors
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(),
+        containerColor = sifr.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = sifr.dim) },
+    ) {
+        LanguageSheetList(selected = selected, onSelect = onSelect)
+    }
+}
+
+/** The sheet's scrollable radio-group body — extracted so it previews without the sheet host. */
+@Composable
+private fun LanguageSheetList(
+    selected: AppLanguage,
+    onSelect: (AppLanguage) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val sifr = SifrTokens.colors
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            // Scrollable so the list scales past today's 11 languages.
+            .verticalScroll(rememberScrollState())
+            .selectableGroup()
+            .padding(bottom = 24.dp),
+    ) {
+        // Sheet heading reuses the existing "Language" string — no new key.
+        Text(
+            text = stringResource(R.string.settings_language_section),
+            color = sifr.dim,
+            fontFamily = sifr.uiFamily,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
+        )
+        AppLanguage.entries.forEach { lang ->
+            val isSelected = lang == selected
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = isSelected,
+                        role = Role.RadioButton,
+                        onClick = { onSelect(lang) },
+                    )
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = lang.displayLabel(),
+                    color = sifr.text,
+                    fontFamily = sifr.uiFamily,
+                    fontSize = 15.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                if (isSelected) {
+                    // Decorative — selection is already conveyed by the RadioButton semantics.
+                    Icon(Icons.Filled.Check, contentDescription = null, tint = sifr.accent)
+                }
+            }
+        }
+    }
+}
+
 /** Section heading above each card: small, dim, wide letter-spacing (prototype sectionTitle). */
 @Composable
 private fun SectionLabel(text: String) {
@@ -434,5 +536,25 @@ private fun SettingsPreviewArabic() = SifrLocale(language = AppLanguage.Arabic) 
             ),
             onAction = {},
         )
+    }
+}
+
+@Preview(name = "Language sheet — Layl dark", showBackground = true)
+@Composable
+private fun LanguageSheetPreviewDark() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+    SifrCard { LanguageSheetList(selected = AppLanguage.Spanish, onSelect = {}) }
+}
+
+@Preview(name = "Language sheet — Bayan light", showBackground = true)
+@Composable
+private fun LanguageSheetPreviewLight() = SifrTheme(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light) {
+    SifrCard { LanguageSheetList(selected = AppLanguage.English, onSelect = {}) }
+}
+
+@Preview(name = "Language sheet — Arabic / RTL (Mizan)", showBackground = true, locale = "ar")
+@Composable
+private fun LanguageSheetPreviewArabic() = SifrLocale(language = AppLanguage.Arabic) {
+    SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
+        SifrCard { LanguageSheetList(selected = AppLanguage.Arabic, onSelect = {}) }
     }
 }
