@@ -287,18 +287,24 @@ internal fun TipCard(state: ToolsState, onAction: (ToolsAction) -> Unit) {
                 )
             }
             SifrRowDivider()
-            Row(
+            // Label on its own line, then the 5 presets spread across the full width — an inline
+            // [label][5 chips] row overflowed once the label got long (e.g. Vietnamese "Tiền boa"),
+            // crushing the last chip until "20%" wrapped to "2 0 %".
+            Column(
                 modifier = Modifier.fillMaxWidth().padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(stringResource(R.string.tools_tip), color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 13.sp)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     TIP_PERCENTS.forEach { pct ->
                         SifrChip(
                             label = "$pct%",
                             active = pct == state.tipPct,
                             onClick = { onAction(ToolsAction.SetTipPct(pct)) },
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }

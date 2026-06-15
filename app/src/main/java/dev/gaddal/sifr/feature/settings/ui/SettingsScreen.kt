@@ -222,17 +222,16 @@ fun SettingsScreen(
             // ── Appearance ──────────────────────────────────────────────
             SectionLabel(stringResource(R.string.settings_appearance_section))
             SifrCard {
-                SifrRow(
-                    label = stringResource(R.string.settings_theme_section), // "Mode"
-                    trailing = {
-                        SifrSegmented(
-                            options = ThemeMode.entries,
-                            selected = state.settings.themeMode,
-                            label = { stringResource(it.shortLabelRes()) },
-                            onSelect = { onAction(SettingsAction.SetThemeMode(it)) },
-                        )
-                    },
-                )
+                CardBlock(stringResource(R.string.settings_theme_section)) { // "Mode"
+                    SifrSegmented(
+                        options = ThemeMode.entries,
+                        selected = state.settings.themeMode,
+                        label = { stringResource(it.shortLabelRes()) },
+                        onSelect = { onAction(SettingsAction.SetThemeMode(it)) },
+                        spanWidth = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
                 SifrRowDivider()
                 CardBlock(stringResource(R.string.settings_palette_section)) { // "Theme"
                     ThemePicker(
@@ -279,40 +278,40 @@ fun SettingsScreen(
                     },
                 )
                 SifrRowDivider()
-                SifrRow(
-                    label = stringResource(R.string.settings_angle_unit),
-                    trailing = {
-                        SifrSegmented(
-                            options = AngleUnit.entries,
-                            selected = state.settings.angleUnit,
-                            label = {
-                                stringResource(
-                                    if (it == AngleUnit.Degrees) R.string.settings_angle_deg
-                                    else R.string.settings_angle_rad,
-                                )
-                            },
-                            onSelect = { onAction(SettingsAction.SetAngleUnit(it)) },
-                        )
-                    },
-                )
+                CardBlock(stringResource(R.string.settings_angle_unit)) {
+                    SifrSegmented(
+                        options = AngleUnit.entries,
+                        selected = state.settings.angleUnit,
+                        label = {
+                            stringResource(
+                                if (it == AngleUnit.Degrees) R.string.settings_angle_deg
+                                else R.string.settings_angle_rad,
+                            )
+                        },
+                        onSelect = { onAction(SettingsAction.SetAngleUnit(it)) },
+                        spanWidth = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
                 SifrRowDivider()
-                SifrRow(
+                CardBlock(
                     label = stringResource(R.string.settings_restore_target),
                     sub = stringResource(R.string.settings_restore_target_sub),
-                    trailing = {
-                        SifrSegmented(
-                            options = RestoreTarget.entries,
-                            selected = state.settings.restoreTarget,
-                            label = {
-                                stringResource(
-                                    if (it == RestoreTarget.Result) R.string.settings_restore_target_result
-                                    else R.string.settings_restore_target_expression,
-                                )
-                            },
-                            onSelect = { onAction(SettingsAction.SetRestoreTarget(it)) },
-                        )
-                    },
-                )
+                ) {
+                    SifrSegmented(
+                        options = RestoreTarget.entries,
+                        selected = state.settings.restoreTarget,
+                        label = {
+                            stringResource(
+                                if (it == RestoreTarget.Result) R.string.settings_restore_target_result
+                                else R.string.settings_restore_target_expression,
+                            )
+                        },
+                        onSelect = { onAction(SettingsAction.SetRestoreTarget(it)) },
+                        spanWidth = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
 
             // ── Feedback ────────────────────────────────────────────────
@@ -457,12 +456,21 @@ private fun SectionLabel(text: String) {
     )
 }
 
-/** A titled block inside a card for the picker grids (Theme swatches, keypad layouts). */
+/**
+ * A titled block inside a card: a [label] with an optional [sub]title stacked on their own line(s),
+ * then the [content] (a picker grid or a full-width segmented control) on the line below. Used for
+ * the Theme / Layout pickers and — so a long translated label never gets squeezed into two lines by
+ * a wide inline control — the Mode / Angle / Restore segmented settings.
+ */
 @Composable
-private fun CardBlock(label: String, content: @Composable () -> Unit) {
+private fun CardBlock(label: String, modifier: Modifier = Modifier, sub: String? = null, content: @Composable () -> Unit) {
     val sifr = SifrTokens.colors
-    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+    Column(modifier = modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
         Text(text = label, color = sifr.text, fontFamily = sifr.uiFamily, fontSize = 14.5.sp)
+        if (sub != null) {
+            Spacer(Modifier.height(2.dp))
+            Text(text = sub, color = sifr.dim, fontFamily = sifr.uiFamily, fontSize = 11.5.sp)
+        }
         Spacer(Modifier.height(10.dp))
         content()
     }
