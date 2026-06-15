@@ -392,11 +392,20 @@ internal fun DateDiffCard(state: ToolsState, onAction: (ToolsAction) -> Unit, mo
                 )
                 DateChip(date = state.date2, calendar = state.calendar, onClick = { showDate2Picker = true }, modifier = Modifier.weight(1f))
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Bottom) {
-                ToolOut(label = stringResource(R.string.tools_days), value = state.diffDays.toString(), big = true)
+            // Two equal-width outputs, top-aligned so the labels sit on one line and the
+            // values line up — matches the prototype's `flex:1` columns. (Bottom-aligning a
+            // 28sp value next to a 20sp one left them staggered — the round-2 note.)
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
                 ToolOut(
-                    label = "${stringResource(R.string.tools_weeks)} / ${stringResource(R.string.tools_days)}",
+                    label = stringResource(R.string.tools_days),
+                    value = state.diffDays.toString(),
+                    big = true,
+                    modifier = Modifier.weight(1f),
+                )
+                ToolOut(
+                    label = stringResource(R.string.tools_weeks),
                     value = "${state.diffWeeks}${stringResource(R.string.tools_w)}  ${state.diffRemainingDays}${stringResource(R.string.tools_d)}",
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
