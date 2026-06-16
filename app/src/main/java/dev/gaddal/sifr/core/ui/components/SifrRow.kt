@@ -20,8 +20,8 @@ import dev.gaddal.sifr.core.ui.theme.SifrTheme
 import dev.gaddal.sifr.core.ui.theme.SifrTokens
 
 /**
- * Settings / History list row (prototype ui-bits `SifrRow`): a [label] with an optional
- * [sub]title on the leading edge and an optional [trailing] control, 16×13 padding.
+ * Settings / History list row (prototype ui-bits `SifrRow`): an optional [leading] icon, a
+ * [label] with an optional [sub]title, and an optional [trailing] control, 16×13 padding.
  *
  * The row is NOT clickable by default — a trailing control (SifrToggle / SifrSegmented)
  * owns its own tap and indication (spec §4.7, confined ripple — see [[confined-ripple-controls]]).
@@ -33,6 +33,7 @@ fun SifrRow(
     modifier: Modifier = Modifier,
     sub: String? = null,
     onClick: (() -> Unit)? = null,
+    leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     val sifr = SifrTokens.colors
@@ -44,6 +45,7 @@ fun SifrRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        leading?.invoke()
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp),

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.ScreenRotation
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -186,6 +187,15 @@ fun SettingsScreen(
                 SifrRow(
                     label = stringResource(R.string.settings_language_section),
                     onClick = { languageSheetOpen = true },
+                    // A universal "translate" glyph (文A) anchors this row visually, so a user
+                    // stranded in a script they can't read can still find where to switch back.
+                    leading = {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = null, // label already conveys the row's purpose
+                            tint = sifr.accent, // accent makes it the obvious "escape hatch" anchor
+                        )
+                    },
                     trailing = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -402,14 +412,26 @@ private fun LanguageSheetList(
             .selectableGroup()
             .padding(bottom = 24.dp),
     ) {
-        // Sheet heading reuses the existing "Language" string — no new key.
-        Text(
-            text = stringResource(R.string.settings_language_section),
-            color = sifr.dim,
-            fontFamily = sifr.uiFamily,
-            fontSize = 12.sp,
+        // Sheet heading reuses the existing "Language" string — no new key. The translate
+        // glyph mirrors the Settings row, confirming the stranded user landed in the right place.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
-        )
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Translate,
+                contentDescription = null,
+                tint = sifr.dim,
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = stringResource(R.string.settings_language_section),
+                color = sifr.dim,
+                fontFamily = sifr.uiFamily,
+                fontSize = 12.sp,
+            )
+        }
         AppLanguage.entries.forEach { lang ->
             val isSelected = lang == selected
             Row(
