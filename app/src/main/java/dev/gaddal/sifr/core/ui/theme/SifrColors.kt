@@ -62,6 +62,7 @@ data class SifrColors(
     val keyFamily: FontFamily,
     val uiFamily: FontFamily,
     val arabicUiFamily: FontFamily? = null,   // v1.8 — chrome font when Arabic is active; null → uiFamily
+    val cyrillicUiFamily: FontFamily? = null, // v2.0 — chrome font when Russian (Cyrillic) is active; null → uiFamily
 ) {
     fun keyStyle(role: SifrKeyRole): SifrKeyStyle = when (role) {
         SifrKeyRole.Num -> keyNum
