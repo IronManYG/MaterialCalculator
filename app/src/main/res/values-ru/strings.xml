@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sifr</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_back">Назад</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">Язык</string>
+    <string name="settings_language_system">Системный язык</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">Оформление</string>
+    <string name="settings_theme_system_short">Система</string>
+    <string name="settings_keypad_layout">Раскладка</string>
+    <string name="settings_memory_keys_sub">Показывать клавиши памяти над клавиатурой</string>
+    <string name="settings_fraction_results_sub">Показывать точные дроби, когда возможно</string>
+    <string name="settings_haptics_sub">Вибрация при нажатии клавиш</string>
+    <string name="settings_about_sub">Более спокойный калькулятор.</string>
+    <string name="settings_theme_section">Режим</string>
+    <string name="settings_theme_system">Как в системе</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_haptics">Тактильный отклик</string>
+    <string name="settings_sound">Звуки ошибок</string>
+
+    <!-- Calculator screen -->
+    <string name="calc_open_settings">Открыть настройки</string>
+    <!-- Scientific mode -->
+    <string name="calc_toggle_mode">Переключить научный режим</string>
+    <string name="calc_mode_chip_memory">M</string>
+    <string name="calc_angle_unit_degrees">deg</string>
+    <string name="calc_angle_unit_radians">rad</string>
+    <string name="calc_open_history">Открыть историю</string>
+    <string name="calc_error_division_by_zero">Нельзя делить на ноль</string>
+    <string name="calc_error_invalid_expression">Неверное выражение</string>
+    <string name="calc_error_domain_error">Значение вне области определения</string>
+    <string name="calc_error_overflow">Результат слишком велик</string>
+    <string name="calc_error_syntax_error">Синтаксическая ошибка</string>
+    <string name="calc_open_tools">Открыть инструменты</string>
+    <string name="calc_rotate_orientation">Повернуть экран</string>
+
+    <!-- v1.5 result actions -->
+    <string name="calc_action_copy">КОПИРОВАТЬ</string>
+    <string name="calc_action_share">ПОДЕЛИТЬСЯ</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">ANS →</string>
+
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">Дисплей</string>
+    <string name="settings_fraction_results">Дробные результаты</string>
+    <string name="settings_angle_unit">Единица угла</string>
+    <string name="settings_angle_deg">DEG</string>
+    <string name="settings_angle_rad">RAD</string>
+    <string name="settings_feedback_section">Отклик</string>
+    <string name="settings_about_section">О приложении</string>
+    <string name="settings_about_tagline">Sifr — صفر · более спокойный калькулятор.</string>
+
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_palette_section">Тема</string>
+    <string name="settings_palette_layl">Лайл</string>
+    <string name="settings_palette_bayan">Баян</string>
+    <string name="settings_palette_raqim">Раким</string>
+    <string name="settings_palette_farah">Фарах</string>
+    <string name="settings_palette_mizan">Мизан</string>
+    <string name="settings_palette_dynamic">Динамическая</string>
+
+    <!-- v1.6 settings — keypad -->
+    <string name="settings_keypad_section">Клавиатура</string>
+    <string name="settings_memory_keys">Клавиши памяти</string>
+    <string name="settings_keypad_classic">Классическая</string>
+    <string name="settings_keypad_remix">Ремикс</string>
+    <string name="settings_keypad_arc">Дуга</string>
+    <string name="settings_keypad_tape">Лента</string>
+
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">Вставлять как</string>
+    <string name="settings_restore_target_sub">Вставлять результат или полное выражение</string>
+    <string name="settings_restore_target_result">Результат</string>
+    <string name="settings_restore_target_expression">Выражение</string>
+
+    <!-- History screen -->
+    <string name="history_title">История</string>
+    <string name="history_back">Назад</string>
+    <string name="history_clear_all">Очистить всё</string>
+    <string name="history_clear_confirm_title">Очистить историю?</string>
+    <string name="history_clear_confirm_message">Все записи будут удалены безвозвратно.</string>
+    <string name="history_clear_confirm_yes">Очистить</string>
+    <string name="history_clear_confirm_cancel">Отмена</string>
+    <string name="history_delete_entry">Удалить запись</string>
+    <string name="history_empty_title">История пуста</string>
+    <string name="history_empty_body">Вычисления, завершённые с =, появятся здесь.</string>
+
+    <!-- Tools screen -->
+    <string name="tools_title">Инструменты</string>
+    <string name="tools_back">Назад</string>
+    <string name="tools_tab_units">Единицы</string>
+    <string name="tools_tab_currency">Валюта</string>
+    <string name="tools_tab_tip">Чаевые</string>
+    <string name="tools_tab_date">Дата</string>
+
+    <!-- Units tab -->
+    <string name="tools_cat_length">Длина</string>
+    <string name="tools_cat_weight">Вес</string>
+    <string name="tools_cat_temp">Темп.</string>
+    <string name="tools_cat_data">Данные</string>
+    <string name="tools_result">Результат</string>
+
+    <!-- Currency tab -->
+    <string name="tools_fx_note">Курсы на %1$s</string>
+    <string name="tools_fx_offline">Офлайн — сохранённые курсы (%1$s)</string>
+    <string name="tools_fx_seed">Примерные курсы (встроенные)</string>
+    <string name="tools_currency_pick">Выберите валюту</string>
+    <string name="tools_currency_search">Поиск валюты</string>
+    <string name="tools_currency_none">Ничего не найдено</string>
+
+    <!-- Tip tab -->
+    <string name="tools_bill">Счёт</string>
+    <string name="tools_tip">Чаевые</string>
+    <string name="tools_split">Разделить</string>
+    <string name="tools_people">чел.</string>
+    <string name="tools_out_tip">Чаевые</string>
+    <string name="tools_out_total">Итого</string>
+    <string name="tools_out_each">Каждому</string>
+
+    <!-- Date tab -->
+    <string name="tools_date_diff">Разница дат</string>
+    <string name="tools_date_add">Добавить дни</string>
+    <string name="tools_days">Дни</string>
+    <string name="tools_weeks">Недели</string>
+    <string name="tools_w">нед</string>
+    <string name="tools_d">дн</string>
+</resources>
