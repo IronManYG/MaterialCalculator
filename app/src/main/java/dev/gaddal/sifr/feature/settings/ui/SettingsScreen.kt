@@ -496,6 +496,7 @@ private fun AppLanguage.displayLabel(): String = when (this) {
     AppLanguage.Turkish -> "Türkçe"
     AppLanguage.Italian -> "Italiano"
     AppLanguage.Vietnamese -> "Tiếng Việt"
+    AppLanguage.Russian -> "Русский"
 }
 
 @Preview(name = "Settings — Layl dark", showBackground = true)
@@ -551,6 +552,20 @@ private fun SettingsPreviewArabic() = SifrLocale(language = AppLanguage.Arabic) 
     }
 }
 
+@Preview(name = "Settings — Russian (Layl dark)", showBackground = true)
+@Composable
+private fun SettingsPreviewRussian() = SifrLocale(language = AppLanguage.Russian) {
+    SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
+        SettingsScreen(
+            state = SettingsState(
+                settings = AppSettings(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark, language = AppLanguage.Russian),
+                isLoading = false,
+            ),
+            onAction = {},
+        )
+    }
+}
+
 @Preview(name = "Language sheet — Layl dark", showBackground = true)
 @Composable
 private fun LanguageSheetPreviewDark() = SifrTheme(palette = SifrPalette.Layl, themeMode = ThemeMode.Dark) {
@@ -568,5 +583,13 @@ private fun LanguageSheetPreviewLight() = SifrTheme(palette = SifrPalette.Bayan,
 private fun LanguageSheetPreviewArabic() = SifrLocale(language = AppLanguage.Arabic) {
     SifrTheme(palette = SifrPalette.Mizan, themeMode = ThemeMode.Dark) {
         SifrCard { LanguageSheetList(selected = AppLanguage.Arabic, onSelect = {}) }
+    }
+}
+
+@Preview(name = "Language sheet — Russian (Bayan light)", showBackground = true, locale = "ru")
+@Composable
+private fun LanguageSheetPreviewRussian() = SifrLocale(language = AppLanguage.Russian) {
+    SifrTheme(palette = SifrPalette.Bayan, themeMode = ThemeMode.Light) {
+        SifrCard { LanguageSheetList(selected = AppLanguage.Russian, onSelect = {}) }
     }
 }

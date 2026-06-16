@@ -31,6 +31,10 @@ class AppLanguageTest {
         assertThat(AppLanguage.Vietnamese.tag).isEqualTo("vi")
     }
 
+    @Test fun `Russian (Cyrillic) tag is valid BCP-47`() {
+        assertThat(AppLanguage.Russian.tag).isEqualTo("ru")
+    }
+
     @Test fun `every non-System language carries a non-null tag`() {
         // System follows the device locale (no tag of its own); every other language
         // must carry a tag so SifrLocale can resolve a Locale + a values-<tag> folder.

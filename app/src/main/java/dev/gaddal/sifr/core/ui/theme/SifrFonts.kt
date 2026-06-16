@@ -32,6 +32,15 @@ val Tajawal = family("Tajawal", 400, 500, 700)
 val BalooBhaijaan2 = family("Baloo Bhaijaan 2", 400, 500, 600, 700)
 val IBMPlexArabic = family("IBM Plex Sans Arabic", 400, 500, 600)
 
+// v2.0 (ru) — per-palette Cyrillic chrome fonts. The Latin chrome families have no Cyrillic
+// glyphs (Space Grotesk / Archivo / Baloo 2 cover only latin/latin-ext/vietnamese), so Russian
+// UI text would tofu or drop to a mismatched system font. Each stand-in matches its Latin
+// family's character and carries the same weights it stands in for. Mizan's IBM Plex Mono
+// already covers Cyrillic, so it needs no stand-in (cyrillicUiFamily stays null → uiFamily).
+val Manrope = family("Manrope", 400, 500, 600)            // ↔ Space Grotesk (Layl / Raqim / Dynamic)
+val Montserrat = family("Montserrat", 500, 700, 800, 900) // ↔ Archivo (Bayan)
+val Comfortaa = family("Comfortaa", 500, 600, 700)        // ↔ Baloo 2 (Farah)
+
 /** Material Typography keyed to the active palette's UI font family. */
 @Composable
 fun sifrTypography(sifr: SifrColors): Typography {

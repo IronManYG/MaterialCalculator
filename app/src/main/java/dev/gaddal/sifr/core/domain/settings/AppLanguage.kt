@@ -19,4 +19,7 @@ enum class AppLanguage(val tag: String?) {
     Turkish("tr"),
     Italian("it"),
     Vietnamese("vi"),
+    // v2.0 — Cyrillic-script. Chrome swaps to a per-palette cyrillicUiFamily (see SifrFonts / Theme),
+    // since the Latin chrome fonts carry no Cyrillic glyphs.
+    Russian("ru"),
 }

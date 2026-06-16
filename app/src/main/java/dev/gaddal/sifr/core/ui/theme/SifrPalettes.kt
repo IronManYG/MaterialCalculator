@@ -28,6 +28,7 @@ internal fun laylDark(accent: Color = Color(0xFF5CE8D4)): SifrColors = SifrColor
     eqGlow = accent.copy(0.45f),
     displayFamily = SpaceGrotesk, keyFamily = SpaceGrotesk, uiFamily = SpaceGrotesk,
     arabicUiFamily = Cairo,
+    cyrillicUiFamily = Manrope,
 )
 
 internal fun laylLight(accent: Color = Color(0xFF0E9C8C)): SifrColors = SifrColors(
@@ -48,6 +49,7 @@ internal fun laylLight(accent: Color = Color(0xFF0E9C8C)): SifrColors = SifrColo
     eqGlow = accent.copy(0.40f),
     displayFamily = SpaceGrotesk, keyFamily = SpaceGrotesk, uiFamily = SpaceGrotesk,
     arabicUiFamily = Cairo,
+    cyrillicUiFamily = Manrope,
 )
 
 // ---------- BAYAN (bold color-blocking, ink mosaic) ----------
@@ -68,6 +70,7 @@ internal fun bayanLight(accent: Color = Color(0xFF2C3FE3)): SifrColors = SifrCol
     mosaic = true, mosaicLine = Color(0xFF16140F),
     displayFamily = Archivo, keyFamily = Archivo, uiFamily = Archivo,
     arabicUiFamily = Tajawal,
+    cyrillicUiFamily = Montserrat,
 )
 
 internal fun bayanDark(accent: Color = Color(0xFF5B6CFF)): SifrColors = SifrColors(
@@ -86,6 +89,7 @@ internal fun bayanDark(accent: Color = Color(0xFF5B6CFF)): SifrColors = SifrColo
     mosaic = true, mosaicLine = Color(0xFFF2EDE0).copy(0.35f),
     displayFamily = Archivo, keyFamily = Archivo, uiFamily = Archivo,
     arabicUiFamily = Tajawal,
+    cyrillicUiFamily = Montserrat,
 )
 
 // ---------- RAQIM (editorial serif, hairline grid) ----------
@@ -104,6 +108,7 @@ internal fun raqimLight(accent: Color = Color(0xFF6B7A4F)): SifrColors = SifrCol
     keyRadius = 0.dp, keyGap = 1.dp, hairlineGrid = true, gridLine = Color(0xFFE3DACA),
     displayFamily = Cormorant, keyFamily = Cormorant, uiFamily = SpaceGrotesk,
     arabicUiFamily = Amiri,
+    cyrillicUiFamily = Manrope,
 )
 
 internal fun raqimDark(accent: Color = Color(0xFF99A877)): SifrColors = SifrColors(
@@ -120,6 +125,7 @@ internal fun raqimDark(accent: Color = Color(0xFF99A877)): SifrColors = SifrColo
     keyRadius = 0.dp, keyGap = 1.dp, hairlineGrid = true, gridLine = Color(0xFFEFE7D8).copy(0.13f),
     displayFamily = Cormorant, keyFamily = Cormorant, uiFamily = SpaceGrotesk,
     arabicUiFamily = Amiri,
+    cyrillicUiFamily = Manrope,
 )
 
 // ---------- FARAH (playful pills, soft 3D) ----------
@@ -140,6 +146,7 @@ internal fun farahLight(accent: Color = Color(0xFFF2683C)): SifrColors = SifrCol
     keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true,
     displayFamily = Baloo2, keyFamily = Baloo2, uiFamily = Baloo2,
     arabicUiFamily = BalooBhaijaan2,
+    cyrillicUiFamily = Comfortaa,
 )
 
 internal fun farahDark(accent: Color = Color(0xFFFF7A4D)): SifrColors = SifrColors(
@@ -156,6 +163,7 @@ internal fun farahDark(accent: Color = Color(0xFFFF7A4D)): SifrColors = SifrColo
     keyRadius = 999.dp, keyGap = 12.dp, raisedKeys = true,
     displayFamily = Baloo2, keyFamily = Baloo2, uiFamily = Baloo2,
     arabicUiFamily = BalooBhaijaan2,
+    cyrillicUiFamily = Comfortaa,
 )
 
 // ---------- MIZAN (machined, recessed gradient keys) ----------
@@ -230,5 +238,6 @@ fun dynamicToSifrColors(scheme: M3ColorScheme, dark: Boolean): SifrColors {
         keyRadius = 24.dp, keyGap = 8.dp,
         displayFamily = SpaceGrotesk, keyFamily = SpaceGrotesk, uiFamily = SpaceGrotesk,
         arabicUiFamily = Cairo,
+        cyrillicUiFamily = Manrope,
     )
 }

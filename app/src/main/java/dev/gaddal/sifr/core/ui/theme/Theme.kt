@@ -33,15 +33,23 @@ fun SifrTheme(
     }
 
     val context = LocalContext.current
-    val isArabic = ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language == "ar"
-    val sifr = remember(palette, dark, context, isArabic) {
+    val uiLanguage = ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language
+    val isArabic = uiLanguage == "ar"
+    val isCyrillic = uiLanguage == "ru"
+    val sifr = remember(palette, dark, context, isArabic, isCyrillic) {
         val base = if (palette == SifrPalette.Dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val scheme = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             dynamicToSifrColors(scheme, dark)
         } else {
             sifrColorsFor(palette, dark)
         }
-        if (isArabic && base.arabicUiFamily != null) base.copy(uiFamily = base.arabicUiFamily) else base
+        // Swap the chrome font to one that covers the active script (the Latin chrome fonts have
+        // no Arabic/Cyrillic glyphs). A locale is at most one of these, so order is immaterial.
+        when {
+            isArabic && base.arabicUiFamily != null -> base.copy(uiFamily = base.arabicUiFamily)
+            isCyrillic && base.cyrillicUiFamily != null -> base.copy(uiFamily = base.cyrillicUiFamily)
+            else -> base
+        }
     }
 
     val view = LocalView.current
