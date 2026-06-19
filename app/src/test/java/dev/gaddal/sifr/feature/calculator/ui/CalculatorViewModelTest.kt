@@ -9,6 +9,7 @@ import dev.gaddal.sifr.core.data.history.HistoryRepository
 import dev.gaddal.sifr.core.data.settings.SettingsRepository
 import dev.gaddal.sifr.core.domain.history.HistoryEntry
 import dev.gaddal.sifr.core.domain.settings.AppSettings
+import dev.gaddal.sifr.core.domain.settings.RestoreTarget
 import dev.gaddal.sifr.core.ui.feedback.FeedbackIntent
 import dev.gaddal.sifr.core.ui.util.MainDispatcherRule
 import dev.gaddal.sifr.core.ui.util.UiText
@@ -149,6 +150,39 @@ class CalculatorViewModelTest {
         viewModel.onAction(CalculatorAction.Calculate)
 
         assertThat(history.added).isEmpty()
+    }
+
+    @Test
+    fun `recentHistory exposes the newest 3 entries from the repository`() = runTest {
+        // Seeded newest-first, like the real DAO (ORDER BY timestampMs DESC).
+        val seeded = listOf(
+            HistoryEntry(4, "4+4", "8", 400L),
+            HistoryEntry(3, "3+3", "6", 300L),
+            HistoryEntry(2, "2+2", "4", 200L),
+            HistoryEntry(1, "1+1", "2", 100L),
+        )
+        val viewModel = newViewModel(history = FakeHistoryRepository(initial = seeded))
+        advanceUntilIdle()
+
+        val recent = viewModel.state.value.recentHistory
+        assertThat(recent).hasSize(3)
+        assertThat(recent.map { it.result }).containsExactly("8", "6", "4").inOrder()
+    }
+
+    @Test
+    fun `recentHistory updates after a successful Calculate`() = runTest {
+        val viewModel = newViewModel(history = FakeHistoryRepository())
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+        viewModel.onAction(CalculatorAction.Calculate)
+        advanceUntilIdle()
+
+        val recent = viewModel.state.value.recentHistory
+        assertThat(recent).hasSize(1)
+        assertThat(recent.first().expression).isEqualTo("2+3")
+        assertThat(recent.first().result).isEqualTo("5")
     }
 
     @Test
@@ -462,6 +496,18 @@ class CalculatorViewModelTest {
     }
 
     @Test
+    fun `restoreTarget mirrors the persisted setting and updates reactively`() = runTest {
+        val settings = FakeSettingsRepository(AppSettings(restoreTarget = RestoreTarget.Expression))
+        val viewModel = newViewModel(settings = settings)
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.restoreTarget).isEqualTo(RestoreTarget.Expression)
+
+        settings.update { copy(restoreTarget = RestoreTarget.Result) }
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.restoreTarget).isEqualTo(RestoreTarget.Result)
+    }
+
+    @Test
     fun `M plus stores current evaluated value in memory`() = runTest {
         val viewModel = newViewModel()
         viewModel.onAction(CalculatorAction.Number(5))
@@ -499,14 +545,59 @@ class CalculatorViewModelTest {
     }
 
     @Test
-    fun `Memory value survives process death via SavedStateHandle`() = runTest {
-        val handle = SavedStateHandle()
-        val first = newViewModel(savedState = handle)
+    fun `Calculate keeps the pre-= input in evaluatedInput and clears it on next edit`() = runTest {
+        val viewModel = newViewModel()
+
+        viewModel.onAction(CalculatorAction.Number(2))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(3))
+        viewModel.onAction(CalculatorAction.Calculate)
+
+        val afterEq = viewModel.state.value
+        assertThat(afterEq.justEvaluated).isTrue()
+        assertThat(afterEq.expression).isEqualTo("5")        // result promoted into the writer
+        assertThat(afterEq.evaluatedInput).isEqualTo("2+3")  // input preserved for the 50sp line
+
+        // Any subsequent edit leaves the just-evaluated state and drops the kept input.
+        viewModel.onAction(CalculatorAction.Number(7))
+        val afterEdit = viewModel.state.value
+        assertThat(afterEdit.justEvaluated).isFalse()
+        assertThat(afterEdit.evaluatedInput).isNull()
+    }
+
+    @Test
+    fun `UseAnswer dismisses justEvaluated, clears evaluatedInput, keeps the result`() = runTest {
+        val viewModel = newViewModel()
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Op(Operation.ADD))
+        viewModel.onAction(CalculatorAction.Number(1))
+        viewModel.onAction(CalculatorAction.Calculate)
+        assertThat(viewModel.state.value.justEvaluated).isTrue()
+        val resultBefore = viewModel.state.value.expression   // "2"
+
+        viewModel.onAction(CalculatorAction.UseAnswer)
+
+        val s = viewModel.state.value
+        assertThat(s.justEvaluated).isFalse()
+        assertThat(s.evaluatedInput).isNull()
+        assertThat(s.expression).isEqualTo(resultBefore)
+    }
+
+    @Test
+    fun `Memory value survives process death via DataStore`() = runTest {
+        // Shared FakeSettingsRepository simulates DataStore surviving process death:
+        // both VM instances observe the same MutableStateFlow<AppSettings>.
+        val settings = FakeSettingsRepository()
+        val first = newViewModel(settings = settings)
         first.onAction(CalculatorAction.Number(9))
         first.onAction(CalculatorAction.MemoryAdd)
+        advanceUntilIdle()
 
-        // Simulate process death — create a fresh ViewModel with the same handle.
-        val restored = newViewModel(savedState = handle)
+        // Simulate process death — create a fresh ViewModel with a new writer
+        // but the SAME settings repo (DataStore contents survive).
+        val restored = newViewModel(settings = settings, writer = ExpressionWriter())
+        advanceUntilIdle()
+
         assertThat(restored.state.value.memoryValue).isEqualTo(9.0)
     }
 }
@@ -521,15 +612,18 @@ private class FakeSettingsRepository(
     }
 }
 
-private class FakeHistoryRepository : HistoryRepository {
+private class FakeHistoryRepository(
+    initial: List<HistoryEntry> = emptyList(),
+) : HistoryRepository {
     val added = mutableListOf<Pair<String, String>>()
-    private val flow = MutableStateFlow<List<HistoryEntry>>(emptyList())
+    private val flow = MutableStateFlow(initial)
 
     override fun observe(): Flow<List<HistoryEntry>> = flow
 
     override suspend fun add(expression: String, result: String) {
         added += expression to result
-        flow.update { it + HistoryEntry(it.size + 1L, expression, result, 0L) }
+        // Prepend so observe() is newest-first, mirroring the real DAO (ORDER BY timestampMs DESC).
+        flow.update { listOf(HistoryEntry(it.size + 1L, expression, result, 0L)) + it }
     }
 
     override suspend fun delete(id: Long) {

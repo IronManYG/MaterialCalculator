@@ -1,10 +1,21 @@
 <resources>
-    <string name="app_name">Sifr</string>
+    <string name="app_name">Sifr Calculator</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_back">Back</string>
-    <string name="settings_theme_section">Theme</string>
+    <!-- v1.8 settings — language -->
+    <string name="settings_language_section">Language</string>
+    <string name="settings_language_system">System default</string>
+    <!-- v1.7 settings — fidelity pass (cards / rows / subtitles) -->
+    <string name="settings_appearance_section">Appearance</string>
+    <string name="settings_theme_system_short">System</string>
+    <string name="settings_keypad_layout">Layout</string>
+    <string name="settings_memory_keys_sub">Show memory keys above the keypad</string>
+    <string name="settings_fraction_results_sub">Show exact fractions when possible</string>
+    <string name="settings_haptics_sub">Vibrate on key press</string>
+    <string name="settings_about_sub">A calmer calculator.</string>
+    <string name="settings_theme_section">Mode</string>
     <string name="settings_theme_system">Follow system</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
@@ -24,6 +35,47 @@
     <string name="calc_error_domain_error">Input outside function domain</string>
     <string name="calc_error_overflow">Result too large</string>
     <string name="calc_error_syntax_error">Syntax error</string>
+    <string name="calc_open_tools">Open tools</string>
+    <string name="calc_rotate_orientation">Rotate screen</string>
+
+    <!-- v1.5 result actions -->
+    <string name="calc_action_copy">COPY</string>
+    <string name="calc_action_share">SHARE</string>
+    <!-- v1.7 ANS→ result action -->
+    <string name="calc_action_ans">ANS →</string>
+
+    <!-- v1.5 settings sections -->
+    <string name="settings_display_section">Display</string>
+    <string name="settings_fraction_results">Fraction results</string>
+    <string name="settings_angle_unit">Angle unit</string>
+    <string name="settings_angle_deg">DEG</string>
+    <string name="settings_angle_rad">RAD</string>
+    <string name="settings_feedback_section">Feedback</string>
+    <string name="settings_about_section">About</string>
+    <string name="settings_about_tagline">Sifr — صفر · a calmer calculator.</string>
+
+    <!-- Settings screen — appearance/palette -->
+    <string name="settings_palette_section">Theme</string>
+    <string name="settings_palette_layl">Layl</string>
+    <string name="settings_palette_bayan">Bayan</string>
+    <string name="settings_palette_raqim">Raqim</string>
+    <string name="settings_palette_farah">Farah</string>
+    <string name="settings_palette_mizan">Mizan</string>
+    <string name="settings_palette_dynamic">Dynamic</string>
+
+    <!-- v1.6 settings — keypad -->
+    <string name="settings_keypad_section">Keypad</string>
+    <string name="settings_memory_keys">Memory keys</string>
+    <string name="settings_keypad_classic">Classic</string>
+    <string name="settings_keypad_remix">Remix</string>
+    <string name="settings_keypad_arc">Arc</string>
+    <string name="settings_keypad_tape">Tape</string>
+
+    <!-- v1.7.x settings — restore target (history / tape tap) -->
+    <string name="settings_restore_target">Restore as</string>
+    <string name="settings_restore_target_sub">Insert result or full expression</string>
+    <string name="settings_restore_target_result">Result</string>
+    <string name="settings_restore_target_expression">Expression</string>
 
     <!-- History screen -->
     <string name="history_title">History</string>
@@ -36,4 +88,44 @@
     <string name="history_delete_entry">Delete entry</string>
     <string name="history_empty_title">No history yet</string>
     <string name="history_empty_body">Calculations you finish with = will appear here.</string>
+
+    <!-- Tools screen -->
+    <string name="tools_title">Tools</string>
+    <string name="tools_back">Back</string>
+    <string name="tools_tab_units">Units</string>
+    <string name="tools_tab_currency">Currency</string>
+    <string name="tools_tab_tip">Tip</string>
+    <string name="tools_tab_date">Date</string>
+
+    <!-- Units tab -->
+    <string name="tools_cat_length">Length</string>
+    <string name="tools_cat_weight">Weight</string>
+    <string name="tools_cat_temp">Temp</string>
+    <string name="tools_cat_data">Data</string>
+    <string name="tools_result">Result</string>
+
+    <!-- Currency tab -->
+    <string name="tools_fx_note">Rates as of %1$s</string>
+    <string name="tools_fx_offline">Offline — using saved rates (%1$s)</string>
+    <string name="tools_fx_seed">Approx rates (bundled)</string>
+    <string name="tools_currency_pick">Select currency</string>
+    <string name="tools_currency_search">Search currency</string>
+    <string name="tools_currency_none">No matches</string>
+
+    <!-- Tip tab -->
+    <string name="tools_bill">Bill</string>
+    <string name="tools_tip">Tip</string>
+    <string name="tools_split">Split</string>
+    <string name="tools_people">people</string>
+    <string name="tools_out_tip">Tip</string>
+    <string name="tools_out_total">Total</string>
+    <string name="tools_out_each">Each</string>
+
+    <!-- Date tab -->
+    <string name="tools_date_diff">Date Difference</string>
+    <string name="tools_date_add">Add Days</string>
+    <string name="tools_days">Days</string>
+    <string name="tools_weeks">Weeks</string>
+    <string name="tools_w">w</string>
+    <string name="tools_d">d</string>
 </resources>

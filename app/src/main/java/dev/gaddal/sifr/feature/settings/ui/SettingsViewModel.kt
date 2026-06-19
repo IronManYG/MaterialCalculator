@@ -33,6 +33,7 @@ class SettingsViewModel(
     fun onAction(action: SettingsAction) {
         when (action) {
             is SettingsAction.SetThemeMode -> updateSettings { copy(themeMode = action.mode) }
+            is SettingsAction.SetPalette -> updateSettings { copy(palette = action.palette) }
             SettingsAction.ToggleHaptics -> {
                 val wasEnabled = _state.value.settings.hapticsEnabled
                 updateSettings { copy(hapticsEnabled = !hapticsEnabled) }
@@ -43,7 +44,13 @@ class SettingsViewModel(
                 updateSettings { copy(soundEnabled = !soundEnabled) }
                 if (!wasEnabled) emit(SettingsEvent.DemoSound)
             }
+            SettingsAction.ToggleFractionResults -> updateSettings { copy(fractionResults = !fractionResults) }
+            is SettingsAction.SetAngleUnit -> updateSettings { copy(angleUnit = action.unit) }
             SettingsAction.BackClicked -> emit(SettingsEvent.NavigateBack)
+            is SettingsAction.SetKeypadLayout -> updateSettings { copy(keypadLayout = action.layout) }
+            SettingsAction.ToggleMemoryKeys -> updateSettings { copy(memoryKeysVisible = !memoryKeysVisible) }
+            is SettingsAction.SetRestoreTarget -> updateSettings { copy(restoreTarget = action.target) }
+            is SettingsAction.SetLanguage -> updateSettings { copy(language = action.language) }
         }
     }
 

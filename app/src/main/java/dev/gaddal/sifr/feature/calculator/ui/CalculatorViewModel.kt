@@ -40,7 +40,6 @@ class CalculatorViewModel(
     init {
         val restoredExpression: String = savedStateHandle[KEY_EXPRESSION] ?: ""
         val restoredCursor: Int = savedStateHandle[KEY_CURSOR] ?: 0
-        val restoredMemory: Double? = savedStateHandle[KEY_MEMORY]
         if (restoredExpression.isNotEmpty()) {
             writer.restoreState(restoredExpression, restoredCursor)
         }
@@ -50,7 +49,7 @@ class CalculatorViewModel(
                 cursor = writer.cursor,
                 selectionStart = writer.selectionStart,
                 livePreview = computePreview(),
-                memoryValue = restoredMemory,
+                memoryValue = null,
             )
         )
         state = _state.asStateFlow()
@@ -61,12 +60,31 @@ class CalculatorViewModel(
             }
         }
         viewModelScope.launch {
+            // Last 3 entries (newest-first; the DAO orders timestampMs DESC) feed the
+            // Tape in-display receipt. Always collected — the receipt only reads this
+            // under the keypadLayout == Tape guard, and the Room flow is cheap.
+            historyRepository.observe().collect { entries ->
+                _state.update { it.copy(recentHistory = entries.take(3)) }
+            }
+        }
+        viewModelScope.launch {
             settingsRepository.observe().collect { settings ->
                 writer.angleUnit = settings.angleUnit
+                // Update only the settings-derived mirrors. Deliberately DO NOT touch
+                // justEvaluated / evaluatedInput here: settings changes (DEG/RAD via the
+                // chip, ƒ scientific toggle, palette, etc.) must NOT collapse the frozen
+                // two-line result + COPY row after a '=' (the prototype's CalcDisplay is
+                // mode-agnostic — display.jsx has no scientific branch). Memory ops and
+                // writer actions clear those fields explicitly where they should.
                 _state.update {
                     it.copy(
                         mode = settings.calculatorMode,
                         angleUnit = settings.angleUnit,
+                        memoryValue = settings.memoryValue,
+                        fractionResults = settings.fractionResults,
+                        keypadLayout = settings.keypadLayout,
+                        memoryKeysVisible = settings.memoryKeysVisible,
+                        restoreTarget = settings.restoreTarget,
                         livePreview = computePreview(),
                     )
                 }
@@ -78,6 +96,7 @@ class CalculatorViewModel(
         when (action) {
             CalculatorAction.SettingsClicked -> emit(CalculatorEvent.NavigateToSettings)
             CalculatorAction.HistoryClicked -> emit(CalculatorEvent.NavigateToHistory)
+            CalculatorAction.ToolsClicked -> emit(CalculatorEvent.NavigateToTools)
             CalculatorAction.ToggleMode -> viewModelScope.launch {
                 settingsRepository.update {
                     copy(
@@ -101,6 +120,21 @@ class CalculatorViewModel(
                 val v = _state.value.memoryValue ?: return
                 applyToWriter(CalculatorAction.InsertText(numberToInsert(v)))
             }
+            CalculatorAction.CopyResult -> {
+                val text = _state.value.expression
+                if (text.isNotBlank()) emit(CalculatorEvent.CopyToClipboard(text))
+            }
+            CalculatorAction.ShareResult -> {
+                val text = _state.value.expression
+                if (text.isNotBlank()) emit(CalculatorEvent.ShareText(text))
+            }
+            CalculatorAction.UseAnswer -> {
+                // ANS→ : commit the just-evaluated result as the editable working
+                // expression (it already IS the result after '='), dismissing the
+                // result-actions affordance and collapsing the two-line view back to
+                // the single editable line. Prototype: setExpr(result); setJE(false).
+                _state.update { it.copy(justEvaluated = false, evaluatedInput = null) }
+            }
             else -> applyToWriter(action)
         }
     }
@@ -118,8 +152,8 @@ class CalculatorViewModel(
     }
 
     private fun updateMemory(newValue: Double?) {
-        _state.update { it.copy(memoryValue = newValue) }
-        savedStateHandle[KEY_MEMORY] = newValue
+        _state.update { it.copy(memoryValue = newValue, justEvaluated = false, evaluatedInput = null) }
+        viewModelScope.launch { settingsRepository.update { copy(memoryValue = newValue) } }
     }
 
     private fun numberToInsert(v: Double): String {
@@ -134,6 +168,10 @@ class CalculatorViewModel(
         writer.processAction(action)
             .onSuccess {
                 val post = writer.expression
+                // Same "a real calc happened" guard drives history/feedback in
+                // onSuccessSideEffects — keep the two in sync if it changes.
+                val justEvaluatedNow =
+                    action == CalculatorAction.Calculate && pre.isNotBlank() && pre != post
                 _state.update {
                     it.copy(
                         expression = post,
@@ -141,13 +179,17 @@ class CalculatorViewModel(
                         selectionStart = writer.selectionStart,
                         livePreview = computePreview(),
                         error = null,
+                        justEvaluated = justEvaluatedNow,
+                        evaluatedInput = if (justEvaluatedNow) pre else null,
                     )
                 }
                 persistForRestore(post, writer.cursor)
                 onSuccessSideEffects(action, pre, post)
             }
             .onFailure { error ->
-                _state.update { it.copy(livePreview = null, error = error.toUiText()) }
+                _state.update {
+                    it.copy(livePreview = null, error = error.toUiText(), justEvaluated = false, evaluatedInput = null)
+                }
                 emit(CalculatorEvent.PlayFeedback(FeedbackIntent.Error))
             }
     }
@@ -195,6 +237,5 @@ class CalculatorViewModel(
     companion object {
         private const val KEY_EXPRESSION = "expression"
         private const val KEY_CURSOR = "cursor"
-        private const val KEY_MEMORY = "memory"
     }
 }

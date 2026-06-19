@@ -30,8 +30,8 @@ android {
         applicationId = "com.gaddal.materialcalculator"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.3.0"
+        versionCode = 8
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -93,6 +93,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -129,6 +130,7 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.material.icons.extended)
@@ -157,8 +159,18 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // Serialization (for @Serializable on Nav3 routes)
+    // Serialization (for @Serializable on Nav3 routes + Tools JSON)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Networking — Ktor (Tools currency rates; the app's first network call)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+
+    // java.time on minSdk 24
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Haptics — Pulsar (Software Mansion)
     implementation(libs.pulsar)

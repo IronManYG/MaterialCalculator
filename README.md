@@ -1,6 +1,6 @@
 # Sifr (صفر)
 
-A modernized Material 3 calculator for Android — published on the Google Play Store. Named after the Arabic word for "zero" (the root of the English word "cipher" and the foundational concept of digital computing).
+A modernized, deeply customizable Material 3 calculator for Android — published on the Google Play Store. Basic + scientific calculation, built-in converters, five hand-crafted palettes, and full right-to-left support across 11 languages. Named after the Arabic word for "zero" (the root of the English word "cipher" and the foundational concept of digital computing).
 
 [![Play Store](https://img.shields.io/badge/Google_Play-Live-success?logo=googleplay)](https://play.google.com/store/apps/details?id=com.gaddal.materialcalculator)
 [![Latest release](https://img.shields.io/badge/release-v1.3.0-blue)](./CHANGELOG.md)
@@ -8,6 +8,46 @@ A modernized Material 3 calculator for Android — published on the Google Play 
 ![targetSdk](https://img.shields.io/badge/targetSdk-36-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3.21-7F52FF?logo=kotlin)
 ![Compose BOM](https://img.shields.io/badge/Compose_BOM-2026.05.00-4285F4)
+
+## Screenshots
+
+**Five hand-crafted palettes** — each with light & dark variants, plus Material You.
+
+<table>
+  <tr>
+    <td><img src="screenshots/showcase/palette-layl.png" width="160" alt="Layl palette"></td>
+    <td><img src="screenshots/showcase/palette-bayan.png" width="160" alt="Bayan palette"></td>
+    <td><img src="screenshots/showcase/palette-raqim.png" width="160" alt="Raqim palette"></td>
+    <td><img src="screenshots/showcase/palette-farah.png" width="160" alt="Farah palette"></td>
+    <td><img src="screenshots/showcase/palette-mizan.png" width="160" alt="Mizan palette"></td>
+  </tr>
+  <tr align="center">
+    <td><b>Layl</b><br><sub>neon-teal glass</sub></td>
+    <td><b>Bayan</b><br><sub>ink color-block</sub></td>
+    <td><b>Raqim</b><br><sub>editorial serif</sub></td>
+    <td><b>Farah</b><br><sub>playful pills</sub></td>
+    <td><b>Mizan</b><br><sub>machined keys</sub></td>
+  </tr>
+</table>
+
+**Scientific mode, built-in tools, history, and full Arabic (RTL).**
+
+<table>
+  <tr>
+    <td><img src="screenshots/showcase/scientific.png" width="160" alt="Scientific mode"></td>
+    <td><img src="screenshots/showcase/tools-currency.png" width="160" alt="Currency converter"></td>
+    <td><img src="screenshots/showcase/history.png" width="160" alt="Calculation history"></td>
+    <td><img src="screenshots/showcase/settings.png" width="160" alt="Settings"></td>
+    <td><img src="screenshots/showcase/arabic.png" width="160" alt="Arabic right-to-left"></td>
+  </tr>
+  <tr align="center">
+    <td>Scientific</td>
+    <td>Tools</td>
+    <td>History</td>
+    <td>Settings</td>
+    <td>العربية</td>
+  </tr>
+</table>
 
 ## Features
 
@@ -32,16 +72,30 @@ A modernized Material 3 calculator for Android — published on the Google Play 
 - M-chip indicator when memory is non-empty
 - Calculation history (Room-backed) — tap any past row to restore the expression
 
+**Tools** (⊞ from the toolbar)
+- Currency converter — live rates with an offline-first cache and bundled seed rates; searchable picker with flags
+- Unit converter — length, weight, temperature, data
+- Tip & split — preset percentages, per-person split
+- Date calculator — difference between dates and add-days
+
+**Themes & personalization**
+- Five hand-crafted palettes — Layl, Bayan, Raqim, Farah, Mizan — each with light & dark variants
+- Material You dynamic color
+- Mode: light, dark, or follow-system
+- Four keypad layouts: Classic, Remix, Arc, Tape
+- Optional memory-key row
+
 **Settings**
-- Theme: light, dark, or follow-system
+- In-app language switch (live, no restart) with a universal language anchor on the row
 - Haptic feedback toggle (intent-based, not per-press)
 - Error-sound toggle
 - All preferences persisted via DataStore
 
 **Form factor + locale**
 - Adaptive landscape layout — scientific + basic blocks side by side
-- Immersive landscape mode on the calculator surface
-- Full Arabic (RTL) coverage — interface, errors, in-app strings
+- Immersive landscape mode + an in-app rotate toggle
+- 11 languages — English, Arabic, Spanish, Portuguese (BR), French, German, Indonesian, Turkish, Italian, Vietnamese, Russian
+- Full right-to-left (RTL) coverage — interface, errors, in-app strings
 - Five distinct localized error types (division by zero, invalid expression, function domain, overflow, syntax)
 
 See [`CHANGELOG.md`](./CHANGELOG.md) for the per-release breakdown.
@@ -126,16 +180,28 @@ Work happens on `feature/<name>` branches off `development`. `master` is product
 
 ## Roadmap
 
-**Shipped**
+**Shipped to Play**
 - **v1.2.0** (2026-05-09) — Phase 1: toolchain modernization, Material 3 dynamic color, edge-to-edge, error handling, Android 16 target SDK
 - **v1.3.0** (2026-05-12) — Phase 2.0 → 2.10: Sifr rebrand, MVI + Koin + Nav3 architecture, Settings, History, scientific mode + memory keys, adaptive landscape, editable cursor + live preview, haptic + sound feedback, typed errors with full EN + AR localization
 
+**Done in-repo, batched for the v2.0 cut**
+- Full visual redesign — five hand-crafted palettes + Material You, four keypad layouts, redesigned display with an in-line result tape
+- Tools — currency (live + offline), unit, tip & split, and date converters
+- History redesign — result-grouped rows, tap-to-restore, pinned clear-all
+- Internationalization to 11 languages with an in-app live language switch (no restart)
+
 **Coming**
-- v1.3.x tech-debt bundle: `memoryValue` → DataStore (survives `force-stop`), `AutoMirrored.ArrowBack` for RTL correctness, typography tokens for hardcoded sp values, cold-start settings flash fix
-- Theme palette picker (beyond Material 3 dynamic color)
-- Tip calculator, unit conversions, natural-language parsing
+- Google Play listing assets (icon, feature graphic, screenshots) and the v2.0 release
 - GitHub Actions CI/CD (then activating the `development → staging → master` flow)
+- Signed release / staging builds
 
 ## Author
 
 Built by [Hussain Gaddal](https://github.com/IronManYG).
+
+## License
+
+Sifr is source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
+You're welcome to read, learn from, and build on the code for noncommercial purposes;
+commercial use — including redistributing it or publishing a derivative on an app
+store — is not permitted. For a commercial license, contact the author.

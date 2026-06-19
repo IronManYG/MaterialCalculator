@@ -9,6 +9,79 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.0] — 2026-06-12
+
+`versionCode 7`. The New Look — a ground-up visual redesign of the
+calculator surface on a new theme-token system. Adds five hand-crafted
+themes (Layl, Bayan, Raqim, Farah, Mizan), each in light and dark, plus a
+Material You dynamic option; a restyled keypad and display with per-theme
+typography; and a theme picker in the Settings → Appearance section.
+
+### Play Console — English release notes
+
+```
+What's new in 1.4.0 — The New Look:
+
+• A fresh visual redesign of the whole calculator
+• Five hand-crafted themes — Layl, Bayan, Raqim, Farah, Mizan — each in light and dark
+• Material You dynamic color that follows your wallpaper (Android 12+)
+• Restyled keypad and display, with a distinct typeface per theme
+• Pick your theme any time in Settings → Appearance
+```
+
+### Play Console — Arabic release notes
+
+```
+ما الجديد في الإصدار 1.4.0 — حُلّة جديدة:
+
+• إعادة تصميم بصري كامل للآلة الحاسبة
+• خمس سمات مصمّمة بعناية — Layl وBayan وRaqim وFarah وMizan — بنمطين فاتح وداكن
+• ألوان ديناميكية تتبع خلفية شاشتك (أندرويد 12 فأحدث)
+• لوحة مفاتيح وشاشة عرض بمظهر جديد، وخط مميّز لكل سمة
+• اختر سمتك في أي وقت من الإعدادات ← المظهر
+```
+
+### Added (user-visible)
+
+- **The New Look** — a full visual redesign built on a custom theme-token
+  layer (`SifrColors`).
+- **Five themes** — *Layl* (dark glass, neon-teal glow), *Bayan* (bold ink
+  color-blocking), *Raqim* (editorial serif on a hairline grid), *Farah*
+  (warm rounded pills), and *Mizan* (machined monospace). Each ships light
+  and dark variants.
+- **Material You** — a *Dynamic* theme that follows your wallpaper colors on
+  Android 12+.
+- **Theme picker** — a new **APPEARANCE** section in Settings with a swatch
+  for every theme; the choice persists across sessions.
+- **Per-theme typography** — each theme pairs its own display, keypad, and
+  UI typeface (downloadable Google Fonts).
+
+### Changed
+
+- **Calculator surface** — the keypad, display, and top bar now read every
+  color from the active theme's tokens instead of the stock Material
+  palette. Each key carries a role (number / operator / equals / function)
+  that selects its shape, fill, and press feedback.
+
+### Internal (not user-visible)
+
+- New `core/ui/theme` token layer: `SifrColors` / `SifrKeyStyle` /
+  `SifrKeyRole` exposed via `LocalSifrColors` + `SifrTokens`; `SifrTheme`
+  bridges a Material 3 `ColorScheme` so stock components stay correct.
+- `palette` preference persisted via DataStore; a 6-palette × light/dark
+  selector with unit tests (`SifrPaletteTest`, `SifrPalettesTest`).
+- Downloadable Google Fonts — no committed font binaries.
+
+### Known limitations
+
+- Some per-theme display polish (ink blocks / cards / insets, Layl's
+  blurred `=` glow, Mizan's inner-top key highlight) lands in a later
+  release.
+- A few icon-only controls (the Delete key, the theme swatches) still need
+  TalkBack labels — tracked for a follow-up.
+
+---
+
 ## [1.3.0] — 2026-05-12
 
 `versionCode 6`. First post-rebrand feature release. Adds a full scientific

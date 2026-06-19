@@ -13,6 +13,7 @@ sealed interface CalculatorAction {
     data object Decimal : CalculatorAction
     data object SettingsClicked : CalculatorAction
     data object HistoryClicked : CalculatorAction
+    data object ToolsClicked : CalculatorAction
     data class RestoreExpression(val value: String) : CalculatorAction
     data class CursorChanged(val newPosition: Int) : CalculatorAction
     data class SelectionChanged(val start: Int, val end: Int) : CalculatorAction
@@ -26,4 +27,9 @@ sealed interface CalculatorAction {
     // resolves the stored value into a printable string. The writer
     // inserts at the cursor and respects the current selection (range-replace).
     data class InsertText(val text: String) : CalculatorAction
+    // v1.5 result actions — shown in the ResultActionsRow right after '='
+    data object CopyResult : CalculatorAction
+    data object ShareResult : CalculatorAction
+    // v1.7 ANS→ : commit the just-evaluated result as the editable working expression
+    data object UseAnswer : CalculatorAction
 }

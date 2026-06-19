@@ -6,7 +6,7 @@ import android.media.ToneGenerator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import com.swmansion.pulsar.Pulsar
 
 /**
@@ -87,7 +87,11 @@ fun rememberFeedbackController(
     hapticsEnabled: Boolean,
     soundEnabled: Boolean,
 ): FeedbackController {
-    val context = LocalContext.current
+    // Pulsar haptics require the host Activity (`context as Activity`). Under SifrLocale
+    // the LocalContext is a locale ContextWrapper (not the Activity), so read the Activity
+    // from the View — its context is always the Activity at runtime, and haptics/sound
+    // are locale-independent so they don't need the localized resources.
+    val context = LocalView.current.context
     val controller = remember(context) { FeedbackController(context) }
     DisposableEffect(controller) {
         onDispose { controller.release() }

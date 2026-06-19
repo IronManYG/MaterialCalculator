@@ -1,79 +1,147 @@
 package dev.gaddal.sifr.feature.calculator.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import dev.gaddal.sifr.core.ui.theme.SifrKeyRole
+import dev.gaddal.sifr.core.ui.theme.SifrTokens
 import dev.gaddal.sifr.feature.calculator.domain.CalculatorAction
 import dev.gaddal.sifr.feature.calculator.domain.ConstantSymbol
 import dev.gaddal.sifr.feature.calculator.domain.Operation
 
-val memoryRow: List<CalculatorUiAction> = listOf(
-    CalculatorUiAction("MC", HighlightLevel.SemiHighlighted, CalculatorAction.MemoryClear),
-    CalculatorUiAction("M+", HighlightLevel.SemiHighlighted, CalculatorAction.MemoryAdd),
-    CalculatorUiAction("M−", HighlightLevel.SemiHighlighted, CalculatorAction.MemorySubtract),
-    CalculatorUiAction("MR", HighlightLevel.SemiHighlighted, CalculatorAction.MemoryRecall),
+/** A keypad cell with an optional column span (Remix's `0` spans 2). */
+data class KeypadCell(
+    val action: CalculatorUiAction,
+    val span: Int = 1,
 )
 
 /**
- * Scientific row cells, compact layout (a 4-column grid).
+ * A keypad row plus its height scale relative to the base key-row height
+ * (spec §4.6): basic rows 1.0, scientific rows 0.62, memory row 0.58.
  *
- * The `deg`/`rad` cells are mutually exclusive — only one is rendered at a
- * time, picked by the current angleUnit. The keypad consumer filters them
- * before chunking.
+ * [fontScale] multiplies the grid's base key font for this row. Multi-glyph rows
+ * (memory MC/M+/M−/MR, scientific names) want smaller text than single-digit
+ * number keys — the prototype hard-codes memory fs=15 vs basic num fs=23. Basic
+ * rows stay 1.0.
+ */
+data class KeypadRowSpec(
+    val cells: List<KeypadCell>,
+    val heightScale: Float = 1f,
+    val fontScale: Float = 1f,
+)
+
+// ---- Shared basic-key descriptors (one source of truth for every layout) ----
+private fun digitKey(n: Int) =
+    CalculatorUiAction(n.toString(), SifrKeyRole.Num, CalculatorAction.Number(n))
+
+private val key0 = digitKey(0)
+private val key1 = digitKey(1)
+private val key2 = digitKey(2)
+private val key3 = digitKey(3)
+private val key4 = digitKey(4)
+private val key5 = digitKey(5)
+private val key6 = digitKey(6)
+private val key7 = digitKey(7)
+private val key8 = digitKey(8)
+private val key9 = digitKey(9)
+
+private val keyClear = CalculatorUiAction("AC", SifrKeyRole.Fn, CalculatorAction.Clear)
+private val keyParens = CalculatorUiAction("()", SifrKeyRole.Fn, CalculatorAction.Parentheses)
+private val keyPercent = CalculatorUiAction("%", SifrKeyRole.Fn, CalculatorAction.Op(Operation.PERCENT))
+private val keyDivide = CalculatorUiAction("÷", SifrKeyRole.Op, CalculatorAction.Op(Operation.DIVIDE))
+private val keyMultiply = CalculatorUiAction("x", SifrKeyRole.Op, CalculatorAction.Op(Operation.MULTIPLY))
+private val keySubtract = CalculatorUiAction("-", SifrKeyRole.Op, CalculatorAction.Op(Operation.SUBTRACT))
+private val keyAdd = CalculatorUiAction("+", SifrKeyRole.Op, CalculatorAction.Op(Operation.ADD))
+private val keyDecimal = CalculatorUiAction(".", SifrKeyRole.Num, CalculatorAction.Decimal)
+private val keyEquals = CalculatorUiAction("=", SifrKeyRole.Eq, CalculatorAction.Calculate)
+private val keyDelete = CalculatorUiAction(
+    text = null,
+    role = SifrKeyRole.Num,
+    action = CalculatorAction.Delete,
+    content = {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Backspace,
+            contentDescription = null,
+            tint = SifrTokens.colors.keyNum.content,
+        )
+    },
+)
+
+/** Classic basic block as a flat list — still consumed by the landscape screen. */
+val basicRows: List<CalculatorUiAction> = listOf(
+    keyClear, keyParens, keyPercent, keyDivide,
+    key7, key8, key9, keyMultiply,
+    key4, key5, key6, keySubtract,
+    key1, key2, key3, keyAdd,
+    key0, keyDecimal, keyDelete, keyEquals,
+)
+
+/** Classic basic block as span-aware rows (all span 1). */
+val classicBasicRows: List<List<KeypadCell>> =
+    basicRows.chunked(4).map { row -> row.map { KeypadCell(it) } }
+
+/**
+ * Remix basic block (spec §5): top row swaps `()` → `⌫`; `0` spans 2 cols;
+ * `=` takes the old backspace slot. NO parentheses key (decision #4 — parens
+ * remain in Scientific mode and in Classic).
+ */
+val remixBasicRows: List<List<KeypadCell>> = listOf(
+    listOf(KeypadCell(keyClear), KeypadCell(keyPercent), KeypadCell(keyDelete), KeypadCell(keyDivide)),
+    listOf(KeypadCell(key7), KeypadCell(key8), KeypadCell(key9), KeypadCell(keyMultiply)),
+    listOf(KeypadCell(key4), KeypadCell(key5), KeypadCell(key6), KeypadCell(keySubtract)),
+    listOf(KeypadCell(key1), KeypadCell(key2), KeypadCell(key3), KeypadCell(keyAdd)),
+    listOf(KeypadCell(key0, span = 2), KeypadCell(keyDecimal), KeypadCell(keyEquals)),
+)
+
+/** Arc number pad (3-col, spec §5). Operators + `=` are drawn separately as circles. */
+val arcNumberPadRows: List<List<KeypadCell>> = listOf(
+    listOf(KeypadCell(key7), KeypadCell(key8), KeypadCell(key9)),
+    listOf(KeypadCell(key4), KeypadCell(key5), KeypadCell(key6)),
+    listOf(KeypadCell(key1), KeypadCell(key2), KeypadCell(key3)),
+    listOf(KeypadCell(key0), KeypadCell(keyDecimal), KeypadCell(keyDelete)),
+    listOf(KeypadCell(keyClear, span = 2), KeypadCell(keyPercent)),
+)
+
+/** Arc number-pad rows pre-wrapped as [KeypadRowSpec] (static — built once). */
+val arcNumberPadRowSpecs: List<KeypadRowSpec> = arcNumberPadRows.map { KeypadRowSpec(it) }
+
+/** Arc operators (bottom-end circles) + the oversized `=` circle. */
+val arcOperators: List<CalculatorUiAction> = listOf(keyDivide, keyMultiply, keySubtract, keyAdd)
+val arcEquals: CalculatorUiAction = keyEquals
+
+val memoryRow: List<CalculatorUiAction> = listOf(
+    CalculatorUiAction("MC", SifrKeyRole.Fn, CalculatorAction.MemoryClear),
+    CalculatorUiAction("M+", SifrKeyRole.Fn, CalculatorAction.MemoryAdd),
+    CalculatorUiAction("M−", SifrKeyRole.Fn, CalculatorAction.MemorySubtract),
+    CalculatorUiAction("MR", SifrKeyRole.Fn, CalculatorAction.MemoryRecall),
+)
+
+/**
+ * Scientific row cells — a clean 4×4 grid matching the prototype's `SciRows`
+ * (layouts.jsx:26-31): trig + log/constants/root, then power/factorial/parens,
+ * then inverse trig + exp. Angle (deg/rad) is the DEG/RAD display chip's job, not
+ * a keypad key, so no `deg`/`rad` cells live here.
+ *
+ * `(` and `)` route to the same smart [CalculatorAction.Parentheses] as Classic's
+ * `()` key (the writer infers open-vs-close from context — there is no literal
+ * open/close action, and a literal `(` would skip implicit-multiply). The prototype
+ * carries the same redundancy (parens also reachable via Classic's `()`).
  */
 val scientificCells: List<CalculatorUiAction> = listOf(
-    CalculatorUiAction("sin", HighlightLevel.Neutral, CalculatorAction.Function("sin")),
-    CalculatorUiAction("cos", HighlightLevel.Neutral, CalculatorAction.Function("cos")),
-    CalculatorUiAction("tan", HighlightLevel.Neutral, CalculatorAction.Function("tan")),
-    CalculatorUiAction("ln", HighlightLevel.Neutral, CalculatorAction.Function("ln")),
-    CalculatorUiAction("log", HighlightLevel.Neutral, CalculatorAction.Function("log")),
-    CalculatorUiAction("π", HighlightLevel.Neutral, CalculatorAction.Constant(ConstantSymbol.PI)),
-    CalculatorUiAction("e", HighlightLevel.Neutral, CalculatorAction.Constant(ConstantSymbol.E)),
-    CalculatorUiAction("√", HighlightLevel.Neutral, CalculatorAction.Function("sqrt")),
-    CalculatorUiAction("x^y", HighlightLevel.Neutral, CalculatorAction.Op(Operation.POWER)),
-    CalculatorUiAction("x!", HighlightLevel.Neutral, CalculatorAction.Factorial),
-    CalculatorUiAction("asin", HighlightLevel.Neutral, CalculatorAction.Function("asin")),
-    CalculatorUiAction("acos", HighlightLevel.Neutral, CalculatorAction.Function("acos")),
-    CalculatorUiAction("atan", HighlightLevel.Neutral, CalculatorAction.Function("atan")),
-    CalculatorUiAction("exp", HighlightLevel.Neutral, CalculatorAction.Function("exp")),
-    // Angle-unit toggle — the displayed label is the CURRENT unit. The
-    // keypad consumer filters to only emit the matching cell.
-    CalculatorUiAction("deg", HighlightLevel.SemiHighlighted, CalculatorAction.ToggleAngleUnit),
-    CalculatorUiAction("rad", HighlightLevel.SemiHighlighted, CalculatorAction.ToggleAngleUnit),
+    CalculatorUiAction("sin", SifrKeyRole.Fn, CalculatorAction.Function("sin")),
+    CalculatorUiAction("cos", SifrKeyRole.Fn, CalculatorAction.Function("cos")),
+    CalculatorUiAction("tan", SifrKeyRole.Fn, CalculatorAction.Function("tan")),
+    CalculatorUiAction("ln", SifrKeyRole.Fn, CalculatorAction.Function("ln")),
+    CalculatorUiAction("log", SifrKeyRole.Fn, CalculatorAction.Function("log")),
+    CalculatorUiAction("π", SifrKeyRole.Fn, CalculatorAction.Constant(ConstantSymbol.PI)),
+    CalculatorUiAction("e", SifrKeyRole.Fn, CalculatorAction.Constant(ConstantSymbol.E)),
+    CalculatorUiAction("√", SifrKeyRole.Fn, CalculatorAction.Function("sqrt")),
+    CalculatorUiAction("x^y", SifrKeyRole.Fn, CalculatorAction.Op(Operation.POWER)),
+    CalculatorUiAction("x!", SifrKeyRole.Fn, CalculatorAction.Factorial),
+    CalculatorUiAction("(", SifrKeyRole.Fn, CalculatorAction.Parentheses),
+    CalculatorUiAction(")", SifrKeyRole.Fn, CalculatorAction.Parentheses),
+    CalculatorUiAction("asin", SifrKeyRole.Fn, CalculatorAction.Function("asin")),
+    CalculatorUiAction("acos", SifrKeyRole.Fn, CalculatorAction.Function("acos")),
+    CalculatorUiAction("atan", SifrKeyRole.Fn, CalculatorAction.Function("atan")),
+    CalculatorUiAction("exp", SifrKeyRole.Fn, CalculatorAction.Function("exp")),
 )
-
-val basicRows: List<CalculatorUiAction> = listOf(
-    CalculatorUiAction("AC", HighlightLevel.Highlighted, CalculatorAction.Clear),
-    CalculatorUiAction("()", HighlightLevel.SemiHighlighted, CalculatorAction.Parentheses),
-    CalculatorUiAction("%", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.PERCENT)),
-    CalculatorUiAction("÷", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.DIVIDE)),
-    CalculatorUiAction("7", HighlightLevel.Neutral, CalculatorAction.Number(7)),
-    CalculatorUiAction("8", HighlightLevel.Neutral, CalculatorAction.Number(8)),
-    CalculatorUiAction("9", HighlightLevel.Neutral, CalculatorAction.Number(9)),
-    CalculatorUiAction("x", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.MULTIPLY)),
-    CalculatorUiAction("4", HighlightLevel.Neutral, CalculatorAction.Number(4)),
-    CalculatorUiAction("5", HighlightLevel.Neutral, CalculatorAction.Number(5)),
-    CalculatorUiAction("6", HighlightLevel.Neutral, CalculatorAction.Number(6)),
-    CalculatorUiAction("-", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.SUBTRACT)),
-    CalculatorUiAction("1", HighlightLevel.Neutral, CalculatorAction.Number(1)),
-    CalculatorUiAction("2", HighlightLevel.Neutral, CalculatorAction.Number(2)),
-    CalculatorUiAction("3", HighlightLevel.Neutral, CalculatorAction.Number(3)),
-    CalculatorUiAction("+", HighlightLevel.SemiHighlighted, CalculatorAction.Op(Operation.ADD)),
-    CalculatorUiAction("0", HighlightLevel.Neutral, CalculatorAction.Number(0)),
-    CalculatorUiAction(".", HighlightLevel.Neutral, CalculatorAction.Decimal),
-    CalculatorUiAction(
-        text = null,
-        content = {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        },
-        highlightLevel = HighlightLevel.Neutral,
-        action = CalculatorAction.Delete,
-    ),
-    CalculatorUiAction("=", HighlightLevel.StronglyHighlighted, CalculatorAction.Calculate),
-)
-
