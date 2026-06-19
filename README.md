@@ -198,3 +198,10 @@ Work happens on `feature/<name>` branches off `development`. `master` is product
 ## Author
 
 Built by [Hussain Gaddal](https://github.com/IronManYG).
+
+## License
+
+Sifr is source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
+You're welcome to read, learn from, and build on the code for noncommercial purposes;
+commercial use — including redistributing it or publishing a derivative on an app
+store — is not permitted. For a commercial license, contact the author.
