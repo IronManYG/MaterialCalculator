@@ -1,0 +1,25 @@
+/* Sifr — brand tokens (generated) */
+
+:root {
+  --color-bg: linear-gradient(160deg, #101A2E 0%, #070A12 100%);
+  --color-fg: #EDF1F7;
+  --color-accent: #5CE8D4;
+  --color-muted: #5A6478;
+  --color-brand-dark: #03201B;
+}
+
+[data-theme="layl-light"] {
+  --color-bg: linear-gradient(160deg, #EDF4F9 0%, #DCE7F1 100%);
+  --color-fg: #16202E;
+  --color-accent: #0E9C8C;
+  --color-muted: #6A7689;
+  --color-brand-dark: #03201B;
+}
+
+[data-theme="farah"] {
+  --color-bg: linear-gradient(160deg, #FFF4E4 0%, #FBE6CC 100%);
+  --color-fg: #4A3326;
+  --color-accent: #F2683C;
+  --color-muted: #B08A62;
+  --color-brand-dark: #FFF6EC;
+}
