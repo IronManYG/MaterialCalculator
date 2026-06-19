@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sifr</string>
+    <string name="app_name">Sifr Calculator</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
