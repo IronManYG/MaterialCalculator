@@ -34,3 +34,8 @@ pulsar-tree.json
 # CLAUDE.md, README.md) live at the repo root or in source. Already-tracked
 # files under docs/ stay tracked; new files won't be auto-staged.
 /docs/
+
+# Play upload staging — flat, drag-ready copies of assets already committed under
+# screenshots/v2.0/. Regenerable (see screenshots/play-upload/README.md); kept out
+# of git so 19MB of duplicate PNGs don't bloat the repo.
+/screenshots/play-upload/
